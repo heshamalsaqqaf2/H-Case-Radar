@@ -1,0 +1,103 @@
+"use client";
+
+import { Loader2, LogOut, Settings, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { authClient } from "@/lib/Authentication/auth-client";
+import { useCurrentUser } from "@/lib/hooks/use-auth";
+
+export function AdminNavbar() {
+  const { data: user } = useCurrentUser();
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const displayUser = {
+        Id: user?.id.slice(0, 6),
+        Name: user?.name,
+        Email: user?.email,
+        Data:
+          new Date().getDate() +
+          "/" +
+          new Date().getUTCMonth() +
+          "/" +
+          new Date().getFullYear(),
+      };
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            toast.success("Successfully logged out", {
+              description: (
+                <pre>
+                  <code>{JSON.stringify(displayUser, null, 2)}</code>
+                </pre>
+              ),
+            });
+            setTimeout(() => {
+              router.push("/sign-in");
+            }, 3000);
+          },
+          onError: (ctx) => {
+            toast.error("خطأ لم يتم تسجيل الخروج", {
+              description: (
+                <div>
+                  <p>انتهت الجلسة, يرجى تسجيل الدخول.</p>
+                  <span>{ctx.error.message}</span>
+                </div>
+              ),
+            });
+          },
+        },
+      });
+    } catch (error) {
+      toast.error("حدث خطأ غير متوقع", {
+        description: `${error} | UNKNOWN ERROR.`,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <nav className="border-b border-gray-200 px-6 py-4">
+      <div className="flex justify-between items-center">
+        <div className="flex items-center space-x-4">
+          <h1 className="text-xl font-semibold">Admin Dashboard</h1>
+        </div>
+
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 text-sm">
+            <User className="h-4 w-4" />
+            <span>{user?.name}</span>
+            <span className="">({user?.email})</span>
+          </div>
+
+          <Button variant="outline" size="sm">
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
+          </Button>
+
+          <Button
+            className="cursor-pointer"
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Logout"
+            )}
+          </Button>
+        </div>
+      </div>
+    </nav>
+  );
+}
