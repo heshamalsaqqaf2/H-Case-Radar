@@ -1,3 +1,4 @@
+// lib/actions/role-actions.ts
 "use server";
 
 import { and, count, eq, sql } from "drizzle-orm";
@@ -266,8 +267,7 @@ export async function assignPermissionsToRole(
   }
 }
 
-// TODO:(محسن)
-//  تجميع جميع الاستعلامات في استعلام واحد للحصول على بيانات الدور
+// TODO:(محسن) تجميع جميع الاستعلامات في استعلام واحد للحصول على بيانات الدور
 export async function getRoleProfileData(roleId: string) {
   try {
     // استعلام واحد يجلب كل البيانات المطلوبة
@@ -359,7 +359,7 @@ export async function getRoleProfileData(roleId: string) {
   }
 }
 
-// ! TODO: old ***********************************************************
+// ! old هذا الجزء لا ادري هل هو ضروري اما انه تم استبداله بالدالة المحسنة السابقة
 // الحصول على دور مع صلاحياته
 export async function getRoleWithPermissions(roleId: string) {
   try {
@@ -502,4 +502,3 @@ export async function getRoleActivity(roleId: string) {
     return [];
   }
 }
-// ! TODO: ***********************************************************

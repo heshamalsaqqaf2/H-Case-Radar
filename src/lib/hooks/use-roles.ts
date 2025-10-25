@@ -1,3 +1,4 @@
+// lib/hooks/use-roles.ts
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -110,7 +111,6 @@ export function useAssignPermissions() {
   });
 }
 
-// Hook للحصول على دور مع صلاحياته
 export function useRoleWithPermissions(roleId: string) {
   return useQuery({
     queryKey: ["role", roleId],

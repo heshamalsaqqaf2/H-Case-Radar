@@ -1,11 +1,11 @@
 "use client";
 
-import { HeroSection } from "@/components/home/Hero-section";
+import { LandingPage } from "./home/landing-page";
 
 export default function HomePage() {
   return (
-    <div className="">
-      <HeroSection />
+    <div className="min-h-screen">
+      <LandingPage />
     </div>
   );
 }

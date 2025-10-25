@@ -1,8 +1,9 @@
 import { ArrowDownRight, Star } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { MagicCard } from "@/components/ui/magic-ui/magic-card";
+import { AnimatedTooltipPreview } from "./animated-tooltip";
+import { FollowingPointerDemo } from "./following-pointer-demo";
 
 interface HeroSectionProps {
   heading?: string;
@@ -28,8 +29,8 @@ interface HeroSectionProps {
 }
 
 const HeroSection = ({
-  heading = "Blocks built with Shadcn & Tailwind",
-  description = "Finely crafted components built with React, Tailwind and Shadcn UI. Developers can copy and paste these blocks directly into their project.",
+  heading = "H-Case Radar Solution & Manage",
+  description = "منصة تابعة لوزارة الصحة في المملكة العربية السعودية في منطقة حائل, تهدف لمساعدة المستفيدين في حلقة الحوادث الطبية والطبيعية والإصابات الطبية.",
 
   buttons = {
     primary: {
@@ -71,23 +72,24 @@ const HeroSection = ({
   return (
     <section>
       <div className="container grid items-center gap-10 lg:grid-cols-2 lg:gap-20">
-        <div className="mx-auto flex flex-col items-center text-center md:ml-auto lg:max-w-3xl lg:items-start lg:text-left">
-          <h1 className="my-6 text-pretty text-4xl font-bold lg:text-6xl xl:text-7xl">
+        <div className="mx-auto flex flex-col items-center text-center md:ml-auto lg:max-w-4xl lg:items-start lg:text-left">
+          <h1 className="my-6 text-pretty text-4xl font-bold lg:text-5xl xl:text-6xl">
             {heading}
           </h1>
           <p className="text-muted-foreground mb-8 max-w-xl lg:text-xl">
             {description}
           </p>
-          <div className="mb-12 flex w-fit flex-col items-center gap-4 sm:flex-row">
+          <div className="mb-12 flex w-fit flex-col gap-10 sm:flex-row">
             <span className="inline-flex items-center -space-x-4">
-              {reviews.avatars.map((avatar, index) => (
+              {/* {reviews.avatars.map((avatar, index) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                 <Avatar key={index} className="size-12 border">
                   <AvatarImage src={avatar.src} alt={avatar.alt} />
                 </Avatar>
-              ))}
+              ))} */}
+              <AnimatedTooltipPreview />
             </span>
-            <div>
+            <div className="mt-1">
               <div className="flex items-center gap-1">
                 {[...Array(5)].map((_, index) => (
                   <Star
@@ -121,14 +123,8 @@ const HeroSection = ({
             )}
           </div>
         </div>
-        <div className="flex">
-          <Image
-            width={600}
-            height={600}
-            src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-1.svg"
-            alt="placeholder hero"
-            className="max-h-[600px] w-full rounded-md object-cover lg:max-h-[800px]"
-          />
+        <div className="">
+          <FollowingPointerDemo />
         </div>
       </div>
     </section>

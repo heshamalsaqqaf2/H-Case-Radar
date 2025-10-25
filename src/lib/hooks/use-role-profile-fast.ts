@@ -1,3 +1,4 @@
+// lib/hooks/use-role-profile-fast.ts
 "use client";
 
 import { useQuery } from "@tanstack/react-query";

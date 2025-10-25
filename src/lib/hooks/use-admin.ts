@@ -1,3 +1,4 @@
+// lib/hooks/use-admin.ts
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";

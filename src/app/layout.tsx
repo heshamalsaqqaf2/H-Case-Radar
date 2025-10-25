@@ -1,26 +1,32 @@
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
-import Providers from "@/components/providers/providers";
+import { headers } from "next/headers";
+import { AppProvider } from "@/components/providers/app-provider";
+import { Providers } from "@/components/providers/providers";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-// import { autoSeedIfNeeded } from "@/lib/seed/auto-seed";
 
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // في بيئة التطوير، يمكن تشغيل التهيئة التلقائية
-  // if (process.env.NODE_ENV === "development") {
-  //   await autoSeedIfNeeded();
-  // }
+  const headersList = await headers();
+  const direction = (headersList.get("x-direction") || "ltr") as "ltr" | "rtl";
+  const isFirstVisit = headersList.get("x-is-first-visit") === "true";
+
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning>
-      <body>
-        <ThemeProvider attribute="light" defaultTheme="dark" enableSystem>
+    <html lang="en" suppressHydrationWarning>
+      <body className="antialiased">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <Providers>
-            <Toaster richColors theme="light" position="bottom-right" />
-            {children}
+            <AppProvider
+              initialDirection={direction}
+              isFirstVisit={isFirstVisit}
+            >
+              {children}
+            </AppProvider>
           </Providers>
+          <Toaster richColors theme="light" position="bottom-right" />
         </ThemeProvider>
       </body>
     </html>

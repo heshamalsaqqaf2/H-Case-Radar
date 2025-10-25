@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "motion/react";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const TextHoverEffect = ({
   text,
@@ -20,22 +20,12 @@ export const TextHoverEffect = ({
       const svgRect = svgRef.current.getBoundingClientRect();
       const cxPercentage = ((cursor.x - svgRect.left) / svgRect.width) * 100;
       const cyPercentage = ((cursor.y - svgRect.top) / svgRect.height) * 100;
-
-      // تحقق إذا كانت القيم الجديدة مختلفة بشكل كبير عن القيم الحالية
-      const currentCx = parseFloat(maskPosition.cx);
-      const currentCy = parseFloat(maskPosition.cy);
-
-      if (
-        Math.abs(currentCx - cxPercentage) > 1 ||
-        Math.abs(currentCy - cyPercentage) > 1
-      ) {
-        setMaskPosition({
-          cx: `${cxPercentage}%`,
-          cy: `${cyPercentage}%`,
-        });
-      }
+      setMaskPosition({
+        cx: `${cxPercentage}%`,
+        cy: `${cyPercentage}%`,
+      });
     }
-  }, [cursor, maskPosition.cx, maskPosition.cy]);
+  }, [cursor]);
 
   return (
     <svg
@@ -76,6 +66,14 @@ export const TextHoverEffect = ({
           initial={{ cx: "50%", cy: "50%" }}
           animate={maskPosition}
           transition={{ duration: duration ?? 0, ease: "easeOut" }}
+
+          // example for a smoother animation below
+
+          //   transition={{
+          //     type: "spring",
+          //     stiffness: 300,
+          //     damping: 50,
+          //   }}
         >
           <stop offset="0%" stopColor="white" />
           <stop offset="100%" stopColor="black" />
