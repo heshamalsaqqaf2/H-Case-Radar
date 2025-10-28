@@ -1,8 +1,11 @@
 // lib/hooks/use-auth.ts
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getCurrentUser, getUserPermissions } from "@/lib/actions/auth-actions";
+import { useQuery } from "@tanstack/react-query";
+import {
+  getCurrentUser,
+  getUserPermissions,
+} from "@/lib/authorization/actions/auth-actions";
 
 export function useCurrentUser() {
   return useQuery({

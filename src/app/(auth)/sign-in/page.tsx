@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { MagicCard } from "@/components/ui/magic-ui/magic-card";
-import { authClient } from "@/lib/Authentication/auth-client";
+import { authClient } from "@/lib/authentication/auth-client";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -35,7 +35,7 @@ export default function SignInPage() {
             });
             setTimeout(() => {
               // router.push("/admin");
-              window.location.href = "/admin";
+              window.location.href = "/";
             }, 2000);
           },
           onError: (ctx) => {

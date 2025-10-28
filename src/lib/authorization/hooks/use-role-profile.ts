@@ -1,11 +1,10 @@
-// lib/hooks/use-role-profile-fast.ts
+// lib/hooks/use-role-profile.ts
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { RolePermission } from "@/lib/actions/role-actions"; // استيراد النوع
-import { getRoleProfileData } from "@/lib/actions/role-actions";
+import type { RolePermission } from "@/lib/authorization/actions/role-actions";
+import { getRoleProfileData } from "@/lib/authorization/actions/role-actions";
 
-// تحديث نوع البيانات المرجعة
 interface RoleProfileData {
   role: {
     id: string;
@@ -36,14 +35,14 @@ interface RoleProfileData {
   }>;
 }
 
-export function useRoleProfileFast(roleId: string) {
+export function useRoleProfile(roleId: string) {
   return useQuery({
     queryKey: ["roleProfile", roleId],
     queryFn: () =>
       getRoleProfileData(roleId) as Promise<RoleProfileData | null>,
     enabled: !!roleId,
-    staleTime: 30 * 1000,
-    gcTime: 2 * 60 * 1000,
+    staleTime: 30 * 1000, // 30 ثانية
+    gcTime: 2 * 60 * 1000, // 2 دقيقة
     retry: 1,
   });
 }

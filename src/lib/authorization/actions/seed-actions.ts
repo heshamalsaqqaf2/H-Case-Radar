@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { databaseSeeder } from "../seed/initial-data";
+import { databaseSeeder } from "../../seed/initial-data";
 
 export async function seedDatabase() {
   try {

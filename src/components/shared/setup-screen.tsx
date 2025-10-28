@@ -11,7 +11,7 @@ interface SetupScreenProps {
 export function SetupScreen({ onSetupComplete }: SetupScreenProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
-      // استدعاء Server Action بدلاً من الدالة العادية
+      // استدعاء Server Action بدلا من الدالة العادية
       completeSetup();
     }, 2500);
     return () => clearTimeout(timer);
@@ -26,7 +26,6 @@ export function SetupScreen({ onSetupComplete }: SetupScreenProps) {
         transition={{ duration: 0.5, ease: "easeInOut" }}
         className="fixed inset-0 z-50 flex items-center justify-center bg-black"
       >
-        {/* ... باقي كود الواجهة ... */}
         <div className="text-center">
           <motion.div
             animate={{ rotate: 360 }}

@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useRoleActivity } from "@/lib/hooks/use-role-profile";
+import { useRoleProfile } from "@/lib/authorization/hooks/use-role-profile";
 
 // تحديث الـ interface
 interface RoleActivityProps {
@@ -27,16 +27,16 @@ interface RoleActivityProps {
 }
 
 export function RoleActivity({ roleId, initialActivity }: RoleActivityProps) {
-  const { data: activities, isLoading } = useRoleActivity(roleId);
+  const { data: roleActivities, isLoading } = useRoleProfile(roleId);
   const [displayActivities, setDisplayActivities] = useState(
     initialActivity || [],
   );
 
   useEffect(() => {
-    if (activities && activities.length > 0) {
-      setDisplayActivities(activities);
+    if (roleActivities && roleActivities.activity.length > 0) {
+      setDisplayActivities(roleActivities.activity);
     }
-  }, [activities]);
+  }, [roleActivities]);
 
   const getActivityIcon = (type: string) => {
     switch (type) {

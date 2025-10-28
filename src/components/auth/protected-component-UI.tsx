@@ -29,7 +29,10 @@ import {
   Zap,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useCurrentUser, useUserPermissions } from "@/lib/hooks/use-auth";
+import {
+  useCurrentUser,
+  useUserPermissions,
+} from "@/lib/authorization/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Badge } from "../ui/badge";

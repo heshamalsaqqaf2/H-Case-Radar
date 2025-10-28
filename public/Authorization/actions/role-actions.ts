@@ -2,7 +2,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getCurrentUser } from "@/lib/Authentication/session";
+import { getCurrentUser } from "@/lib/authentication/session";
 import { getAccessControl } from "../core/access-control";
 import type { Role } from "../core/types";
 import { DrizzleRoleRepository } from "../rbac/drizzle-role-repository";

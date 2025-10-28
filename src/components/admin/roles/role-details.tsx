@@ -3,14 +3,14 @@
 import { Key, Loader2, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useRoleWithPermissions } from "@/lib/hooks/use-roles";
+import { useRoleProfile } from "@/lib/authorization/hooks/use-role-profile";
 
 interface RoleDetailsProps {
   roleId: string;
 }
 
 export function RoleDetails({ roleId }: RoleDetailsProps) {
-  const { data: role, isLoading, error } = useRoleWithPermissions(roleId);
+  const { data: roleData, isLoading, error } = useRoleProfile(roleId);
 
   if (isLoading) {
     return (
@@ -24,7 +24,7 @@ export function RoleDetails({ roleId }: RoleDetailsProps) {
     );
   }
 
-  if (error || !role) {
+  if (error || !roleData) {
     return (
       <Card>
         <CardContent className="p-6">
@@ -41,21 +41,21 @@ export function RoleDetails({ roleId }: RoleDetailsProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Shield className="h-5 w-5" />
-          Role Details: {role.name}
+          Role Details: {roleData.role.name}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
           <h4 className="font-medium mb-2">Description</h4>
-          <p className="text-gray-600">{role.description}</p>
+          <p className="text-gray-600">{roleData.role.description}</p>
         </div>
 
         <div>
           <h4 className="font-medium mb-2">
-            Permissions ({role.permissions.length})
+            Permissions ({roleData.permissions.length})
           </h4>
           <div className="flex flex-wrap gap-2">
-            {role.permissions.map((perm) => (
+            {roleData.permissions.map((perm) => (
               <Badge
                 key={perm.permissionId}
                 variant="secondary"
@@ -71,12 +71,14 @@ export function RoleDetails({ roleId }: RoleDetailsProps) {
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span className="font-medium">Default Role:</span>
-            <span className="ml-2">{role.isDefault ? "Yes" : "No"}</span>
+            <span className="ml-2">
+              {roleData.role.isDefault ? "Yes" : "No"}
+            </span>
           </div>
           <div>
             <span className="font-medium">Created:</span>
             <span className="ml-2">
-              {new Date(role.createdAt).toLocaleDateString()}
+              {new Date(roleData.role.createdAt).toLocaleDateString()}
             </span>
           </div>
         </div>

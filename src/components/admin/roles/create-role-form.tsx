@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateRole } from "@/lib/hooks/use-roles";
+import { useCreateRole } from "@/lib/authorization/hooks/use-roles";
 
 // إصلاح schema - جعل isDefault مطلوبة
 const formSchema = z.object({
@@ -79,19 +79,21 @@ export function CreateRoleForm({ onSuccess }: { onSuccess?: () => void }) {
 
   if (!isOpen) {
     return (
-      <Button onClick={() => setIsOpen(true)} className="gap-2">
-        <Plus className="h-4 w-4" />
-        Create New Role
-      </Button>
+      <div className="flex flex-row-reverse">
+        <Button onClick={() => setIsOpen(true)} className="gap-2">
+          <Plus className="h-4 w-4" />
+          إنشاء دور جديد
+        </Button>
+      </div>
     );
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create New Role</CardTitle>
+        <CardTitle>إنشاء دور جديد</CardTitle>
         <CardDescription>
-          Add a new role to your system. Roles define sets of permissions.
+          إضافة دور جديد إلى النظام, وتعيين صلاحيات لهذا الدور.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -102,13 +104,12 @@ export function CreateRoleForm({ onSuccess }: { onSuccess?: () => void }) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Role Name</FormLabel>
+                  <FormLabel>اسم الدور</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., content_manager" {...field} />
+                    <Input placeholder="e.g. content_manager" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Unique identifier for the role. Use lowercase with
-                    underscores.
+                    معرف فريد للدور. استخدم الأحرف الصغيرة مع علامات التسطير.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -120,15 +121,15 @@ export function CreateRoleForm({ onSuccess }: { onSuccess?: () => void }) {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>وصف الدور</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Describe what this role can do..."
+                      placeholder="صف ما يمكن أن يفعله هذا الدور..."
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    Brief description of the role's purpose and permissions.
+                    وصف موجز لغرض الدور والأذونات.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -147,9 +148,9 @@ export function CreateRoleForm({ onSuccess }: { onSuccess?: () => void }) {
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>Default Role</FormLabel>
+                    <FormLabel>دور إفتراضي</FormLabel>
                     <FormDescription>
-                      Assign this role to new users automatically
+                      تعيين هذا الدور للمستخدمين الجدد تلقائيًا
                     </FormDescription>
                   </div>
                 </FormItem>
@@ -165,7 +166,7 @@ export function CreateRoleForm({ onSuccess }: { onSuccess?: () => void }) {
                 {createRoleMutation.isPending && (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 )}
-                Create Role
+                إنشاء الدور
               </Button>
 
               <Button
@@ -174,7 +175,7 @@ export function CreateRoleForm({ onSuccess }: { onSuccess?: () => void }) {
                 onClick={() => setIsOpen(false)}
                 disabled={createRoleMutation.isPending}
               >
-                Cancel
+                إلغاء
               </Button>
             </div>
           </form>

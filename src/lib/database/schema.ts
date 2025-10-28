@@ -71,7 +71,7 @@ export const verification = pgTable("verification", {
     .notNull(),
 });
 
-// نظام الصلاحيات (منفصل تمامًا)
+//  جداول نظام الصلاحيات (منفصل تمامًا)
 export const permission = pgTable("permission", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull().unique(),

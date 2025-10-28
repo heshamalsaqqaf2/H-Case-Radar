@@ -14,18 +14,18 @@ import { QuickLoading } from "@/components/quick-loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useRoleProfileFast } from "@/lib/hooks/use-role-profile-fast";
+import { useRoleProfile } from "@/lib/authorization/hooks/use-role-profile";
 
 interface RoleHeaderFastProps {
   roleId: string;
 }
 
-export function RoleHeaderFast({ roleId }: RoleHeaderFastProps) {
+export function RoleHeader({ roleId }: RoleHeaderFastProps) {
   const {
     data: profileData,
     isLoading,
     isFetching,
-  } = useRoleProfileFast(roleId);
+  } = useRoleProfile(roleId);
 
   // عرض التحميل فقط إذا لم تكن هناك بيانات
   if (isLoading && !profileData) {

@@ -31,6 +31,50 @@ export class DatabaseSeeder {
       resource: "admin",
       action: "read",
     },
+    {
+      name: "admin.dashboard.edit",
+      description: "Edit admin dashboard",
+      resource: "admin",
+      action: "update",
+    },
+    {
+      name: "admin.settings.view",
+      description: "View admin settings",
+      resource: "admin",
+      action: "read",
+    },
+    {
+      name: "admin.settings.edit",
+      description: "Edit admin settings",
+      resource: "admin",
+      action: "update",
+    },
+
+    // صلاحيات إدارة الصلاحيات
+    {
+      name: "permission.view",
+      description: "View permissions list",
+      resource: "permission",
+      action: "read",
+    },
+    {
+      name: "permission.create",
+      description: "Create new permissions",
+      resource: "permission",
+      action: "create",
+    },
+    {
+      name: "permission.edit",
+      description: "Edit permissions",
+      resource: "permission",
+      action: "update",
+    },
+    {
+      name: "permission.delete",
+      description: "Delete permissions",
+      resource: "permission",
+      action: "delete",
+    },
     // صلاحيات إدارة المستخدمين
     {
       name: "user.view",
@@ -116,14 +160,25 @@ export class DatabaseSeeder {
       permissions: [
         "system.access",
         "admin.dashboard.view",
+        "admin.dashboard.edit",
+        "admin.settings.view",
+        "admin.settings.edit",
+
         "user.view",
         "user.create",
         "user.edit",
         "user.delete",
+
         "role.view",
         "role.create",
         "role.edit",
         "role.delete",
+
+        "permission.view",
+        "permission.create",
+        "permission.edit",
+        "permission.delete",
+
         "post.view",
         "post.create",
         "post.edit",
@@ -138,26 +193,15 @@ export class DatabaseSeeder {
         "system.access",
         "admin.dashboard.view",
         "user.view",
-        "user.create",
-        "user.edit",
         "role.view",
         "post.view",
-        "post.create",
-        "post.edit",
-        "post.delete",
       ],
     },
     {
       name: "user",
       description: "Regular user",
       isDefault: true,
-      permissions: [
-        "system.access",
-        "post.view",
-        "post.create",
-        "post.edit",
-        "post.delete",
-      ],
+      permissions: ["system.access"],
     },
   ];
 

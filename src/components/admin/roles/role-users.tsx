@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, Mail, Plus, User, Users, Zap } from "lucide-react";
+import { Mail, Plus, User, Users, Zap } from "lucide-react";
 import Link from "next/link";
 import { TableRowLoading } from "@/components/quick-loading";
 import { Badge } from "@/components/ui/badge";
@@ -20,18 +20,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useRoleProfileFast } from "@/lib/hooks/use-role-profile-fast";
+import { useRoleProfile } from "@/lib/authorization/hooks/use-role-profile";
 
 interface RoleUsersFastProps {
   roleId: string;
 }
 
-export function RoleUsersFast({ roleId }: RoleUsersFastProps) {
-  const {
-    data: profileData,
-    isLoading,
-    isFetching,
-  } = useRoleProfileFast(roleId);
+export function RoleUsers({ roleId }: RoleUsersFastProps) {
+  const { data: profileData, isLoading, isFetching } = useRoleProfile(roleId);
 
   const users = profileData?.users || [];
 

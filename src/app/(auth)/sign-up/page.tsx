@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MagicCard } from "@/components/ui/magic-ui/magic-card";
-import { authClient } from "@/lib/Authentication/auth-client";
+import { authClient } from "@/lib/authentication/auth-client";
 
 export default function SignUp() {
   const [name, setName] = useState("");

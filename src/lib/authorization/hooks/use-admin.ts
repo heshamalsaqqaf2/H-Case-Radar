@@ -8,7 +8,7 @@ import {
   getAllRoles,
   getUsersWithRoles,
   removeRoleFromUser,
-} from "@/lib/actions/admin-actions";
+} from "@/lib/authorization/actions/admin-actions";
 
 export function useRoles() {
   return useQuery({
@@ -37,7 +37,6 @@ export function useUsersWithRoles() {
 
 export function useAssignRole() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: ({ userId, roleId }: { userId: string; roleId: string }) =>
       assignRoleToUser(userId, roleId),
@@ -52,7 +51,6 @@ export function useAssignRole() {
 
 export function useRemoveRole() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: ({ userId, roleId }: { userId: string; roleId: string }) =>
       removeRoleFromUser(userId, roleId),

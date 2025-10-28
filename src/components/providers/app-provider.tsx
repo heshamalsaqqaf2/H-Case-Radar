@@ -6,7 +6,7 @@ import { SetupScreen } from "@/components/shared/setup-screen";
 interface AppProviderProps {
   children: React.ReactNode;
   initialDirection: "ltr" | "rtl";
-  isFirstVisit: boolean; // <-- سنستقبل هذه القيمة من الخادم
+  isFirstVisit: boolean; // <-- إستقبل هذه القيمة من الخادم
 }
 
 export function AppProvider({
@@ -23,7 +23,7 @@ export function AppProvider({
 
   const handleSetupComplete = () => {
     console.log("Setup finished on client. Hiding screen.");
-    // لم نعد نضع الكوكيز هنا، سنفعل ذلك عبر Server Action
+    //  استدعاء Server Action
     setIsSettingUp(false);
   };
 

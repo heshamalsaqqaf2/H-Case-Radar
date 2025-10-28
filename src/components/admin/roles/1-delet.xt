@@ -1,0 +1,1172 @@
+// "use client";
+
+// import { zodResolver } from "@hookform/resolvers/zod";
+// import { ArrowLeft, Info, Loader2, Shield } from "lucide-react";
+// import Link from "next/link";
+// import { useForm } from "react-hook-form";
+// import { z } from "zod";
+// import { Button } from "@/components/ui/button";
+// import {
+//   Card,
+//   CardContent,
+//   CardDescription,
+//   CardHeader,
+//   CardTitle,
+// } from "@/components/ui/card";
+// import { Checkbox } from "@/components/ui/checkbox";
+// import {
+//   Form,
+//   FormControl,
+//   FormDescription,
+//   FormField,
+//   FormItem,
+//   FormLabel,
+//   FormMessage,
+// } from "@/components/ui/form";
+// import { Input } from "@/components/ui/input";
+// import { Textarea } from "@/components/ui/textarea";
+// import { authClient } from "@/lib/authentication/auth-client";
+// import type { RolePermission } from "@/lib/authorization/actions/role-actions";
+// import { useUpdateRole } from "@/lib/authorization/hooks/use-roles"; // تأكد من المسار الصحيح
+// import { RolePermissionsManager } from "./role-permissions-manager";
+
+// const formSchema = z.object({
+//   name: z
+//     .string()
+//     .min(2, "Name must be at least 2 characters")
+//     .max(50, "Name must be less than 50 characters")
+//     .regex(
+//       /^[a-zA-Z0-9_]+$/,
+//       "Name can only contain letters, numbers and underscores",
+//     ),
+//   description: z
+//     .string()
+//     .min(5, "Description must be at least 5 characters")
+//     .max(200, "Description must be less than 200 characters"),
+//   isDefault: z.boolean(),
+// });
+
+// type FormValues = z.infer<typeof formSchema>;
+
+// // تعريف الـ interface بشكل صحيح
+// interface EditRoleFormProps {
+//   role: {
+//     id: string;
+//     name: string;
+//     description: string | null;
+//     isDefault: boolean | null;
+//     createdAt: Date;
+//     updatedAt: Date;
+//   };
+//   permissions: RolePermission[];
+// }
+
+// export function EditRoleForm({ role, permissions }: EditRoleFormProps) {
+//   const updateRoleMutation = useUpdateRole();
+//   const { data: session, isPending, error } = authClient.useSession();
+
+//   const form = useForm<FormValues>({
+//     resolver: zodResolver(formSchema),
+//     defaultValues: {
+//       name: role.name,
+//       description: role.description || "",
+//       isDefault: role.isDefault || false,
+//     },
+//   });
+//   if (!session) return null;
+//   if (isPending) return <Loader2 className="animate-spin" />;
+//   if (error) return <div>{error.message}</div>;
+
+//   const onSubmit = async (data: FormValues) => {
+//     const formData = new FormData();
+//     formData.append("id", role.id);
+//     formData.append("name", data.name);
+//     formData.append("description", data.description);
+//     formData.append("isDefault", data.isDefault ? "true" : "false");
+
+//     await updateRoleMutation.mutateAsync(formData);
+//   };
+
+//   return (
+//     <div className="space-y-6">
+//       {/* Header */}
+//       <div className="flex items-center gap-4">
+//         <Link href="/admin/roles">
+//           <Button variant="outline" size="icon">
+//             <ArrowLeft className="h-4 w-4" />
+//           </Button>
+//         </Link>
+//         <div>
+//           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+//             <Shield className="h-8 w-8 text-blue-500" />
+//             Edit Role: {role.name}
+//           </h1>
+//           <p className="text-gray-600 mt-1">
+//             Modify role details and permissions
+//           </p>
+//         </div>
+//       </div>
+
+//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+//         {/* Role Details Form */}
+//         <Card className="lg:col-span-1">
+//           <CardHeader>
+//             <CardTitle>Role Details</CardTitle>
+//             <CardDescription>
+//               Update the basic information for this role
+//             </CardDescription>
+//           </CardHeader>
+//           <CardContent>
+//             <Form {...form}>
+//               <form
+//                 onSubmit={form.handleSubmit(onSubmit)}
+//                 className="space-y-6"
+//               >
+//                 <FormField
+//                   control={form.control}
+//                   name="name"
+//                   render={({ field }) => (
+//                     <FormItem>
+//                       <FormLabel>Role Name</FormLabel>
+//                       <FormControl>
+//                         <Input placeholder="e.g., content_manager" {...field} />
+//                       </FormControl>
+//                       <FormDescription className="text-red-400">
+//                         <p className="flex items-center gap-1">
+//                           <Info className="h-4 w-4 text-red-600" />
+//                           Note: This role&apos;s name must be unique on the
+//                           system
+//                         </p>
+//                       </FormDescription>
+//                       <FormMessage />
+//                     </FormItem>
+//                   )}
+//                 />
+
+//                 <FormField
+//                   control={form.control}
+//                   name="description"
+//                   render={({ field }) => (
+//                     <FormItem>
+//                       <FormLabel>Description</FormLabel>
+//                       <FormControl>
+//                         <Textarea
+//                           placeholder="Describe what this role can do..."
+//                           {...field}
+//                         />
+//                       </FormControl>
+//                       <FormDescription>
+//                         Brief description of the role's purpose
+//                       </FormDescription>
+//                       <FormMessage />
+//                     </FormItem>
+//                   )}
+//                 />
+
+//                 <FormField
+//                   control={form.control}
+//                   name="isDefault"
+//                   render={({ field }) => (
+//                     <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+//                       <FormControl>
+//                         <Checkbox
+//                           checked={field.value}
+//                           onCheckedChange={field.onChange}
+//                         />
+//                       </FormControl>
+//                       <div className="space-y-1 leading-none">
+//                         <FormLabel>Default Role</FormLabel>
+//                         <FormDescription>
+//                           Assign this role to new users automatically
+//                         </FormDescription>
+//                       </div>
+//                     </FormItem>
+//                   )}
+//                 />
+
+//                 <Button
+//                   type="submit"
+//                   disabled={updateRoleMutation.isPending}
+//                   className="gap-2"
+//                 >
+//                   {updateRoleMutation.isPending && (
+//                     <Loader2 className="h-4 w-4 animate-spin" />
+//                   )}
+//                   Update Role
+//                 </Button>
+//               </form>
+//             </Form>
+//           </CardContent>
+//         </Card>
+
+//         {/* Permissions Manager */}
+//         <div className="lg:col-span-1 space-y-6">
+//           <RolePermissionsManager
+//             role={{ id: role.id, name: role.name }}
+//             initialPermissions={permissions}
+//           />
+//           {/* Role Information */}
+//           <Card>
+//             <CardHeader>
+//               <CardTitle className="text-sm">Role Information</CardTitle>
+//             </CardHeader>
+//             <CardContent className="space-y-3 grid grid-cols-2 gap-x-2 text-sm">
+//               <div>
+//                 <span className="font-medium">Created By:</span>
+//                 <p className="text-gray-600">{session.user.name}</p>
+//               </div>
+//               <div>
+//                 <span className="font-medium">Name:</span>
+//                 <p className="text-gray-600 font-mono text-xs">{role.name}</p>
+//               </div>
+//               <div>
+//                 <span className="font-medium">Created At:</span>
+//                 <p className="text-gray-600">
+//                   {new Date(role.createdAt).toLocaleDateString()}
+//                 </p>
+//               </div>
+//               <div>
+//                 <span className="font-medium">Last Updated:</span>
+//                 <p className="text-gray-600">
+//                   {new Date(role.updatedAt).toLocaleDateString()}
+//                 </p>
+//               </div>
+//               <div>
+//                 <span className="font-medium">ID:</span>
+//                 <p className="text-gray-600 font-mono text-xs">
+//                   {role.id.split("-")[0]}
+//                 </p>
+//               </div>
+//             </CardContent>
+//           </Card>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+// ****************************************************
+
+
+// "use client";
+
+// import { zodResolver } from "@hookform/resolvers/zod";
+// import {
+//   AlertCircle,
+//   ArrowLeft,
+//   Calendar,
+//   CheckCircle,
+//   Clock,
+//   Crown,
+//   Eye,
+//   EyeOff,
+//   Hash,
+//   Info,
+//   Key,
+//   Loader2,
+//   Lock,
+//   Save,
+//   Shield,
+//   Sparkles,
+//   Users,
+//   Zap,
+// } from "lucide-react";
+// import Link from "next/link";
+// import { useEffect, useState } from "react";
+// import { useForm } from "react-hook-form";
+// import { z } from "zod";
+// import { Button } from "@/components/ui/button";
+// import {
+//   Card,
+//   CardContent,
+//   CardDescription,
+//   CardHeader,
+//   CardTitle,
+// } from "@/components/ui/card";
+// import { Checkbox } from "@/components/ui/checkbox";
+// import {
+//   Form,
+//   FormControl,
+//   FormDescription,
+//   FormField,
+//   FormItem,
+//   FormLabel,
+//   FormMessage,
+// } from "@/components/ui/form";
+// import { Input } from "@/components/ui/input";
+// import { Textarea } from "@/components/ui/textarea";
+// import { authClient } from "@/lib/authentication/auth-client";
+// import type { RolePermission } from "@/lib/authorization/actions/role-actions";
+// import { useUpdateRole } from "@/lib/authorization/hooks/use-roles";
+// import { cn } from "@/lib/utils";
+// import { RolePermissionsManager } from "./role-permissions-manager";
+
+// const formSchema = z.object({
+//   name: z
+//     .string()
+//     .min(2, "الاسم يجب أن يحتوي على حرفين على الأقل")
+//     .max(50, "الاسم يجب أن يكون أقل من 50 حرفًا")
+//     .regex(
+//       /^[a-zA-Z0-9_]+$/,
+//       "الاسم يمكن أن يحتوي فقط على أحرف وأرقام وشرطات سفلية",
+//     ),
+//   description: z
+//     .string()
+//     .min(5, "الوصف يجب أن يحتوي على 5 أحرف على الأقل")
+//     .max(200, "الوصف يجب أن يكون أقل من 200 حرف"),
+//   isDefault: z.boolean(),
+// });
+
+// type FormValues = z.infer<typeof formSchema>;
+
+// interface EditRoleFormProps {
+//   role: {
+//     id: string;
+//     name: string;
+//     description: string | null;
+//     isDefault: boolean | null;
+//     createdAt: Date;
+//     updatedAt: Date;
+//   };
+//   permissions: RolePermission[];
+// }
+
+// export function EditRoleForm({ role, permissions }: EditRoleFormProps) {
+//   const updateRoleMutation = useUpdateRole();
+//   const { data: session, isPending, error } = authClient.useSession();
+//   const [showApiKey, setShowApiKey] = useState(false);
+//   const [activeTab, setActiveTab] = useState<"details" | "permissions">(
+//     "details",
+//   );
+//   const [isSaved, setIsSaved] = useState(false);
+//   const [isAnimating, setIsAnimating] = useState(false);
+
+//   const form = useForm<FormValues>({
+//     resolver: zodResolver(formSchema),
+//     defaultValues: {
+//       name: role.name,
+//       description: role.description || "",
+//       isDefault: role.isDefault || false,
+//     },
+//   });
+
+//   useEffect(() => {
+//     if (isSaved) {
+//       const timer = setTimeout(() => setIsSaved(false), 3000);
+//       return () => clearTimeout(timer);
+//     }
+//   }, [isSaved]);
+
+//   if (!session) return null;
+
+//   if (isPending)
+//     return (
+//       <div className="flex justify-center items-center h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+//         <div className="relative">
+//           <div className="w-20 h-20 border-4 border-slate-200 border-t-violet-600 rounded-full animate-spin"></div>
+//         </div>
+//       </div>
+//     );
+
+//   if (error)
+//     return (
+//       <div className="flex justify-center items-center h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+//         <Card className="w-full max-w-md border-red-200 bg-red-50 shadow-lg">
+//           <CardContent className="pt-6">
+//             <div className="flex items-center gap-2 text-red-600">
+//               <AlertCircle className="h-5 w-5" />
+//               <p>{error.message}</p>
+//             </div>
+//           </CardContent>
+//         </Card>
+//       </div>
+//     );
+
+//   const onSubmit = async (data: FormValues) => {
+//     setIsAnimating(true);
+//     const formData = new FormData();
+//     formData.append("id", role.id);
+//     formData.append("name", data.name);
+//     formData.append("description", data.description);
+//     formData.append("isDefault", data.isDefault ? "true" : "false");
+
+//     try {
+//       await updateRoleMutation.mutateAsync(formData);
+//       setIsSaved(true);
+//       console.log("تم تحديث الدور بنجاح!");
+//     } catch (error) {
+//       console.error("حدث خطأ أثناء تحديث الدور:", error);
+//     } finally {
+//       setIsAnimating(false);
+//     }
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50/30">
+//       {/* Top Navigation Bar */}
+//       <div className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-40">
+//         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+//           <Link href="/admin/roles">
+//             <Button
+//               variant="ghost"
+//               size="sm"
+//               className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+//             >
+//               <ArrowLeft className="h-4 w-4 ml-2" />
+//               العودة
+//             </Button>
+//           </Link>
+//           <div className="flex items-center gap-3">
+//             {role.isDefault && (
+//               <div className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-100 to-yellow-100 px-3 py-1.5 border border-amber-200/50">
+//                 <Crown className="h-3.5 w-3.5 text-amber-600" />
+//                 <span className="text-xs font-medium text-amber-700">
+//                   دور افتراضي
+//                 </span>
+//               </div>
+//             )}
+//             <div className="text-right">
+//               <h1 className="text-xl font-bold text-slate-800">تعديل الدور</h1>
+//               <p className="text-sm text-slate-500">{role.name}</p>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       <div className="container mx-auto px-6 py-8">
+//         <div className="flex gap-8">
+//           {/* Main Content Area */}
+//           <div className="flex-1 space-y-6">
+//             {/* Custom Tab Navigation */}
+//             <div className="relative bg-white rounded-2xl shadow-sm p-1.5 inline-flex">
+//               <div
+//                 className={cn(
+//                   "absolute top-1.5 bottom-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-xl shadow-md transition-all duration-300 ease-out",
+//                   activeTab === "details"
+//                     ? "left-1.5 right-1/2"
+//                     : "left-1/2 right-1.5",
+//                 )}
+//               />
+//               <Button
+//                 onClick={() => setActiveTab("details")}
+//                 className={cn(
+//                   "relative z-10 px-6 py-2.5 rounded-xl font-medium transition-all duration-300",
+//                   activeTab === "details"
+//                     ? "text-white"
+//                     : "text-slate-600 hover:text-slate-900",
+//                 )}
+//               >
+//                 <Key className="inline-block w-4 h-4 ml-2" />
+//                 تفاصيل الدور
+//               </Button>
+//               <Button
+//                 onClick={() => setActiveTab("permissions")}
+//                 className={cn(
+//                   "relative z-10 px-6 py-2.5 rounded-xl font-medium transition-all duration-300",
+//                   activeTab === "permissions"
+//                     ? "text-white"
+//                     : "text-slate-600 hover:text-slate-900",
+//                 )}
+//               >
+//                 <Lock className="inline-block w-4 h-4 ml-2" />
+//                 الصلاحيات
+//               </Button>
+//             </div>
+
+//             {/* Content based on active tab */}
+//             {activeTab === "details" && (
+//               <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+//                 <div className="bg-gradient-to-r from-violet-600 to-fuchsia-600 p-8 text-white">
+//                   <Shield className="h-12 w-12 mb-4 text-white/80" />
+//                   <h2 className="text-2xl font-bold mb-2">معلومات أساسية</h2>
+//                   <p className="text-violet-100">
+//                     قم بتحديث الخصائص الأساسية للدور. هذه المعلومات تحدد هوية
+//                     الدور داخل النظام.
+//                   </p>
+//                 </div>
+//                 <div className="p-8">
+//                   <Form {...form}>
+//                     <form
+//                       onSubmit={form.handleSubmit(onSubmit)}
+//                       className="space-y-6"
+//                     >
+//                       <FormField
+//                         control={form.control}
+//                         name="name"
+//                         render={({ field }) => (
+//                           <FormItem>
+//                             <FormLabel className="text-slate-700 font-semibold">
+//                               اسم الدور
+//                             </FormLabel>
+//                             <FormControl>
+//                               <Input
+//                                 placeholder="مثال: content_manager"
+//                                 {...field}
+//                                 className="border-slate-300 focus:border-violet-500 focus:ring-violet-500 rounded-lg"
+//                               />
+//                             </FormControl>
+//                             <FormDescription className="text-slate-500">
+//                               هذا هو المعرف الفريد للدور. استخدم أسماء واضحة
+//                               ومفهومة.
+//                             </FormDescription>
+//                             <FormMessage />
+//                           </FormItem>
+//                         )}
+//                       />
+
+//                       <FormField
+//                         control={form.control}
+//                         name="description"
+//                         render={({ field }) => (
+//                           <FormItem>
+//                             <FormLabel className="text-slate-700 font-semibold">
+//                               الوصف
+//                             </FormLabel>
+//                             <FormControl>
+//                               <Textarea
+//                                 placeholder="صف ما يمكن لهذا الدور فعله..."
+//                                 {...field}
+//                                 className="border-slate-300 focus:border-violet-500 focus:ring-violet-500 rounded-lg resize-none min-h-[100px]"
+//                               />
+//                             </FormControl>
+//                             <FormDescription className="text-slate-500">
+//                               اشرح بوضوح مسؤوليات وصلاحيات هذا الدور.
+//                             </FormDescription>
+//                             <FormMessage />
+//                           </FormItem>
+//                         )}
+//                       />
+
+//                       <FormField
+//                         control={form.control}
+//                         name="isDefault"
+//                         render={({ field }) => (
+//                           <FormItem className="flex flex-row items-center justify-between rounded-lg border border-slate-200 p-4 bg-slate-50/50">
+//                             <div className="space-y-0 leading-none">
+//                               <FormLabel className="text-slate-700 font-medium flex items-center gap-2">
+//                                 <Crown className="h-4 w-4 text-amber-500" />
+//                                 تعيين كدور افتراضي
+//                               </FormLabel>
+//                               <FormDescription className="text-slate-500 text-sm mt-1">
+//                                 سيتم تعيين هذا الدور تلقائيًا للمستخدمين الجدد
+//                                 عند تسجيلهم.
+//                               </FormDescription>
+//                             </div>
+//                             <FormControl>
+//                               <Checkbox
+//                                 checked={field.value}
+//                                 onCheckedChange={field.onChange}
+//                                 className="h-5 w-5 data-[state=checked]:bg-violet-600 data-[state=checked]:border-violet-600"
+//                               />
+//                             </FormControl>
+//                           </FormItem>
+//                         )}
+//                       />
+
+//                       <div className="flex items-center justify-between pt-6 border-t border-slate-200">
+//                         <p className="text-sm text-slate-500">
+//                           آخر تعديل:{" "}
+//                           {new Date(role.updatedAt).toLocaleDateString("ar-SA")}
+//                         </p>
+//                         <Button
+//                           type="submit"
+//                           disabled={updateRoleMutation.isPending}
+//                           className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-semibold rounded-lg px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300"
+//                         >
+//                           {updateRoleMutation.isPending ? (
+//                             <Loader2 className="h-4 w-4 animate-spin" />
+//                           ) : (
+//                             <>
+//                               <Save className="h-4 w-4 ml-2" />
+//                               حفظ التغييرات
+//                             </>
+//                           )}
+//                         </Button>
+//                       </div>
+//                     </form>
+//                   </Form>
+//                 </div>
+//               </div>
+//             )}
+
+//             {activeTab === "permissions" && (
+//               <div className="bg-white rounded-2xl shadow-lg p-8">
+//                 <h2 className="text-2xl font-bold text-slate-800 mb-6">
+//                   إدارة الصلاحيات
+//                 </h2>
+//                 <RolePermissionsManager
+//                   role={{ id: role.id, name: role.name }}
+//                   initialPermissions={permissions}
+//                 />
+//               </div>
+//             )}
+//           </div>
+
+//           {/* Sidebar - Asymmetric Layout */}
+//           <div className="w-80 space-y-6">
+//             {/* Role Info Card */}
+//             <Card className="bg-gradient-to-br from-slate-700 to-slate-800 text-white border-0 shadow-xl">
+//               <CardHeader>
+//                 <CardTitle className="flex items-center gap-2 text-lg">
+//                   <Info className="h-5 w-5 text-slate-300" />
+//                   نظرة سريعة
+//                 </CardTitle>
+//               </CardHeader>
+//               <CardContent className="space-y-4">
+//                 <div className="flex items-center justify-between">
+//                   <span className="text-slate-400 text-sm">المعرّف</span>
+//                   <code className="text-xs bg-slate-900/50 px-2 py-1 rounded">
+//                     {role.id.split("-")[0]}...
+//                   </code>
+//                 </div>
+//                 <div className="flex items-center justify-between">
+//                   <span className="text-slate-400 text-sm">المنشئ</span>
+//                   <span className="text-sm font-medium">
+//                     {session.user.name}
+//                   </span>
+//                 </div>
+//                 <div className="flex items-center justify-between">
+//                   <span className="text-slate-400 text-sm">تاريخ الإنشاء</span>
+//                   <span className="text-sm font-medium">
+//                     {new Date(role.createdAt).toLocaleDateString("ar-SA")}
+//                   </span>
+//                 </div>
+//                 <Button
+//                   variant="ghost"
+//                   size="sm"
+//                   className="w-full mt-4 text-slate-300 hover:bg-white/10 hover:text-white"
+//                   onClick={() => setShowApiKey(!showApiKey)}
+//                 >
+//                   {showApiKey ? (
+//                     <EyeOff className="h-4 w-4 ml-2" />
+//                   ) : (
+//                     <Eye className="h-4 w-4 ml-2" />
+//                   )}
+//                   {showApiKey ? "إخفاء" : "عرض"} المعرّف الكامل
+//                 </Button>
+//                 {showApiKey && (
+//                   <div className="mt-2 p-2 bg-slate-900/50 rounded border border-slate-600/50">
+//                     <p className="text-xs font-mono break-all">{role.id}</p>
+//                   </div>
+//                 )}
+//               </CardContent>
+//             </Card>
+
+//             {/* Stats Card */}
+//             <Card className="border-0 shadow-xl overflow-hidden">
+//               <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 p-4">
+//                 <CardTitle className="text-white text-lg flex items-center gap-2">
+//                   <Sparkles className="h-5 w-5" />
+//                   الإحصائيات
+//                 </CardTitle>
+//               </div>
+//               <CardContent className="p-6 space-y-5">
+//                 <div className="flex items-center justify-between">
+//                   <span className="text-slate-600 font-medium">
+//                     عدد الصلاحيات
+//                   </span>
+//                   <span className="text-2xl font-bold text-violet-600">
+//                     {permissions.length}
+//                   </span>
+//                 </div>
+//                 <div className="flex items-center justify-between">
+//                   <span className="text-slate-600 font-medium">نوع الدور</span>
+//                   <span
+//                     className={cn(
+//                       "px-3 py-1 rounded-full text-xs font-semibold",
+//                       role.isDefault
+//                         ? "bg-amber-100 text-amber-700"
+//                         : "bg-blue-100 text-blue-700",
+//                     )}
+//                   >
+//                     {role.isDefault ? "افتراضي" : "مخصص"}
+//                   </span>
+//                 </div>
+//                 <div className="flex items-center justify-between">
+//                   <span className="text-slate-600 font-medium">الحالة</span>
+//                   <span className="flex items-center gap-1 text-green-600 font-semibold">
+//                     <CheckCircle className="h-4 w-4" />
+//                     نشط
+//                   </span>
+//                 </div>
+//               </CardContent>
+//             </Card>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Success Notification */}
+//       {isSaved && (
+//         <div className="fixed bottom-8 right-8 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-pulse">
+//           <CheckCircle className="h-6 w-6" />
+//           <span className="font-medium">تم حفظ التغييرات بنجاح!</span>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+
+
+
+
+// New Design *****************************************
+// "use client";
+
+// import { zodResolver } from "@hookform/resolvers/zod";
+// import {
+//   AlertCircle,
+//   ArrowLeft,
+//   Calendar,
+//   CheckCircle,
+//   Clock,
+//   Crown,
+//   Eye,
+//   EyeOff,
+//   Hash,
+//   Info,
+//   Key,
+//   Loader2,
+//   Lock,
+//   Save,
+//   Shield,
+//   Sparkles,
+//   Users,
+//   Zap,
+// } from "lucide-react";
+// import Link from "next/link";
+// import { useEffect, useState } from "react";
+// import { useForm } from "react-hook-form";
+// import { z } from "zod";
+// import { Button } from "@/components/ui/button";
+// import {
+//   Card,
+//   CardContent,
+//   CardDescription,
+//   CardHeader,
+//   CardTitle,
+// } from "@/components/ui/card";
+// import { Checkbox } from "@/components/ui/checkbox";
+// import {
+//   Form,
+//   FormControl,
+//   FormDescription,
+//   FormField,
+//   FormItem,
+//   FormLabel,
+//   FormMessage,
+// } from "@/components/ui/form";
+// import { Input } from "@/components/ui/input";
+// import { Textarea } from "@/components/ui/textarea";
+// import { authClient } from "@/lib/authentication/auth-client";
+// import type { RolePermission } from "@/lib/authorization/actions/role-actions";
+// import { useUpdateRole } from "@/lib/authorization/hooks/use-roles";
+// import { cn } from "@/lib/utils";
+// import { RolePermissionsManager } from "./role-permissions-manager";
+
+// const formSchema = z.object({
+//   name: z
+//     .string()
+//     .min(2, "الاسم يجب أن يحتوي على حرفين على الأقل")
+//     .max(50, "الاسم يجب أن يكون أقل من 50 حرفًا")
+//     .regex(
+//       /^[a-zA-Z0-9_]+$/,
+//       "الاسم يمكن أن يحتوي فقط على أحرف وأرقام وشرطات سفلية",
+//     ),
+//   description: z
+//     .string()
+//     .min(5, "الوصف يجب أن يحتوي على 5 أحرف على الأقل")
+//     .max(200, "الوصف يجب أن يكون أقل من 200 حرف"),
+//   isDefault: z.boolean(),
+// });
+
+// type FormValues = z.infer<typeof formSchema>;
+
+// interface EditRoleFormProps {
+//   role: {
+//     id: string;
+//     name: string;
+//     description: string | null;
+//     isDefault: boolean | null;
+//     createdAt: Date;
+//     updatedAt: Date;
+//   };
+//   permissions: RolePermission[];
+// }
+
+// export function EditRoleForm({ role, permissions }: EditRoleFormProps) {
+//   const updateRoleMutation = useUpdateRole();
+//   const { data: session, isPending, error } = authClient.useSession();
+//   const [showApiKey, setShowApiKey] = useState(false);
+//   const [activeTab, setActiveTab] = useState<"details" | "permissions">(
+//     "details",
+//   );
+//   const [isSaved, setIsSaved] = useState(false);
+//   const [isAnimating, setIsAnimating] = useState(false);
+
+//   const form = useForm<FormValues>({
+//     resolver: zodResolver(formSchema),
+//     defaultValues: {
+//       name: role.name,
+//       description: role.description || "",
+//       isDefault: role.isDefault || false,
+//     },
+//   });
+
+//   useEffect(() => {
+//     if (isSaved) {
+//       const timer = setTimeout(() => setIsSaved(false), 3000);
+//       return () => clearTimeout(timer);
+//     }
+//   }, [isSaved]);
+
+//   if (!session) return null;
+
+//   if (isPending)
+//     return (
+//       <div className="flex justify-center items-center h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+//         <div className="relative">
+//           <div className="w-20 h-20 border-4 border-slate-200 border-t-violet-600 rounded-full animate-spin"></div>
+//         </div>
+//       </div>
+//     );
+
+//   if (error)
+//     return (
+//       <div className="flex justify-center items-center h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+//         <Card className="w-full max-w-md border-red-200 bg-red-50 shadow-lg">
+//           <CardContent className="pt-6">
+//             <div className="flex items-center gap-2 text-red-600">
+//               <AlertCircle className="h-5 w-5" />
+//               <p>{error.message}</p>
+//             </div>
+//           </CardContent>
+//         </Card>
+//       </div>
+//     );
+
+//   const onSubmit = async (data: FormValues) => {
+//     setIsAnimating(true);
+//     const formData = new FormData();
+//     formData.append("id", role.id);
+//     formData.append("name", data.name);
+//     formData.append("description", data.description);
+//     formData.append("isDefault", data.isDefault ? "true" : "false");
+
+//     try {
+//       await updateRoleMutation.mutateAsync(formData);
+//       setIsSaved(true);
+//       console.log("تم تحديث الدور بنجاح!");
+//     } catch (error) {
+//       console.error("حدث خطأ أثناء تحديث الدور:", error);
+//     } finally {
+//       setIsAnimating(false);
+//     }
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br to-violet-50/30">
+//       {/* Top Navigation Bar */}
+//       <div className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-40">
+//         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+//           <Link href="/admin/roles">
+//             <Button
+//               variant="ghost"
+//               size="sm"
+//               className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+//             >
+//               <ArrowLeft className="h-4 w-4 ml-2" />
+//               العودة
+//             </Button>
+//           </Link>
+//           <div className="flex items-center gap-3">
+//             {role.isDefault && (
+//               <div className="flex items-center gap-1.5 rounded-full bg-gradient-to-r to-yellow-100 px-3 py-1.5 border border-amber-200/50">
+//                 <Crown className="h-3.5 w-3.5 text-amber-600" />
+//                 <span className="text-xs font-medium text-amber-700">
+//                   دور افتراضي
+//                 </span>
+//               </div>
+//             )}
+//             <div className="text-right">
+//               <h1 className="text-xl font-bold text-slate-800">تعديل الدور</h1>
+//               <p className="text-sm text-slate-500">{role.name}</p>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       <div className="container mx-auto px-6 py-8">
+//         <div className="flex gap-8">
+//           {/* Main Content Area */}
+//           <div className="flex-1 space-y-6">
+//             {/* Custom Tab Navigation */}
+//             <div className="relative rounded-2xl shadow-sm p-1.5 inline-flex">
+//               <div
+//                 className={cn(
+//                   "absolute top-1.5 bottom-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-xl shadow-md transition-all duration-300 ease-out",
+//                   activeTab === "details"
+//                     ? "left-1.5 right-1/2"
+//                     : "left-1/2 right-1.5",
+//                 )}
+//               />
+//               <Button
+//                 onClick={() => setActiveTab("details")}
+//                 className={cn(
+//                   "relative z-10 px-6 py-2.5 rounded-xl font-medium transition-all duration-300",
+//                   activeTab === "details"
+//                     ? "text-white"
+//                     : "text-slate-600 hover:text-slate-900",
+//                 )}
+//               >
+//                 <Key className="inline-block w-4 h-4 ml-2" />
+//                 تفاصيل الدور
+//               </Button>
+//               <Button
+//                 onClick={() => setActiveTab("permissions")}
+//                 className={cn(
+//                   "relative z-10 px-6 py-2.5 rounded-xl font-medium transition-all duration-300",
+//                   activeTab === "permissions"
+//                     ? "text-white"
+//                     : "text-slate-600 hover:text-slate-900",
+//                 )}
+//               >
+//                 <Lock className="inline-block w-4 h-4 ml-2" />
+//                 الصلاحيات
+//               </Button>
+//             </div>
+
+//             {/* Content based on active tab */}
+//             {activeTab === "details" && (
+//               <div className=" rounded-2xl shadow-lg overflow-hidden">
+//                 <div className="bg-gradient-to-r from-violet-600 to-fuchsia-600 p-8 text-white">
+//                   <Shield className="h-12 w-12 mb-4 text-white/80" />
+//                   <h2 className="text-2xl font-bold mb-2">معلومات أساسية</h2>
+//                   <p className="text-violet-100">
+//                     قم بتحديث الخصائص الأساسية للدور. هذه المعلومات تحدد هوية
+//                     الدور داخل النظام.
+//                   </p>
+//                 </div>
+//                 <div className="p-8">
+//                   <Form {...form}>
+//                     <form
+//                       onSubmit={form.handleSubmit(onSubmit)}
+//                       className="space-y-6"
+//                     >
+//                       <FormField
+//                         control={form.control}
+//                         name="name"
+//                         render={({ field }) => (
+//                           <FormItem>
+//                             <FormLabel className="text-slate-700 font-semibold">
+//                               اسم الدور
+//                             </FormLabel>
+//                             <FormControl>
+//                               <Input
+//                                 placeholder="مثال: content_manager"
+//                                 {...field}
+//                                 className="border-slate-300 focus:border-violet-500 focus:ring-violet-500 rounded-lg"
+//                               />
+//                             </FormControl>
+//                             <FormDescription className="text-slate-500">
+//                               هذا هو المعرف الفريد للدور. استخدم أسماء واضحة
+//                               ومفهومة.
+//                             </FormDescription>
+//                             <FormMessage />
+//                           </FormItem>
+//                         )}
+//                       />
+
+//                       <FormField
+//                         control={form.control}
+//                         name="description"
+//                         render={({ field }) => (
+//                           <FormItem>
+//                             <FormLabel className="text-slate-700 font-semibold">
+//                               الوصف
+//                             </FormLabel>
+//                             <FormControl>
+//                               <Textarea
+//                                 placeholder="صف ما يمكن لهذا الدور فعله..."
+//                                 {...field}
+//                                 className="border-slate-300 focus:border-violet-500 focus:ring-violet-500 rounded-lg resize-none min-h-[100px]"
+//                               />
+//                             </FormControl>
+//                             <FormDescription className="text-slate-500">
+//                               اشرح بوضوح مسؤوليات وصلاحيات هذا الدور.
+//                             </FormDescription>
+//                             <FormMessage />
+//                           </FormItem>
+//                         )}
+//                       />
+
+//                       <FormField
+//                         control={form.control}
+//                         name="isDefault"
+//                         render={({ field }) => (
+//                           <FormItem className="flex flex-row items-center justify-between rounded-lg border border-slate-200 p-4 bg-slate-50/50">
+//                             <div className="space-y-0 leading-none">
+//                               <FormLabel className="text-slate-700 font-medium flex items-center gap-2">
+//                                 <Crown className="h-4 w-4 text-amber-500" />
+//                                 تعيين كدور افتراضي
+//                               </FormLabel>
+//                               <FormDescription className="text-slate-500 text-sm mt-1">
+//                                 سيتم تعيين هذا الدور تلقائيًا للمستخدمين الجدد
+//                                 عند تسجيلهم.
+//                               </FormDescription>
+//                             </div>
+//                             <FormControl>
+//                               <Checkbox
+//                                 checked={field.value}
+//                                 onCheckedChange={field.onChange}
+//                                 className="h-5 w-5 data-[state=checked]:bg-violet-600 data-[state=checked]:border-violet-600"
+//                               />
+//                             </FormControl>
+//                           </FormItem>
+//                         )}
+//                       />
+
+//                       <div className="flex items-center justify-between pt-6 border-t border-slate-200">
+//                         <p className="text-sm text-slate-500">
+//                           آخر تعديل:{" "}
+//                           {new Date(role.updatedAt).toLocaleDateString("ar-SA")}
+//                         </p>
+//                         <Button
+//                           type="submit"
+//                           disabled={updateRoleMutation.isPending}
+//                           className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-semibold rounded-lg px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300"
+//                         >
+//                           {updateRoleMutation.isPending ? (
+//                             <Loader2 className="h-4 w-4 animate-spin" />
+//                           ) : (
+//                             <>
+//                               <Save className="h-4 w-4 ml-2" />
+//                               حفظ التغييرات
+//                             </>
+//                           )}
+//                         </Button>
+//                       </div>
+//                     </form>
+//                   </Form>
+//                 </div>
+//               </div>
+//             )}
+
+//             {activeTab === "permissions" && (
+//               <div className="bg-white rounded-2xl shadow-lg p-8">
+//                 <h2 className="text-2xl font-bold text-slate-800 mb-6">
+//                   إدارة الصلاحيات
+//                 </h2>
+//                 <RolePermissionsManager
+//                   role={{ id: role.id, name: role.name }}
+//                   initialPermissions={permissions}
+//                 />
+//               </div>
+//             )}
+//           </div>
+
+//           {/* Sidebar - Asymmetric Layout */}
+//           <div className="w-80 space-y-6">
+//             {/* Role Info Card */}
+//             <Card className="bg-gradient-to-br from-yellow-400 to-green-600 text-white border-0 shadow-xl">
+//               <CardHeader>
+//                 <CardTitle className="flex items-center gap-2 text-lg">
+//                   <Info className="h-5 w-5 text-zinc-900" />
+//                   نظرة سريعة
+//                 </CardTitle>
+//               </CardHeader>
+//               <CardContent className="space-y-4">
+//                 <div className="flex items-center justify-between">
+//                   <span className="text-zinc-900 text-sm">المعرّف</span>
+//                   <code className="text-xs bg-slate-900/50 px-2 py-1 rounded">
+//                     {role.id.split("-")[0]}...
+//                   </code>
+//                 </div>
+//                 <div className="flex items-center justify-between">
+//                   <span className="text-zinc-900 text-sm">المنشئ</span>
+//                   <span className="text-sm font-medium">
+//                     {session.user.name}
+//                   </span>
+//                 </div>
+//                 <div className="flex items-center justify-between">
+//                   <span className="text-zinc-900 text-sm">تاريخ الإنشاء</span>
+//                   <span className="text-sm font-medium">
+//                     {new Date(role.createdAt).toLocaleDateString("ar-SA")}
+//                   </span>
+//                 </div>
+//                 <Button
+//                   variant="ghost"
+//                   size="sm"
+//                   className="w-full mt-4 text-slate-300 hover:bg-white/10 hover:text-white"
+//                   onClick={() => setShowApiKey(!showApiKey)}
+//                 >
+//                   {showApiKey ? (
+//                     <EyeOff className="h-4 w-4 ml-2" />
+//                   ) : (
+//                     <Eye className="h-4 w-4 ml-2" />
+//                   )}
+//                   {showApiKey ? "إخفاء" : "عرض"} المعرّف الكامل
+//                 </Button>
+//                 {showApiKey && (
+//                   <div className="mt-2 p-2 bg-slate-900/50 rounded border border-slate-600/50">
+//                     <p className="text-xs font-mono break-all">{role.id}</p>
+//                   </div>
+//                 )}
+//               </CardContent>
+//             </Card>
+
+//             {/* Stats Card */}
+//             <Card className="border-0 shadow-xl overflow-hidden">
+//               <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 p-4">
+//                 <CardTitle className="text-white text-lg flex items-center gap-2">
+//                   <Sparkles className="h-5 w-5" />
+//                   الإحصائيات
+//                 </CardTitle>
+//               </div>
+//               <CardContent className="p-6 space-y-5">
+//                 <div className="flex items-center justify-between">
+//                   <span className="text-slate-600 font-medium">
+//                     عدد الصلاحيات
+//                   </span>
+//                   <span className="text-2xl font-bold text-violet-600">
+//                     {permissions.length}
+//                   </span>
+//                 </div>
+//                 <div className="flex items-center justify-between">
+//                   <span className="text-slate-600 font-medium">نوع الدور</span>
+//                   <span
+//                     className={cn(
+//                       "px-3 py-1 rounded-full text-xs font-semibold",
+//                       role.isDefault
+//                         ? "bg-amber-100 text-amber-700"
+//                         : "bg-blue-100 text-blue-700",
+//                     )}
+//                   >
+//                     {role.isDefault ? "افتراضي" : "مخصص"}
+//                   </span>
+//                 </div>
+//                 <div className="flex items-center justify-between">
+//                   <span className="text-slate-600 font-medium">الحالة</span>
+//                   <span className="flex items-center gap-1 text-green-600 font-semibold">
+//                     <CheckCircle className="h-4 w-4" />
+//                     نشط
+//                   </span>
+//                 </div>
+//               </CardContent>
+//             </Card>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Success Notification */}
+//       {isSaved && (
+//         <div className="fixed bottom-8 right-8 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-pulse">
+//           <CheckCircle className="h-6 w-6" />
+//           <span className="font-medium">تم حفظ التغييرات بنجاح!</span>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }

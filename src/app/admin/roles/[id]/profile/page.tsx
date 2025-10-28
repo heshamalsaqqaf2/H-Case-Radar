@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { RoleActivity } from "@/components/admin/roles/role-activity";
-import { RoleHeaderFast } from "@/components/admin/roles/role-header-fast";
+import { RoleHeader } from "@/components/admin/roles/role-header";
 import { RolePermissionsManager } from "@/components/admin/roles/role-permissions-manager";
-import { RoleUsersFast } from "@/components/admin/roles/role-users-fast";
+import { RoleUsers } from "@/components/admin/roles/role-users";
 import { ProtectedComponent } from "@/components/auth/protected-component";
 import { QuickLoading } from "@/components/quick-loading";
-import { getRoleProfileData } from "@/lib/actions/role-actions";
+import { getRoleProfileData } from "@/lib/authorization/actions/role-actions";
 
 interface PageProps {
   params: {
@@ -18,7 +18,7 @@ interface PageProps {
 function ProfilePageContent({ roleId }: { roleId: string }) {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      <RoleHeaderFast roleId={roleId} />
+      <RoleHeader roleId={roleId} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -27,7 +27,7 @@ function ProfilePageContent({ roleId }: { roleId: string }) {
           >
             <RolePermissionsManagerWrapper roleId={roleId} />
           </Suspense>
-          <RoleUsersFast roleId={roleId} />
+          <RoleUsers roleId={roleId} />
         </div>
 
         <div className="space-y-6">
@@ -51,7 +51,7 @@ async function RolePermissionsManagerWrapper({ roleId }: { roleId: string }) {
         id: data.role.id,
         name: data.role.name,
       }}
-      permissions={data.permissions}
+      initialPermissions={data.permissions}
     />
   );
 }
