@@ -2,7 +2,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getCurrentUser } from "@/lib/Authentication/session";
+import { getCurrentUser } from "@/lib/authentication/session";
 import { DrizzlePolicyRepository } from "../abac/drizzle-policy-repository";
 import { getAccessControl } from "../core/access-control";
 import type { Policy } from "../core/types";

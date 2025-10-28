@@ -1,16 +1,30 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type React from "react";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { useState } from "react";
 
 interface Props {
   children: React.ReactNode;
 }
 
-const Providers = ({ children }: Props) => {
-  const client = new QueryClient();
+export function Providers({ children }: Props) {
+  // useState لضمان إنشاء العميل مرة واحدة فقط
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 60 * 60 * 1000, // 60 minutes
+          },
+        },
+      }),
+  );
 
-  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-};
-
-export default Providers;
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
+  );
+}

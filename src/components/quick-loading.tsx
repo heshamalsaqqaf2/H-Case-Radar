@@ -14,7 +14,7 @@ export function QuickLoading({
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // تأخير بسيط لإظهار المؤشر فقط إذا استغرق التحميل أكثر من 100ms
+    // تأخير بسيط لإظهار المؤشر فقط إذا استغرق التحميل أكثر من 100 ms
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, 100);

@@ -46,8 +46,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useRoles } from "@/lib/hooks/use-admin";
-import { useDeleteRole } from "@/lib/hooks/use-roles";
+import { useRoles } from "@/lib/authorization/hooks/use-admin";
+import { useDeleteRole } from "@/lib/authorization/hooks/use-roles";
 
 export function RolesTable() {
   const { data: roles, isLoading } = useRoles();
@@ -56,7 +56,6 @@ export function RolesTable() {
 
   const handleDelete = async () => {
     if (!roleToDelete) return;
-
     await deleteRoleMutation.mutateAsync(roleToDelete);
     setRoleToDelete(null);
   };
@@ -150,7 +149,6 @@ export function RolesTable() {
                               <Trash2 className="h-4 w-4 mr-2" />
                               Delete Role
                             </DropdownMenuItem>
-
                             <DropdownMenuItem asChild>
                               <Link href={`/admin/roles/${role.id}/profile`}>
                                 <User className="h-4 w-4 mr-2" />

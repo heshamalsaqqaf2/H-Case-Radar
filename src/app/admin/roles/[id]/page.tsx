@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { EditRoleForm } from "@/components/admin/roles/edit-role-form";
 import { ProtectedComponent } from "@/components/auth/protected-component";
-import { getRoleWithPermissions } from "@/lib/actions/role-actions";
+import { getRoleProfileData } from "@/lib/authorization/actions/role-actions";
 
 interface PageProps {
   params: {
@@ -10,18 +10,17 @@ interface PageProps {
 }
 
 export default async function EditRolePage({ params }: PageProps) {
-  // انتظار params أولاً
   const { id } = await params;
-  const role = await getRoleWithPermissions(id);
+  const roleData = await getRoleProfileData(id);
 
-  if (!role) {
+  if (!roleData) {
     notFound();
   }
 
   return (
     <ProtectedComponent permission="role.edit">
       <div className="container mx-auto p-6">
-        <EditRoleForm role={role} />
+        <EditRoleForm role={roleData.role} permissions={roleData.permissions} />
       </div>
     </ProtectedComponent>
   );

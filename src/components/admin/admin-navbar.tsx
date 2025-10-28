@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/Authentication/auth-client";
-import { useCurrentUser } from "@/lib/hooks/use-auth";
+import { authClient } from "@/lib/authentication/auth-client";
+import { useCurrentUser } from "@/lib/authorization/hooks/use-auth";
 
 export function AdminNavbar() {
   const { data: user } = useCurrentUser();
@@ -68,19 +68,19 @@ export function AdminNavbar() {
     <nav className="border-b border-gray-200 px-6 py-4">
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-semibold">Admin Dashboard</h1>
+          <h1 className="text-xl font-semibold">لوحة تحكم الأدمن</h1>
         </div>
 
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2 text-sm">
             <User className="h-4 w-4" />
             <span>{user?.name}</span>
-            <span className="">({user?.email})</span>
+            <span className=""> - {user?.email}</span>
           </div>
 
           <Button variant="outline" size="sm">
             <Settings className="h-4 w-4 mr-2" />
-            Settings
+            الإعدادات
           </Button>
 
           <Button
@@ -93,7 +93,7 @@ export function AdminNavbar() {
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              "Logout"
+              "تسجيل الخروج"
             )}
           </Button>
         </div>

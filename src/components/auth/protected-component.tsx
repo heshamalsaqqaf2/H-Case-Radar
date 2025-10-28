@@ -1,8 +1,11 @@
-/** biome-ignore-all lint/suspicious/noArrayIndexKey: <explanation> */
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: <> */
 "use client";
 
 import { useEffect, useState } from "react";
-import { useCurrentUser, useUserPermissions } from "@/lib/hooks/use-auth";
+import {
+  useCurrentUser,
+  useUserPermissions,
+} from "@/lib/authorization/hooks/use-auth";
 import { Button } from "../ui/button";
 
 interface ProtectedComponentProps {
@@ -55,7 +58,6 @@ export function ProtectedComponent({
 
       try {
         let access = false;
-
         if (permission) {
           // البحث عن الصلاحية المطلوبة
           access =
@@ -66,7 +68,6 @@ export function ProtectedComponent({
           access = false;
           console.log("✅ No specific permission required, access granted");
         }
-
         setHasAccess(access);
       } catch (error) {
         console.error("❌ ProtectedComponent - Error checking access:", error);
@@ -83,7 +84,6 @@ export function ProtectedComponent({
   }, [user, userPermissions, permission]);
 
   const isLoading = userLoading || permissionsLoading || loading;
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">

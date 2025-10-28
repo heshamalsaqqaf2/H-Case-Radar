@@ -14,37 +14,37 @@ import { cn } from "@/lib/utils";
 
 const navigation = [
   {
-    name: "Dashboard",
+    name: "لوحة التحكم",
     href: "/admin",
     icon: LayoutDashboard,
     permission: "admin.dashboard.view",
   },
   {
-    name: "Users",
+    name: "المستخدمين",
     href: "/admin/users",
     icon: Users,
     permission: "user.view",
   },
   {
-    name: "Roles",
+    name: "الأدوار",
     href: "/admin/roles",
     icon: Shield,
     permission: "role.view",
   },
   {
-    name: "Permissions",
+    name: "الصلاحيات والأذونات",
     href: "/admin/permissions",
     icon: Key,
     permission: "permission.view",
   },
   {
-    name: "Content",
+    name: "إدارة البلاغات",
     href: "/admin/content",
     icon: FileText,
     permission: "post.view",
   },
   {
-    name: "System",
+    name: "إعدادات النظام",
     href: "/admin/system",
     icon: Settings,
     permission: "settings.view",
@@ -55,7 +55,8 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="w-64 border-r border-gray-200 min-h-screen p-4">
+    // <div className="w-64 border-r border-gray-200 min-h-screen p-4">
+    <div className="w-48 border-r border-gray-200 min-h-screen p-4">
       <nav className="space-y-2">
         {navigation.map((item) => (
           <Link
@@ -82,11 +83,11 @@ export function AdminSidebar() {
             "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
             pathname === "/admin/seed"
               ? "bg-green-50 text-green-700 border border-green-200"
-              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+              : "text-green-400 hover:bg-gray-50 hover:text-gray-900",
           )}
         >
-          <Key className="h-4 w-4 mr-3" />
-          Database Setup
+          <Key className="h-4 w-4 mr-3 text-green-400" />
+          تهيئة قاعدة البيانات
         </Link>
       </div>
     </div>

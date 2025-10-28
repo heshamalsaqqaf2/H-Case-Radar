@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Loader2, Shield } from "lucide-react";
+import { ArrowLeft, Info, Loader2, Shield } from "lucide-react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -25,10 +25,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useUpdateRole } from "@/lib/hooks/use-roles";
+import { authClient } from "@/lib/authentication/auth-client";
+import type { RolePermission } from "@/lib/authorization/actions/role-actions";
+import { useUpdateRole } from "@/lib/authorization/hooks/use-roles"; // تأكد من المسار الصحيح
 import { RolePermissionsManager } from "./role-permissions-manager";
 
-// إصلاح schema - جعل isDefault مطلوبة
 const formSchema = z.object({
   name: z
     .string()
@@ -47,7 +48,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-// تحسين تعريف الـ interface
+// تعريف الـ interface بشكل صحيح
 interface EditRoleFormProps {
   role: {
     id: string;
@@ -56,19 +57,14 @@ interface EditRoleFormProps {
     isDefault: boolean | null;
     createdAt: Date;
     updatedAt: Date;
-    permissions: Array<{
-      permissionId: string;
-      permissionName: string;
-      resource: string;
-      action: string;
-    }>;
   };
+  permissions: RolePermission[];
 }
 
-export function EditRoleForm({ role }: EditRoleFormProps) {
+export function EditRoleForm({ role, permissions }: EditRoleFormProps) {
   const updateRoleMutation = useUpdateRole();
+  const { data: session, isPending, error } = authClient.useSession();
 
-  // معالجة القيم الافتراضية للبيانات التي قد تكون null
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -77,6 +73,9 @@ export function EditRoleForm({ role }: EditRoleFormProps) {
       isDefault: role.isDefault || false,
     },
   });
+  if (!session) return null;
+  if (isPending) return <Loader2 className="animate-spin" />;
+  if (error) return <div>{error.message}</div>;
 
   const onSubmit = async (data: FormValues) => {
     const formData = new FormData();
@@ -108,9 +107,9 @@ export function EditRoleForm({ role }: EditRoleFormProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Role Details Form */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle>Role Details</CardTitle>
             <CardDescription>
@@ -132,8 +131,9 @@ export function EditRoleForm({ role }: EditRoleFormProps) {
                       <FormControl>
                         <Input placeholder="e.g., content_manager" {...field} />
                       </FormControl>
-                      <FormDescription>
-                        Unique identifier for the role
+                      <FormDescription className="text-red-400">
+                        <Info className="h-4 w-4 text-red-600" />
+                        Note: This role&apos;s name must be unique on the system
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -197,17 +197,27 @@ export function EditRoleForm({ role }: EditRoleFormProps) {
         </Card>
 
         {/* Permissions Manager */}
-        <div className="space-y-6">
-          <RolePermissionsManager role={role} />
-
-          {/* Role Info Card */}
+        <div className="lg:col-span-1 space-y-6">
+          <RolePermissionsManager
+            role={{ id: role.id, name: role.name }}
+            initialPermissions={permissions}
+          />
+          {/* Role Information */}
           <Card>
             <CardHeader>
               <CardTitle className="text-sm">Role Information</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
+            <CardContent className="space-y-3 grid grid-cols-2 gap-x-2 text-sm">
               <div>
-                <span className="font-medium">Created:</span>
+                <span className="font-medium">Created By:</span>
+                <p className="text-gray-600">{session.user.name}</p>
+              </div>
+              <div>
+                <span className="font-medium">Name:</span>
+                <p className="text-gray-600 font-mono text-xs">{role.name}</p>
+              </div>
+              <div>
+                <span className="font-medium">Created At:</span>
                 <p className="text-gray-600">
                   {new Date(role.createdAt).toLocaleDateString()}
                 </p>
@@ -220,7 +230,9 @@ export function EditRoleForm({ role }: EditRoleFormProps) {
               </div>
               <div>
                 <span className="font-medium">ID:</span>
-                <p className="text-gray-600 font-mono text-xs">{role.id}</p>
+                <p className="text-gray-600 font-mono text-xs">
+                  {role.id.split("-")[0]}
+                </p>
               </div>
             </CardContent>
           </Card>

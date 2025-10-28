@@ -1,19 +1,19 @@
 // components/admin/role-profile.tsx
 "use client";
 
-import { useRoleWithPermissions } from "@/lib/hooks/use-roles";
+import { useRoleProfile } from "@/lib/authorization/hooks/use-role-profile";
 
 export function RoleProfile({ roleId }: { roleId: string }) {
-  const { data: role, isLoading } = useRoleWithPermissions(roleId);
+  const { data: roleProfileData, isLoading } = useRoleProfile(roleId);
 
   if (isLoading) return <div>Loading...</div>;
 
   return (
     <div>
-      <h1>{role.name}</h1>
-      <p>{role.description}</p>
+      <h1>{roleProfileData?.role.name}</h1>
+      <p>{roleProfileData?.role.description}</p>
       <div>
-        {role.permissions.map((perm) => (
+        {roleProfileData?.permissions.map((perm) => (
           <span key={perm.permissionId}>{perm.permissionName}</span>
         ))}
       </div>

@@ -11,7 +11,6 @@ export default function UsersPage() {
             Manage system users and their roles
           </p>
         </div>
-
         <UsersManagement />
       </div>
     </ProtectedComponent>

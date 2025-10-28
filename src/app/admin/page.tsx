@@ -7,8 +7,11 @@ export default function AdminDashboard() {
     <ProtectedComponent permission="admin.dashboard.view">
       <div className="container mx-auto p-6 space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="mt-2">Welcome to your admin dashboard</p>
+          <h1 className="text-3xl font-bold">لوحة تحكم الإدارة</h1>
+          <p className="mt-2">
+            مرحبا بك في لوحة تحكم الإدارة, يمكنك إدارة المستخدمين والصلاحيات
+            والأدوار
+          </p>
         </div>
 
         <DashboardStats />

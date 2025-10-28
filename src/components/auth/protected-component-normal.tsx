@@ -2,7 +2,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useCurrentUser, useUserPermissions } from "@/lib/hooks/use-auth";
+import {
+  useCurrentUser,
+  useUserPermissions,
+} from "@/lib/authorization/hooks/use-auth";
 import { Button } from "../ui/button";
 
 interface ProtectedComponentProps {

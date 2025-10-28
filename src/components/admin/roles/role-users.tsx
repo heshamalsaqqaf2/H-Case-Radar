@@ -1,6 +1,8 @@
 "use client";
 
-import { Calendar, Mail, MoreHorizontal, User, Users } from "lucide-react";
+import { Mail, Plus, User, Users, Zap } from "lucide-react";
+import Link from "next/link";
+import { TableRowLoading } from "@/components/quick-loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,13 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
   Table,
   TableBody,
   TableCell,
@@ -25,56 +20,81 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useRoleUsers } from "@/lib/hooks/use-role-profile";
+import { useRoleProfile } from "@/lib/authorization/hooks/use-role-profile";
 
-interface RoleUsersProps {
+interface RoleUsersFastProps {
   roleId: string;
 }
 
-export function RoleUsers({ roleId }: RoleUsersProps) {
-  const { data: users, isLoading } = useRoleUsers(roleId);
+export function RoleUsers({ roleId }: RoleUsersFastProps) {
+  const { data: profileData, isLoading, isFetching } = useRoleProfile(roleId);
 
-  if (isLoading) {
-    return <RoleUsersSkeleton />;
-  }
+  const users = profileData?.users || [];
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Assigned Users
-          <Badge variant="secondary" className="ml-2">
-            {users?.length || 0}
-          </Badge>
-        </CardTitle>
-        <CardDescription>
-          Users who have been assigned this role
-        </CardDescription>
+    <Card className="relative">
+      {/* مؤشر تحديث خفي */}
+      {isFetching && (
+        <div className="absolute top-3 right-3">
+          <Zap className="h-4 w-4 text-blue-500 animate-pulse" />
+        </div>
+      )}
+
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Users className="h-5 w-5" />
+              Assigned Users
+              <Badge variant="secondary" className="ml-2">
+                {users.length}
+              </Badge>
+            </CardTitle>
+            <CardDescription>Users with this role assignment</CardDescription>
+          </div>
+
+          <Button size="sm" className="gap-2" asChild>
+            <Link href={`/admin/roles/${roleId}/assign-users`}>
+              <Plus className="h-4 w-4" />
+              Assign
+            </Link>
+          </Button>
+        </div>
       </CardHeader>
-      <CardContent>
-        {users && users.length > 0 ? (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Assigned</TableHead>
-                  <TableHead>Member Since</TableHead>
-                  <TableHead className="w-[80px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
+
+      <CardContent className="p-0">
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[200px]">User</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead className="w-[120px]">Assigned</TableHead>
+                <TableHead className="w-[100px] text-center">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading && !profileData ? (
+                <TableRowLoading rows={3} />
+              ) : users.length > 0 ? (
+                users.map((user) => (
+                  <TableRow
+                    key={user.id}
+                    className="group hover:bg-gray-50 transition-colors"
+                  >
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gray-100 rounded-full">
+                        <div className="p-2 bg-gray-100 rounded-full group-hover:bg-gray-200 transition-colors">
                           <User className="h-4 w-4 text-gray-600" />
                         </div>
                         <div>
-                          <div className="font-medium">{user.name}</div>
+                          <div className="font-medium text-gray-900">
+                            {user.name}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Joined{" "}
+                            {new Date(user.createdAt).toLocaleDateString()}
+                          </div>
                         </div>
                       </div>
                     </TableCell>
@@ -90,67 +110,39 @@ export function RoleUsers({ roleId }: RoleUsersProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm text-gray-500">
-                        {new Date(user.createdAt).toLocaleDateString()}
+                      <div className="flex justify-center">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          Remove
+                        </Button>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>View Profile</DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
-                            Remove Role
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No users assigned
-            </h3>
-            <p className="text-gray-500 mb-4">
-              This role hasn't been assigned to any users yet.
-            </p>
-            <Button variant="outline">Assign Users</Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function RoleUsersSkeleton() {
-  return (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-6 w-48 mb-2" />
-        <Skeleton className="h-4 w-64" />
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {[...Array(3)].map((_, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-            <div key={i} className="flex items-center gap-4">
-              <Skeleton className="h-12 w-12 rounded-full" />
-              <div className="space-y-2 flex-1">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-3 w-24" />
-              </div>
-            </div>
-          ))}
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8">
+                    <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      No users assigned
+                    </h3>
+                    <p className="text-gray-500 mb-4">
+                      Start by assigning users to this role
+                    </p>
+                    <Button asChild>
+                      <Link href={`/admin/roles/${roleId}/assign-users`}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Assign First User
+                      </Link>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
       </CardContent>
     </Card>
