@@ -44,6 +44,12 @@ const navigation = [
     permission: "post.view",
   },
   {
+    name: "الاحصائيات والتقارير",
+    href: "/admin/statistic",
+    icon: FileText,
+    permission: "statistic.view",
+  },
+  {
     name: "إعدادات النظام",
     href: "/admin/system",
     icon: Settings,
@@ -56,7 +62,7 @@ export function AdminSidebar() {
 
   return (
     // <div className="w-64 border-r border-gray-200 min-h-screen p-4">
-    <div className="w-48 border-r border-gray-200 min-h-screen p-4">
+    <div className="w-58 min-h-screen p-4">
       <nav className="space-y-2">
         {navigation.map((item) => (
           <Link
@@ -76,7 +82,7 @@ export function AdminSidebar() {
       </nav>
 
       {/* قسم التهيئة */}
-      <div className="mt-8 pt-6 border-t border-gray-200">
+      <div className="mt-8 pt-6">
         <Link
           href="/admin/seed"
           className={cn(

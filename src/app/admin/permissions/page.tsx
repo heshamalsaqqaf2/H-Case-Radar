@@ -6,21 +6,19 @@ export default function PermissionsPage() {
   return (
     <ProtectedComponent permission="permission.view">
       <div className="container mx-auto p-0 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Permissions</h1>
-          <p className="text-gray-600">
-            Manage system permissions and access controls
-          </p>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2">
-            <PermissionsTable />
+        <div className="flex justify-between items-center gap-4">
+          <div className="">
+            <h1 className="text-3xl">الصلاحيات والأذونات</h1>
+            <p className="">إدارة صلاحيات النظام وضوابط الوصول للمستخدمين</p>
           </div>
-          <div className="lg:col-span-1">
+          <div className="">
             <ProtectedComponent permission="permission.create">
               <CreatePermissionForm />
             </ProtectedComponent>
           </div>
+        </div>
+        <div className="pt-5 pb-5 pe-3 pr-3">
+          <PermissionsTable />
         </div>
       </div>
     </ProtectedComponent>

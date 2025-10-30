@@ -84,7 +84,7 @@ export function SeedPanel() {
       description: "امسح وأعد ارسال الصلاحيات والادوار الأولية",
       icon: RefreshCw,
       variant: "outline" as const,
-      className: "border-blue-300 text-gray-700 hover:bg-blue-50",
+      className: "bg-blue-600 hover:bg-blue-700 text-white",
     },
     {
       id: "clear" as const,
@@ -148,9 +148,9 @@ export function SeedPanel() {
         <CardContent className="space-y-6">
           {/* Loading State */}
           {loading && (
-            <div className="space-y-3 p-4 bg-gray-50 rounded-lg border">
+            <div className="space-y-3 p-4 rounded-lg border">
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-gray-700 flex items-center gap-2">
+                <span className="font-medium flex items-center gap-2">
                   <RefreshCw className="h-4 w-4 animate-spin" />
                   {loading === "seed" &&
                     "Seeding database with default data..."}
@@ -158,9 +158,9 @@ export function SeedPanel() {
                     "Clearing all roles and permissions..."}
                   {loading === "reseed" && "Reseeding database..."}
                 </span>
-                <span className="text-gray-500">Please wait...</span>
+                <span className="">Please wait...</span>
               </div>
-              <Progress value={100} className="h-1 bg-gray-200" />
+              <Progress value={100} className="h-1 bg-blue-600" />
             </div>
           )}
 
@@ -190,7 +190,7 @@ export function SeedPanel() {
                       {isLoading ? action.loadingLabel : action.label}
                     </span>
                   </div>
-                  <p className="text-xs opacity-90 text-center leading-tight">
+                  <p className="text-xs opacity-90 text-center">
                     {action.description}
                   </p>
                 </Button>
@@ -201,7 +201,7 @@ export function SeedPanel() {
           {/* Information Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Available Actions */}
-            <Card className="bg-gray-50/50">
+            <Card className="">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <Play className="h-4 w-4 text-blue-600" />
@@ -212,16 +212,12 @@ export function SeedPanel() {
                 {actions.map((action) => (
                   <div
                     key={action.id}
-                    className="flex items-start gap-3 p-3 bg-white rounded-lg border"
+                    className="flex items-start gap-3 p-3 rounded-lg border"
                   >
-                    <action.icon className="h-4 w-4 text-gray-600 mt-0.5 flex-shrink-0" />
+                    <action.icon className="h-4 w-4 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="font-medium text-sm text-gray-900">
-                        {action.label}
-                      </p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        {action.description}
-                      </p>
+                      <p className="font-medium text-sm ">{action.label}</p>
+                      <p className="text-xs mt-1">{action.description}</p>
                     </div>
                   </div>
                 ))}
@@ -229,7 +225,7 @@ export function SeedPanel() {
             </Card>
 
             {/* Default Roles */}
-            <Card className="bg-blue-50/30">
+            <Card className="">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <Users className="h-4 w-4 text-blue-600" />
@@ -240,7 +236,7 @@ export function SeedPanel() {
                 {roles.map((role) => (
                   <div
                     key={role.name}
-                    className="flex items-center justify-between p-3 bg-white rounded-lg border"
+                    className="flex items-center justify-between p-3 rounded-lg border"
                   >
                     <div className="flex items-center gap-3">
                       <Badge
@@ -250,7 +246,7 @@ export function SeedPanel() {
                         {role.name}
                       </Badge>
                     </div>
-                    <span className="text-xs text-gray-600 text-right">
+                    <span className="text-xs text-right">
                       {role.description}
                     </span>
                   </div>

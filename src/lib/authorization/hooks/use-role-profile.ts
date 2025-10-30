@@ -1,4 +1,3 @@
-// lib/hooks/use-role-profile.ts
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
@@ -41,8 +40,8 @@ export function useRoleProfile(roleId: string) {
     queryFn: () =>
       getRoleProfileData(roleId) as Promise<RoleProfileData | null>,
     enabled: !!roleId,
-    staleTime: 30 * 1000, // 30 ثانية
-    gcTime: 2 * 60 * 1000, // 2 دقيقة
+    staleTime: 30 * 1000,
+    gcTime: 2 * 60 * 1000,
     retry: 1,
   });
 }

@@ -1,8 +1,10 @@
 import { ArrowDownRight, Star } from "lucide-react";
 import Link from "next/link";
+import CardFlip from "@/components/card-flip";
 import { Button } from "@/components/ui/button";
-import { MagicCard } from "@/components/ui/magic-ui/magic-card";
+import { AnimatedThemeToggler } from "@/components/ui/magic-ui/animated-theme-toggler";
 import { AnimatedTooltipPreview } from "./animated-tooltip";
+import { StarsBackgroundDemo } from "./demo-components-backgrounds-stars";
 import { FollowingPointerDemo } from "./following-pointer-demo";
 
 interface HeroSectionProps {
@@ -31,7 +33,6 @@ interface HeroSectionProps {
 const HeroSection = ({
   heading = "H-Case Radar Solution & Manage",
   description = "منصة تابعة لوزارة الصحة في المملكة العربية السعودية في منطقة حائل, تهدف لمساعدة المستفيدين في حلقة الحوادث الطبية والطبيعية والإصابات الطبية.",
-
   buttons = {
     primary: {
       text: "Sign In",
@@ -70,8 +71,13 @@ const HeroSection = ({
   },
 }: HeroSectionProps) => {
   return (
-    <section>
-      <div className="container grid items-center gap-10 lg:grid-cols-2 lg:gap-20">
+    <section className="relative min-h-screen overflow-hidden md:py-16 md:px-20">
+      <div className="absolute inset-0 z-0">
+        {/* <HexagonBackgroundDemo /> */}
+        <StarsBackgroundDemo />
+      </div>
+
+      <div className="container relative z-10 grid items-center gap-10 lg:grid-cols-2 lg:gap-20">
         <div className="mx-auto flex flex-col items-center text-center md:ml-auto lg:max-w-4xl lg:items-start lg:text-left">
           <h1 className="my-6 text-pretty text-4xl font-bold lg:text-5xl xl:text-6xl">
             {heading}
@@ -81,12 +87,6 @@ const HeroSection = ({
           </p>
           <div className="mb-12 flex w-fit flex-col gap-10 sm:flex-row">
             <span className="inline-flex items-center -space-x-4">
-              {/* {reviews.avatars.map((avatar, index) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                <Avatar key={index} className="size-12 border">
-                  <AvatarImage src={avatar.src} alt={avatar.alt} />
-                </Avatar>
-              ))} */}
               <AnimatedTooltipPreview />
             </span>
             <div className="mt-1">
@@ -121,14 +121,16 @@ const HeroSection = ({
                 </Link>
               </Button>
             )}
+            {/* Start Theme Toggler */}
+            <AnimatedThemeToggler />
           </div>
         </div>
-        <div className="">
+        <div className="flex justify-center md:justify-end">
           <FollowingPointerDemo />
+          <CardFlip />
         </div>
       </div>
     </section>
   );
 };
-
 export { HeroSection };

@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
 
     // Set the cookie 1 year in the future
     response.cookies.set("direction", direction, {
-      maxAge: 5 * 1000, // 5 seconds
+      maxAge: 60 * 60 * 24 * 1000, // 1 day
     });
 
     // Set the "x-is-first-visit" header

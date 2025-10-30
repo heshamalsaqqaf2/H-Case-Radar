@@ -17,16 +17,17 @@ export function useCreateRole() {
     onSuccess: (result) => {
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ["roles"] });
-        toast.success("Role created successfully");
+        toast.success("تم إنشاء الدور بنجاح");
       } else {
-        toast.error("Error creating role", {
+        toast.error("خطأ في إنشاء الدور", {
           description: result.message,
         });
       }
     },
     onError: (error) => {
       toast.error("Error", {
-        description: error.message || "An unexpected error occurred",
+        description:
+          error.message || "عذراً، حدث خطأ غير متوقع, من فضلك أعد المحاولة",
       });
     },
   });
@@ -39,16 +40,17 @@ export function useUpdateRole() {
     onSuccess: (result) => {
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ["roles"] });
-        toast.success("Role updated successfully");
+        toast.success("تم تحديث الدور بنجاح");
       } else {
-        toast.error("Error updating role", {
+        toast.error("خطأ في تحديث الدور", {
           description: result.message,
         });
       }
     },
     onError: (error) => {
       toast.error("Error", {
-        description: error.message || "An unexpected error occurred",
+        description:
+          error.message || "عذراً، حدث خطأ غير متوقع, من فضلك أعد المحاولة",
       });
     },
   });
@@ -61,16 +63,17 @@ export function useDeleteRole() {
     onSuccess: (result) => {
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ["roles"] });
-        toast.success("Role deleted successfully");
+        toast.success("تم حذف الدور بنجاح");
       } else {
-        toast.error("Error deleting role", {
+        toast.error("خطأ في حذف الدور", {
           description: result.message,
         });
       }
     },
     onError: (error) => {
       toast.error("Error", {
-        description: error.message || "An unexpected error occurred",
+        description:
+          error.message || "عذراً، حدث خطأ غير متوقع, من فضلك أعد المحاولة",
       });
     },
   });
@@ -89,139 +92,18 @@ export function useAssignPermissions() {
     onSuccess: (result) => {
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ["roles"] });
-        toast.success("Permissions assigned successfully");
+        toast.success("تم تعيين الصلاحيات لهذا الدور بنجاح");
       } else {
-        toast.error("Error assigning permissions", {
+        toast.error("خطأ في تعيين الصلاحيات لهذا الدور", {
           description: result.message,
         });
       }
     },
     onError: (error) => {
       toast.error("Error", {
-        description: error.message || "An unexpected error occurred",
+        description:
+          error.message || "عذراً، حدث خطأ غير متوقع, من فضلك أعد المحاولة",
       });
     },
   });
 }
-
-// // lib/hooks/use-roles.ts
-// "use client";
-
-// import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-// import { toast } from "sonner";
-// import {
-//   assignPermissionsToRole,
-//   createRole,
-//   deleteRole,
-//   getRoleProfileData,
-//   updateRole,
-// } from "@/lib/authorization/actions/role-actions";
-
-// export function useCreateRole() {
-//   const queryClient = useQueryClient();
-
-//   return useMutation({
-//     mutationFn: (formData: FormData) => createRole(formData),
-//     onSuccess: (result) => {
-//       if (result.success) {
-//         queryClient.invalidateQueries({ queryKey: ["roles"] });
-//         toast.success("Role created successfully");
-//       } else {
-//         toast.error("Error creating role", {
-//           description: result.message,
-//         });
-//       }
-//     },
-//     onError: (error) => {
-//       toast.error("Error", {
-//         description: error.message || "An unexpected error occurred",
-//       });
-//     },
-//   });
-// }
-
-// export function useUpdateRole() {
-//   const queryClient = useQueryClient();
-
-//   return useMutation({
-//     mutationFn: (formData: FormData) => updateRole(formData),
-//     onSuccess: (result) => {
-//       if (result.success) {
-//         queryClient.invalidateQueries({ queryKey: ["roles"] });
-//         queryClient.invalidateQueries({ queryKey: ["role"] });
-//         toast.success("Role updated successfully");
-//       } else {
-//         toast.error("Error updating role", {
-//           description: result.message,
-//         });
-//       }
-//     },
-//     onError: (error) => {
-//       toast.error("Error", {
-//         description: error.message || "An unexpected error occurred",
-//       });
-//     },
-//   });
-// }
-
-// export function useDeleteRole() {
-//   const queryClient = useQueryClient();
-
-//   return useMutation({
-//     mutationFn: (roleId: string) => deleteRole(roleId),
-//     onSuccess: (result) => {
-//       if (result.success) {
-//         queryClient.invalidateQueries({ queryKey: ["roles"] });
-//         toast.success("Role deleted successfully");
-//       } else {
-//         toast.error("Error deleting role", {
-//           description: result.message,
-//         });
-//       }
-//     },
-//     onError: (error) => {
-//       toast.error("Error", {
-//         description: error.message || "An unexpected error occurred",
-//       });
-//     },
-//   });
-// }
-
-// export function useAssignPermissions() {
-//   const queryClient = useQueryClient();
-
-//   return useMutation({
-//     mutationFn: ({
-//       roleId,
-//       permissionIds,
-//     }: {
-//       roleId: string;
-//       permissionIds: string[];
-//     }) => assignPermissionsToRole(roleId, permissionIds),
-//     onSuccess: (result) => {
-//       if (result.success) {
-//         queryClient.invalidateQueries({ queryKey: ["roles"] });
-//         queryClient.invalidateQueries({ queryKey: ["role"] });
-//         toast.success("Permissions assigned successfully");
-//       } else {
-//         toast.error("Error assigning permissions", {
-//           description: result.message,
-//         });
-//       }
-//     },
-//     onError: (error) => {
-//       toast.error("Error", {
-//         description: error.message || "An unexpected error occurred",
-//       });
-//     },
-//   });
-// }
-
-// export function useRoleWithPermissions(roleId: string) {
-//   return useQuery({
-//     queryKey: ["role", roleId],
-//     queryFn: () => getRoleProfileData(roleId),
-//     enabled: !!roleId,
-//     staleTime: 5 * 60 * 1000, // 5 دقائق
-//   });
-// }

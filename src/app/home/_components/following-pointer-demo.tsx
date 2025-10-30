@@ -4,7 +4,7 @@ import { BorderBeam } from "@/components/ui/magic-ui/border-beam";
 
 export function FollowingPointerDemo() {
   return (
-    <div className="mx-auto w-80">
+    <div className="mx-auto w-80 -rotate-6">
       <FollowerPointerCard
         title={
           <TitleComponent
@@ -39,9 +39,9 @@ export function FollowingPointerDemo() {
           </div>
           {/* <BorderBeam
             duration={4}
-            size={300}
+            size={100}
             reverse
-            className="from-transparent via-green-500 to-transparent"
+            className="from-lime-400 via-orange-500 to-yellow-400"
           /> */}
           <BorderBeam duration={8} size={100} />
         </div>
@@ -57,7 +57,7 @@ const blogContent = {
   title: "Complaint Management System For SMEs In Ksa",
   description:
     "Grids are cool, but Tailwindcss grids are cooler. In this article, we will learn how to create amazing Grid layouts with Tailwindcs grid and React.",
-  image: "/images/5.jpg",
+  image: "/images/6.jpg",
   authorAvatar: "/images/avatar.jpg",
 };
 

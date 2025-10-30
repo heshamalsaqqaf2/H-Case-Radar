@@ -1,7 +1,7 @@
-// lib/hooks/use-auth.ts
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   getCurrentUser,
   getUserPermissions,
@@ -11,12 +11,25 @@ export function useCurrentUser() {
   return useQuery({
     queryKey: ["currentUser"],
     queryFn: async () => {
-      console.log("🔄 useCurrentUser queryFn called");
+      // const promise = () =>
+      //   new Promise((resolve) =>
+      //     setTimeout(() => resolve({ name: "Sonner" }), 5000),
+      //   );
+
+      // toast.promise(promise, {
+      //   loading: "جاري التحقق من جلسة المستخدم...",
+      //   success: () => {
+      //     return `تم الحصول على جلسة المستخدم`;
+      //   },
+      //   error: "Error",
+      // });
+      console.log("🔄 useCurrentUser called");
       const user = await getCurrentUser();
+      // toast.success("نتيجة جلسة المستخدم", { description: user?.name });
       console.log("✅ useCurrentUser result:", user);
       return user;
     },
-    staleTime: 5 * 60 * 1000, // 5 دقائق
+    staleTime: 5 * 60 * 1000,
     retry: 2,
     retryDelay: 1000,
   });
@@ -27,15 +40,31 @@ export function useUserPermissions(userId?: string) {
     queryKey: ["userPermissions", userId],
     queryFn: async () => {
       if (!userId) {
-        console.log("❌ useUserPermissions - No userId provided");
+        toast.error("خطأ", { description: "لم يتم تحديد معرف المستخدم" });
+        // console.log("❌ useUserPermissions - No userId provided");
         return [];
       }
       console.log("🔄 useUserPermissions called for userId:", userId);
+      // const promise = () =>
+      //   new Promise((resolve) =>
+      //     setTimeout(() => resolve({ name: "Sonner" }), 5000),
+      //   );
+
+      // toast.promise(promise, {
+      //   loading: "جاري الحصول على صلاحيات المستخدم...",
+      //   success: (data) => {
+      //     return `${data} تم الحصول على صلاحيات المستخدم`;
+      //   },
+      //   error: "Error",
+      // });
       const permissions = await getUserPermissions(userId);
       console.log("✅ useUserPermissions result count:", permissions.length);
+      // toast.success("نتيجة صلاحيات المستخدم", {
+      //   description: `الصلاحيات: ${permissions} , Count: ${permissions.length}`,
+      // });
       return permissions;
     },
     enabled: !!userId,
-    staleTime: 2 * 60 * 1000, // 2 دقائق
+    staleTime: 2 * 60 * 1000,
   });
 }

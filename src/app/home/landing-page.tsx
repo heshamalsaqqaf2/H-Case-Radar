@@ -1,23 +1,29 @@
 "use client";
 
-import { AnimatedThemeToggler } from "@/components/ui/magic-ui/animated-theme-toggler";
-import { BentoGridThird } from "./_components/bento-grid-third";
-import { DraggableCardDemo } from "./_components/DraggableCardDemo";
-import { GlowingEffectDemo } from "./_components/grid-items";
+import AreaChart1 from "@/components/ui/reui/charts/area-charts/area-chart-1";
+import LineChart8 from "@/components/ui/reui/charts/line-charts/line-chart-8";
 import { HeroSection } from "./_components/hero-section";
-import { MarqueeDemo } from "./_components/magic/MarqueeDemo";
-import { TextHoverEffectDemo } from "./_components/text-hover-effect-demo";
+// import { BentoGridThird } from "./_components/bento-grid-third";
+// import { DraggableCardDemo } from "./_components/DraggableCardDemo";
+// import { StarsBackgroundDemo } from "./_components/demo-components-backgrounds-stars";
+// import { GlowingEffectDemo } from "./_components/grid-items";
+// import { MarqueeDemo } from "./_components/magic/MarqueeDemo";
+// import { TextHoverEffectDemo } from "./_components/text-hover-effect-demo";
 
+// <div className="flex flex-col items-center justify-center md:gap-12 md:py-16 md:px-20">
 export function LandingPage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center md:gap-12 md:py-16 md:px-20">
+    <div>
       <HeroSection />
-      <AnimatedThemeToggler />
-      <MarqueeDemo />
-      <GlowingEffectDemo />
-      <BentoGridThird />
-      <DraggableCardDemo />
-      <TextHoverEffectDemo />
+      <div className="@container grow w-full max-w-7xl">
+        <AreaChart1 />
+        <LineChart8 />
+      </div>
+      {/* <MarqueeDemo /> */}
+      {/* <GlowingEffectDemo /> */}
+      {/* <BentoGridThird /> */}
+      {/* <DraggableCardDemo /> */}
+      {/* <TextHoverEffectDemo /> */}
     </div>
   );
 }

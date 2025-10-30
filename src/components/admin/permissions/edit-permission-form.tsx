@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Key, Loader2, Save } from "lucide-react";
+import { ArrowLeftIcon, Key, Loader2, Save } from "lucide-react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -94,99 +94,74 @@ export function EditPermissionForm({ permission }: EditPermissionFormProps) {
       }
     }
 
-    await updatePermissionMutation.mutateAsync(formData);
+    const result = await updatePermissionMutation.mutateAsync(formData);
+    if (result.success) {
+      toast.success(result.message);
+    } else {
+      toast.error("Error", { description: result.message });
+    }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="container space-y-6">
       <div className="flex items-center gap-4">
         <Link href="/admin/permissions">
           <Button variant="outline" size="icon">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-arrow-left"
-            >
-              <title>Back</title>
-              <path d="m12 19-7-7 7-7" />
-              <path d="M19 12H5" />
-            </svg>
+            <ArrowLeftIcon className="h-4 w-4" />
           </Button>
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Key className="h-6 w-6 text-blue-600" />
-            Edit Permission
+        <div className="flex flex-col">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            تحديث الصلاحية
           </h1>
-          <p className="text-gray-600 mt-1">{permission.name}</p>
+          <p className="text-blue-600 font-bold mt-1 ml-2">
+            {permission.name.toUpperCase()}
+          </p>
         </div>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Permission Details</CardTitle>
-          <CardDescription>Update permission configuration</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Permission Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g., user.create, post.delete.own"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Unique identifier for this permission (must be unique)
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Describe what this permission allows..."
-                        {...field}
-                        rows={2}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="w-fit m-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle>تفاصيل الصلاحية</CardTitle>
+            <CardDescription>تحديث تكوين الصلاحيات</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
                 <FormField
                   control={form.control}
-                  name="resource"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Resource</FormLabel>
+                      <FormLabel>إسم الصلاحية</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="e.g., user, post, admin"
+                          placeholder="e.g., user.create, post.delete.own"
                           {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        المعرف الفريد لهذا الإذن (يجب أن يكون فريدًا)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>وصف الصلاحية</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Describe what this permission allows..."
+                          {...field}
+                          rows={2}
                         />
                       </FormControl>
                       <FormMessage />
@@ -194,79 +169,98 @@ export function EditPermissionForm({ permission }: EditPermissionFormProps) {
                   )}
                 />
 
+                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="resource"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>المصدر</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="e.g., user, post, admin"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="action"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>العملية</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl className="w-full">
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select action" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="read">عرض</SelectItem>
+                            <SelectItem value="create">إنشاء</SelectItem>
+                            <SelectItem value="update">تحديث</SelectItem>
+                            <SelectItem value="delete">حذف</SelectItem>
+                            <SelectItem value="manage">إدارة</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
-                  name="action"
+                  name="conditions"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Action</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select action" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="read">Read</SelectItem>
-                          <SelectItem value="create">Create</SelectItem>
-                          <SelectItem value="update">Update</SelectItem>
-                          <SelectItem value="delete">Delete</SelectItem>
-                          <SelectItem value="manage">Manage</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>الشروط المشروطة (إختياري)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder={`{\n  "department": "IT",\n  "level": { "gte": 3 }\n}`}
+                          {...field}
+                          rows={6}
+                          className="text-xs"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        كائن JSON للوصول المشروط. اتركه فارغًا للحصول على إذن
+                        ثابت.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </div>
 
-              <FormField
-                control={form.control}
-                name="conditions"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ABAC Conditions (Optional)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder={`{\n  "department": "IT",\n  "level": { "gte": 3 }\n}`}
-                        {...field}
-                        rows={6}
-                        className="font-mono text-xs"
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      JSON object for conditional access. Leave empty for static
-                      permission.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Button
-                type="submit"
-                disabled={updatePermissionMutation.isPending}
-                className="gap-2"
-              >
-                {updatePermissionMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" />
-                    Save Changes
-                  </>
-                )}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+                <Button
+                  type="submit"
+                  disabled={updatePermissionMutation.isPending}
+                  className="gap-2"
+                >
+                  {updatePermissionMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      جاري تحديث الصلاحية
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" />
+                      حفظ التغييرات
+                    </>
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -1,9 +1,9 @@
-import { Toaster } from "@/components/ui/sonner";
-import "./globals.css";
 import { headers } from "next/headers";
 import { AppProvider } from "@/components/providers/app-provider";
 import { Providers } from "@/components/providers/providers";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+import "./globals.css";
 
 export default async function RootLayout({
   children,

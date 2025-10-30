@@ -1,4 +1,3 @@
-// lib/hooks/use-permissions.ts
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -16,7 +15,7 @@ export function usePermissions() {
       const response = await fetch("/api/permissions");
       return response.json();
     },
-    staleTime: 5 * 60 * 1000, // 5 دقائق
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -28,17 +27,13 @@ export function useCreatePermission() {
     onSuccess: (result) => {
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ["permissions"] });
-        toast.success(result.message);
+        console.log(result.message);
       } else {
-        toast.error("Error creating permission", {
-          description: result.message,
-        });
+        console.log(result.message);
       }
     },
     onError: (error) => {
-      toast.error("Error", {
-        description: error.message || "An unexpected error occurred",
-      });
+      console.log(error.message);
     },
   });
 }
@@ -51,17 +46,13 @@ export function useDeletePermission() {
     onSuccess: (result) => {
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ["permissions"] });
-        toast.success(result.message);
+        console.log(result.message);
       } else {
-        toast.error("Error deleting permission", {
-          description: result.message,
-        });
+        console.log(result.message);
       }
     },
     onError: (error) => {
-      toast.error("Error", {
-        description: error.message || "An unexpected error occurred",
-      });
+      console.log(error.message);
     },
   });
 }
@@ -73,38 +64,13 @@ export function useUpdatePermission() {
     onSuccess: (result) => {
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ["permissions"] });
-        toast.success(result.message);
+        console.log(result.message);
       } else {
-        toast.error("Error", { description: result.message });
+        console.log(result.message);
       }
     },
     onError: (error) => {
-      toast.error("Error", {
-        description: error.message || "An unexpected error occurred",
-      });
+      console.log(error.message);
     },
   });
 }
-
-// export function useUpdatePermission() {
-//   const queryClient = useQueryClient();
-
-//   return useMutation({
-//     mutationFn: (formData: FormData) => updatePermission(formData),
-//     onSuccess: (result) => {
-//       if (result.success) {
-//         queryClient.invalidateQueries({ queryKey: ["permissions"] });
-//         toast.success(result.message);
-//       } else {
-//         toast.error("Error Updating Permission", {
-//           description: result.message,
-//         });
-//       }
-//     },
-//     onError: (error) => {
-//       toast.error("Error", {
-//         description: error.message || "An Unexpected Error Occurred",
-//       });
-//     },
-//   });
-// }

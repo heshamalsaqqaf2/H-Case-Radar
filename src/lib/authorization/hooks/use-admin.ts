@@ -1,7 +1,7 @@
-// lib/hooks/use-admin.ts
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   assignRoleToUser,
   getAllPermissions,
@@ -42,9 +42,10 @@ export function useAssignRole() {
       assignRoleToUser(userId, roleId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["usersWithRoles"] });
+      toast.success("تم تعيين الدور للمستخدم بنجاح");
     },
     onError: (error) => {
-      console.error("Mutation error:", error);
+      toast.error("Mutation error", { description: error.message });
     },
   });
 }
@@ -56,9 +57,11 @@ export function useRemoveRole() {
       removeRoleFromUser(userId, roleId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["usersWithRoles"] });
+      toast.success("تم حذف الدور من المستخدم بنجاح");
     },
     onError: (error) => {
-      console.error("Mutation error:", error);
+      toast.error("خطأ في حذف الدور", { description: error.message });
+      // console.error("Mutation error:", error);
     },
   });
 }

@@ -21,7 +21,7 @@ const createPermissionSchema = z.object({
 });
 
 const updatePermissionSchema = z.object({
-  id: z.string().uuid("Invalid permission ID"),
+  id: z.string().uuid("معرف الصلاحية غير صالح"),
   name: z
     .string()
     .min(3)
@@ -51,7 +51,7 @@ export async function createPermission(formData: FormData) {
       .limit(1);
 
     if (existingPermission.length > 0) {
-      return { success: false, message: "Permission name already exists" };
+      return { success: false, message: "إسم الصلاحية موجود بالفعل" };
     }
 
     // تحويل الـ conditions من نص إلى JSON
@@ -70,16 +70,20 @@ export async function createPermission(formData: FormData) {
 
     revalidatePath("/admin/permissions");
 
-    return { success: true, message: "Permission created successfully" };
+    return { success: true, message: "تم إنشاء الصلاحية بنجاح" };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { success: false, message: error.issues[0].message };
     }
     if (error instanceof SyntaxError) {
-      return { success: false, message: "Invalid JSON in conditions" };
+      return {
+        success: false,
+        message:
+          "بيانات غير صالحة في الشروط والأحكام, يرجى التحقق من بيانات الشروط JSON",
+      };
     }
     console.error("Error creating permission:", error);
-    return { success: false, message: "Failed to create permission" };
+    return { success: false, message: "فشل إنشاء الصلاحية" };
   }
 }
 
@@ -99,7 +103,9 @@ export async function deletePermission(permissionId: string) {
     if (rolePermissionRelations.length > 0) {
       return {
         success: false,
-        message: "Cannot delete permission that is assigned to roles",
+        message:
+          "لا يمكن حذف الصلاحية المخصصة الى الأدوار, يجب حذف الأدوار  المرتبطة بهذه الصلاحية اولا",
+        // message: "Cannot delete permission that is assigned to roles",
       };
     }
 
@@ -107,10 +113,13 @@ export async function deletePermission(permissionId: string) {
 
     revalidatePath("/admin/permissions");
 
-    return { success: true, message: "Permission deleted successfully" };
+    return { success: true, message: "تم حذف الصلاحية بنجاح" };
   } catch (error) {
-    console.error("Error deleting permission:", error);
-    return { success: false, message: "Failed to delete permission" };
+    console.error("حدث خطأ اثناء حذف الصلاحية, يرجى المحاولة مرة اخرى:", error);
+    return {
+      success: false,
+      message: "فشل حذف الصلاحية, يرجى المحاولة مرة اخرى",
+    };
   }
 }
 
@@ -136,7 +145,10 @@ export async function updatePermission(formData: FormData) {
       existingPermission.length > 0 &&
       existingPermission[0].id !== validatedData.id
     ) {
-      return { success: false, message: "Permission Name Already Exists" };
+      return {
+        success: false,
+        message: "اسم الصلاحية موجود بالفعل, يرجى تغيير الاسم",
+      };
     }
 
     // تحويل الـ conditions من نص إلى JSON
@@ -159,16 +171,23 @@ export async function updatePermission(formData: FormData) {
       .where(eq(permission.id, validatedData.id));
 
     revalidatePath("/admin/permissions");
-    return { success: true, message: "Permission Updated Successfully" };
+    return { success: true, message: "تم تحديث الصلاحية بنجاح" };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { success: false, message: error.issues[0].message };
     }
     if (error instanceof SyntaxError) {
-      return { success: false, message: "Invalid JSON In Conditions" };
+      return {
+        success: false,
+        message:
+          "بيانات غير صالحة في الشروط والأحكام, يرجى التحقق من بيانات الشروط JSON",
+      };
     }
-    console.error("Error Updating Permission:", error);
-    return { success: false, message: "Failed To Update Permission" };
+    console.error("خطأ في تحديث الصلاحية:", error);
+    return {
+      success: false,
+      message: "فشل تحديث الصلاحية, يرجى المحاولة مرة اخرى",
+    };
   }
 }
 
@@ -205,7 +224,7 @@ export async function getPermissionById(
       updatedAt: raw.updatedAt,
     };
   } catch (error) {
-    console.error("Error getting permission:", error);
+    console.error("خطأ في الحصول على الصلاحية:", error);
     return null;
   }
 }
