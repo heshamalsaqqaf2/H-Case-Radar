@@ -16,7 +16,7 @@ import {
   useAssignRole,
   useRoles,
   useUsersWithRoles,
-} from "@/lib/authorization/hooks/use-admin";
+} from "@/lib/authorization/hooks/admin/use-users";
 
 export function RolesManagement() {
   const { data: roles, isLoading: rolesLoading } = useRoles();

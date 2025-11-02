@@ -241,15 +241,27 @@ const businessCards = [
     isPositive: false,
     color: "var(--color-amber-500)",
   },
+  {
+    title: "Conversion Change",
+    metric: "Rate variance from zero",
+    baseValue: "50%",
+    baseCurrency: "Baseline",
+    targetValue: "+60.5%",
+    targetCurrency: "Current",
+    data: conversionData,
+    change: "Cyclical",
+    isPositive: true,
+    color: "var(--color-rose-500)",
+  },
 ];
 
 export default function LineChart8() {
   return (
-    <div className="flex items-center justify-center p-6 lg:p-12">
+    <div className="flex items-center justify-center">
       {/* Container */}
       <div className="@container grow w-full max-w-7xl">
         {/* Grid */}
-        <div className="grid grid-cols-1 @3xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-4 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
           {/* Business Cards */}
           {businessCards.map((card, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: <>

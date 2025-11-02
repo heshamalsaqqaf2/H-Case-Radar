@@ -8,19 +8,26 @@ import {
   text,
   timestamp,
   uuid,
+  varchar,
 } from "drizzle-orm/pg-core";
 
+// TODO: جداول من Better Auth
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
+  banned: boolean("banned").default(false),
+  banReason: text("ban_reason"),
+  banExpires: timestamp("ban_expires"),
+  lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
+  // role: text("role"),
 });
 
 export const session = pgTable("session", {
@@ -71,7 +78,7 @@ export const verification = pgTable("verification", {
     .notNull(),
 });
 
-//  جداول نظام الصلاحيات (منفصل تمامًا)
+//  Todo: نظام الأدوار والصلاحيات (منفصل تمامًا  Better Auth عن )
 export const permission = pgTable("permission", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull().unique(),
@@ -130,7 +137,7 @@ export const userRoles = pgTable(
   }),
 );
 
-// العلاقات
+// TODO: العلاقات Relations
 export const userRelations = relations(user, ({ many }) => ({
   userRoles: many(userRoles),
 }));
@@ -169,12 +176,36 @@ export const rolePermissionsRelations = relations(
   }),
 );
 
-// Types
+// !: Audit Logs Table
+export const auditLog = pgTable("audit_log", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }), // ربط بالمستخدم
+  action: varchar("action", { length: 50 }).notNull(), // مثلاً: "role.create"
+  entity: varchar("entity", { length: 50 }).notNull(), // "role", "user", "permission"
+  entityId: text("entity_id").notNull(), // معرف الكيان المعدّل
+  details: text("details"), // JSON يحتوي على تفاصيل الإجراء
+  ipAddress: varchar("ip_address", { length: 45 }), // IPv4 و IPv6
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// !: Audit Logs Relations
+export const auditLogRelations = relations(auditLog, ({ one }) => ({
+  user: one(user, {
+    fields: [auditLog.userId],
+    references: [user.id],
+  }),
+}));
+
+// TODO: الانواع Types
 export type User = InferSelectModel<typeof user>;
 export type Role = InferSelectModel<typeof role>;
 export type Permission = InferSelectModel<typeof permission>;
 export type UserRole = InferSelectModel<typeof userRoles>;
 export type RolePermission = InferSelectModel<typeof rolePermissions>;
+export type AuditLog = InferSelectModel<typeof auditLog>;
 
 export const schema = {
   user,
@@ -185,4 +216,6 @@ export const schema = {
   role,
   rolePermissions,
   userRoles,
+  auditLog,
+  auditLogRelations,
 };

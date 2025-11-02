@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useCurrentUser } from "@/lib/authorization/hooks/use-auth";
+import { useCurrentUser } from "@/lib/authorization/hooks/admin/use-auth";
 
 export default function TestAuthPage() {
   const { data: user, isLoading, error, status } = useCurrentUser();

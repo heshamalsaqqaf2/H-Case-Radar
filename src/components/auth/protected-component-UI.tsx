@@ -1,5 +1,4 @@
 /** biome-ignore-all lint/suspicious/noArrayIndexKey: <> */
-
 "use client";
 
 import { AnimatePresence, motion, useInView } from "framer-motion";
@@ -32,7 +31,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   useCurrentUser,
   useUserPermissions,
-} from "@/lib/authorization/hooks/use-auth";
+} from "@/lib/authorization/hooks/admin/use-auth";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Badge } from "../ui/badge";

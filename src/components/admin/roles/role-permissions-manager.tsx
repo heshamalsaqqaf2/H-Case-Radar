@@ -12,8 +12,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { usePermissions } from "@/lib/authorization/hooks/use-admin";
-import { useAssignPermissions } from "@/lib/authorization/hooks/use-roles";
+import { useAssignPermissionsToRole } from "@/lib/authorization/hooks/admin/use-roles";
+import { usePermissions } from "@/lib/authorization/hooks/admin/use-users";
 
 interface RolePermission {
   permissionId: string;
@@ -35,7 +35,7 @@ export function RolePermissionsManager({
   initialPermissions,
 }: RolePermissionsManagerProps) {
   const { data: allPermissions = [], isLoading } = usePermissions();
-  const assignPermissionsMutation = useAssignPermissions();
+  const assignPermissionsMutation = useAssignPermissionsToRole();
 
   // تحويل الصلاحيات المعيّنة إلى مصفوفة من IDs
   const initialSelected = useMemo(() => {

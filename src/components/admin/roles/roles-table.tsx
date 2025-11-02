@@ -46,8 +46,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useRoles } from "@/lib/authorization/hooks/use-admin";
-import { useDeleteRole } from "@/lib/authorization/hooks/use-roles";
+import { useDeleteRole } from "@/lib/authorization/hooks/admin/use-roles";
+import { useRoles } from "@/lib/authorization/hooks/admin/use-users";
 
 export function RolesTable() {
   const { data: roles, isLoading } = useRoles();
@@ -86,7 +86,7 @@ export function RolesTable() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {roles && roles.length > 0 ? (
+          {roles && useRoles.length > 0 ? (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
@@ -122,7 +122,7 @@ export function RolesTable() {
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm text-gray-500">
                           <Users className="h-4 w-4" />
-                          <span>0 users</span> {/* يمكن جلب العدد الفعلي */}
+                          <span>{role}</span> {/* يمكن جلب العدد الفعلي */}
                         </div>
                       </TableCell>
                       <TableCell>

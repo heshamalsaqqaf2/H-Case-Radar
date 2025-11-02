@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { RoleActivity } from "@/components/admin/roles/role-activity";
-import { RoleHeader } from "@/components/admin/roles/role-header";
+import { RoleActivity } from "@/components/admin/roles/role-profile/role-activity";
+import { RoleHeader } from "@/components/admin/roles/role-profile/role-header";
 import { RolePermissionsManager } from "@/components/admin/roles/role-permissions-manager";
 import { RoleUsers } from "@/components/admin/roles/role-users";
 import { ProtectedComponent } from "@/components/auth/protected-component";
 import { QuickLoading } from "@/components/quick-loading";
-import { getRoleProfileData } from "@/lib/authorization/actions/role-actions";
+import { getRoleProfileData } from "@/lib/authorization/actions/admin/role-actions";
 
 interface PageProps {
   params: {
@@ -59,9 +59,7 @@ async function RolePermissionsManagerWrapper({ roleId }: { roleId: string }) {
 export default async function RoleProfilePage({ params }: PageProps) {
   // انتظار params أولاً
   const { id } = await params;
-
   const profileData = await getRoleProfileData(id);
-
   if (!profileData) {
     notFound();
   }

@@ -26,7 +26,7 @@ import {
   clearDatabase,
   reseedDatabase,
   seedDatabase,
-} from "@/lib/authorization/actions/seed-actions";
+} from "@/lib/authorization/actions/admin/seed-actions";
 export function SeedPanel() {
   const [loading, setLoading] = useState<"seed" | "clear" | "reseed" | null>(
     null,

@@ -5,8 +5,15 @@ import { useEffect, useState } from "react";
 import {
   useCurrentUser,
   useUserPermissions,
-} from "@/lib/authorization/hooks/use-auth";
+} from "@/lib/authorization/hooks/admin/use-auth";
 import { Button } from "../ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 
 interface ProtectedComponentProps {
   children: React.ReactNode;
@@ -100,20 +107,33 @@ export function ProtectedComponent({
 
   if (userError) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <h3 className="text-lg font-medium text-red-600">
-            Authentication Error
-          </h3>
-          <p className="text-muted-foreground">{userError.message}</p>
-          <Button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Retry
-          </Button>
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>خطأ في الخادم</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <h3 className="text-3xl font-bold text-red-600 dark:text-red-400">
+                حدث خطأ في التحقق من الصلاحيات, يرجى المحاولة مرة أخرى
+              </h3>
+              <p className="text-sm">
+                <span className="underline">{userError.message}</span> - فشل في
+                جلب الصلاحيات, من الخادم
+              </p>
+              <Button
+                onClick={() => window.location.reload()}
+                className="mt-4 px-4 py-2 bg-primary rounded hover:bg-blue-700"
+              >
+                إعادة المحاولة
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter>
+          حدث خطأ في التحقق من الصلاحيات, يرجى المحاولة مرة أخرى
+        </CardFooter>
+      </Card>
     );
   }
 
@@ -121,7 +141,7 @@ export function ProtectedComponent({
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <h3 className="text-lg font-medium">Authentication Required</h3>
+          <h3 className="text-lg font-medium">المصادقة مطلوبة</h3>
           <p className="text-muted-foreground">
             Please log in to access this page.
           </p>
@@ -134,8 +154,11 @@ export function ProtectedComponent({
             </ul>
           </div>
           <div className="mt-4">
-            <a href="/" className="text-blue-600 hover:text-blue-800 underline">
-              Go to Home Page
+            <a
+              href="/sign-in"
+              className="text-blue-600 hover:text-blue-800 underline"
+            >
+              الذهاب لصفحة تسجيل الدخول
             </a>
           </div>
         </div>

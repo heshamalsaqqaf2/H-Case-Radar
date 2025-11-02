@@ -1,10 +1,18 @@
-import { adminClient, inferAdditionalFields } from "better-auth/client/plugins";
+import {
+  adminClient,
+  inferAdditionalFields,
+  lastLoginMethodClient,
+} from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import { toast } from "sonner";
 import type { auth } from "./auth-server";
 
 export const authClient = createAuthClient({
-  plugins: [adminClient(), inferAdditionalFields<typeof auth>()],
+  plugins: [
+    adminClient(),
+    lastLoginMethodClient(),
+    inferAdditionalFields<typeof auth>(),
+  ],
   fetchOptions: {
     onError(e) {
       if (e.error.status === 429) {

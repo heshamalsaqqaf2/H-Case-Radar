@@ -24,7 +24,7 @@ import {
   useRemoveRole,
   useRoles,
   useUsersWithRoles,
-} from "@/lib/authorization/hooks/use-admin";
+} from "@/lib/authorization/hooks/admin/use-users";
 
 export function UsersManagement() {
   const {

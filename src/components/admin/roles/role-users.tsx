@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useRoleProfile } from "@/lib/authorization/hooks/use-role-profile";
+import { useRoleProfile } from "@/lib/authorization/hooks/admin/use-roles";
 
 interface RoleUsersFastProps {
   roleId: string;

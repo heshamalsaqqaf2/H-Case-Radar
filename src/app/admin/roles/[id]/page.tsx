@@ -1,7 +1,8 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { EditRoleForm } from "@/components/admin/roles/edit-role-form";
-import { ProtectedComponent } from "@/components/auth/protected-component";
-import { getRoleProfileData } from "@/lib/authorization/actions/role-actions";
+import { authorizationService } from "@/lib/authentication/permission-system";
+import { getCurrentUserId } from "@/lib/authentication/session";
+import { getRoleProfileData } from "@/lib/authorization/actions/admin/role-actions";
 
 interface PageProps {
   params: {
@@ -11,17 +12,24 @@ interface PageProps {
 
 export default async function EditRolePage({ params }: PageProps) {
   const { id } = await params;
-  const roleData = await getRoleProfileData(id);
 
+  const userId = await getCurrentUserId();
+  const check = await authorizationService.checkPermission(
+    { userId },
+    "role.update",
+  );
+  if (!check.allowed) {
+    redirect("/unauthorized");
+  }
+
+  const roleData = await getRoleProfileData(id);
   if (!roleData) {
     notFound();
   }
 
   return (
-    <ProtectedComponent permission="role.edit">
-      <div className="container mx-auto p-6">
-        <EditRoleForm role={roleData.role} permissions={roleData.permissions} />
-      </div>
-    </ProtectedComponent>
+    <div className="container mx-auto p-6">
+      <EditRoleForm role={roleData.role} permissions={roleData.permissions} />
+    </div>
   );
 }

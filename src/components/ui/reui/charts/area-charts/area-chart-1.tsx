@@ -94,13 +94,23 @@ const businessCards = [
     icon: TrendingUp,
     gradientId: "usersGradient",
   },
+  {
+    title: "Active Users",
+    period: "Last 28 days",
+    value: "18.945",
+    timestamp: "1h ago",
+    data: activeUsersData,
+    color: "var(--color-yellow-500)",
+    icon: TrendingUp,
+    gradientId: "usersGradient",
+  },
 ];
 
 export default function AreaChart1() {
   return (
-    <div className="flex items-center justify-center p-6 lg:p-12">
-      <div className="@container w-full max-w-6xl">
-        <div className="grid grid-cols-1 @3xl:grid-cols-3 gap-6">
+    <div className="flex items-center justify-center">
+      <div className="@container w-full max-w-7xl">
+        <div className="grid grid-cols-4 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
           {businessCards.map((card, i) => {
             const Icon = card.icon;
             return (

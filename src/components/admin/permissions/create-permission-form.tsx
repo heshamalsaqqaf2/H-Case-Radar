@@ -44,7 +44,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreatePermission } from "@/lib/authorization/hooks/permission/use-permissions";
+import { useCreatePermission } from "@/lib/authorization/hooks/admin/use-permissions";
 
 const formSchema = z.object({
   name: z

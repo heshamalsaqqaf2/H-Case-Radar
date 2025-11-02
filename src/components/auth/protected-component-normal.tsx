@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import {
   useCurrentUser,
   useUserPermissions,
-} from "@/lib/authorization/hooks/use-auth";
+} from "@/lib/authorization/hooks/admin/use-auth";
 import { Button } from "../ui/button";
 
 interface ProtectedComponentProps {

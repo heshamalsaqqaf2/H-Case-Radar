@@ -49,6 +49,44 @@ export class AuthorizationService {
     return userRolesData.map((ur) => ur.roleName);
   }
 
+  async assignRoleToUser(userId: string, roleName: string): Promise<boolean> {
+    const roleData = await db
+      .select()
+      .from(role)
+      .where(eq(role.name, roleName))
+      .limit(1);
+
+    if (roleData.length === 0) return false;
+
+    try {
+      await db.insert(userRoles).values({
+        userId,
+        roleId: roleData[0].id,
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async removeRoleFromUser(userId: string, roleName: string): Promise<boolean> {
+    const roleData = await db
+      .select()
+      .from(role)
+      .where(eq(role.name, roleName))
+      .limit(1);
+
+    if (roleData.length === 0) return false;
+
+    await db
+      .delete(userRoles)
+      .where(
+        and(eq(userRoles.userId, userId), eq(userRoles.roleId, roleData[0].id)),
+      );
+
+    return true;
+  }
+
   async getUserPermissions(userId: string): Promise<SafePermission[]> {
     const rawPermissions: RawPermission[] = await db
       .select({
@@ -130,44 +168,6 @@ export class AuthorizationService {
         return false;
       }
     }
-    return true;
-  }
-
-  async assignRoleToUser(userId: string, roleName: string): Promise<boolean> {
-    const roleData = await db
-      .select()
-      .from(role)
-      .where(eq(role.name, roleName))
-      .limit(1);
-
-    if (roleData.length === 0) return false;
-
-    try {
-      await db.insert(userRoles).values({
-        userId,
-        roleId: roleData[0].id,
-      });
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  async removeRoleFromUser(userId: string, roleName: string): Promise<boolean> {
-    const roleData = await db
-      .select()
-      .from(role)
-      .where(eq(role.name, roleName))
-      .limit(1);
-
-    if (roleData.length === 0) return false;
-
-    await db
-      .delete(userRoles)
-      .where(
-        and(eq(userRoles.userId, userId), eq(userRoles.roleId, roleData[0].id)),
-      );
-
     return true;
   }
 }

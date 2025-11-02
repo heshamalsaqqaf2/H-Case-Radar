@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useDeletePermission } from "@/lib/authorization/hooks/permission/use-permissions";
+import { useDeletePermission } from "@/lib/authorization/hooks/admin/use-permissions";
 
 interface DeletePermissionDialogProps {
   permissionId: string;

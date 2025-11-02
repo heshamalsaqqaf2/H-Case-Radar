@@ -25,9 +25,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateRole } from "@/lib/authorization/hooks/use-roles";
+import { useCreateRole } from "@/lib/authorization/hooks/admin/use-roles";
 
-// إصلاح schema - جعل isDefault مطلوبة
 const formSchema = z.object({
   name: z
     .string()

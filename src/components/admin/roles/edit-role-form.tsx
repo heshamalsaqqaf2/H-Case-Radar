@@ -26,8 +26,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { authClient } from "@/lib/authentication/auth-client";
-import type { RolePermission } from "@/lib/authorization/actions/role-actions";
-import { useUpdateRole } from "@/lib/authorization/hooks/use-roles"; // تأكد من المسار الصحيح
+import { useUpdateRole } from "@/lib/authorization/hooks/admin/use-roles"; // تأكد من المسار الصحيح
+import type { RolePermission } from "@/lib/types/roles";
 import { RolePermissionsManager } from "./role-permissions-manager";
 
 const formSchema = z.object({
@@ -48,7 +48,6 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-// تعريف الـ interface بشكل صحيح
 interface EditRoleFormProps {
   role: {
     id: string;

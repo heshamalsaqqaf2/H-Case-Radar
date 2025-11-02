@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { EditPermissionForm } from "@/components/admin/permissions/edit-permission-form";
 import { ProtectedComponent } from "@/components/auth/protected-component";
-import { getPermissionById } from "@/lib/authorization/actions/permission/permission-actions";
+import { getPermissionById } from "@/lib/authorization/actions/permission-actions";
 
 interface PageProps {
   params: {

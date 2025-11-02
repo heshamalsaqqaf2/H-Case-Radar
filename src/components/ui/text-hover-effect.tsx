@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "motion/react";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const TextHoverEffect = ({
   text,
@@ -128,7 +128,7 @@ export const TextHoverEffect = ({
         stroke="url(#textGradient)"
         strokeWidth="0.3"
         mask="url(#textMask)"
-        className="fill-transparent font-[helvetica] text-7xl font-bold"
+        className="fill-transparent font-[helvetica] text-7xl font-bold m-0 p-0"
       >
         {text}
       </text>

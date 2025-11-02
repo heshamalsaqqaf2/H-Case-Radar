@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useUpdatePermission } from "@/lib/authorization/hooks/permission/use-permissions";
+import { useUpdatePermission } from "@/lib/authorization/hooks/admin/use-permissions";
 import type { SafePermission } from "@/lib/types/permission";
 
 const formSchema = z.object({
