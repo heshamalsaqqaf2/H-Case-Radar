@@ -29,7 +29,6 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ProtectedComponent } from "@/components/auth/protected-component";
 import { AlertDialogDelete } from "@/components/shared/alert-dialog-delete";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,13 +56,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useLocalStorage } from "@/hooks/table/use-local-storage";
 import { usePerformance } from "@/hooks/table/use-performance";
-import { useDeletePermission } from "@/lib/authorization/hooks/admin/use-permissions";
-import { usePermissions } from "@/lib/authorization/hooks/admin/use-users";
+import {
+  useDeletePermission,
+  usePermissions,
+} from "@/lib/authorization/hooks/admin/use-permissions";
 import { cn } from "@/lib/utils";
-import type { Permission, PermissionFromAPI } from "@/types/permission";
-import { transformPermissionFromAPI } from "@/types/permission";
+import type { Permission } from "@/types/tanstack-table-types/permission";
+import { transformPermissionFromAPI } from "@/types/tanstack-table-types/permission";
 import { PermissionsTableToolbar } from "./table/permissions-table-toolbar";
 import { StatisticsPanel } from "./table/statistics-panel2";
 
@@ -221,8 +221,10 @@ export function PermissionsTable() {
 
     return {
       total: permissions.length,
-      static: permissions.filter((p) => !p.conditions).length,
-      dynamic: permissions.filter((p) => p.conditions).length,
+      static: permissions.filter((p: { conditions: any }) => !p.conditions)
+        .length,
+      dynamic: permissions.filter((p: { conditions: any }) => p.conditions)
+        .length,
       byResource: permissions.reduce(
         (acc, p) => {
           acc[p.resource] = (acc[p.resource] || 0) + 1;
@@ -517,36 +519,30 @@ export function PermissionsTable() {
                   Copy ID
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <ProtectedComponent permission="permission.edit">
-                  <DropdownMenuItem asChild>
-                    <Link
-                      href={`/admin/permissions/${permission.id}/edit`}
-                      className="flex items-center"
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={`/admin/permissions/${permission.id}/edit`}
+                    className="flex items-center"
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </Link>
+                </DropdownMenuItem>
+                <AlertDialogDelete
+                  itemName={permission.name}
+                  itemType="الصلاحية"
+                  onConfirm={() => handleDelete(permission.id, permission.name)}
+                  isLoading={deletingId === permission.id}
+                  trigger={
+                    <DropdownMenuItem
+                      className="text-red-600 focus:text-red-600 flex items-center"
+                      onSelect={(e) => e.preventDefault()}
                     >
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
-                    </Link>
-                  </DropdownMenuItem>
-                </ProtectedComponent>
-                <ProtectedComponent permission="permission.delete">
-                  <AlertDialogDelete
-                    itemName={permission.name}
-                    itemType="الصلاحية"
-                    onConfirm={() =>
-                      handleDelete(permission.id, permission.name)
-                    }
-                    isLoading={deletingId === permission.id}
-                    trigger={
-                      <DropdownMenuItem
-                        className="text-red-600 focus:text-red-600 flex items-center"
-                        onSelect={(e) => e.preventDefault()}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    }
-                  />
-                </ProtectedComponent>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  }
+                />
               </DropdownMenuContent>
             </DropdownMenu>
           );

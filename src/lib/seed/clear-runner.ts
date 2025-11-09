@@ -1,4 +1,4 @@
-import { testConnection } from "@/lib/database";
+import { testConnection } from "@/lib/database/server";
 import { databaseSeeder } from "./initial-data";
 
 async function main() {

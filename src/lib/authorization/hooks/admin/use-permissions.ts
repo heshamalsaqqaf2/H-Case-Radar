@@ -1,13 +1,7 @@
-// src/lib/hooks/use-permissions.ts
+// src/authorization/hooks/admin/use-permissions.ts
 "use client";
 
-import {
-  queryOptions,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { toast } from "sonner";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import {
   createPermissionAction,
   deletePermissionAction,
@@ -15,16 +9,15 @@ import {
   getPermissionByIdAction,
   updatePermissionAction,
 } from "@/lib/authorization/actions/admin/permission-actions";
+import { useAdminMutation } from "@/lib/authorization/hooks/core";
 
-// import type { SafePermission } from "@/lib/types/permission";
-
+// ─── Query Options
 const permissionsListOptions = () =>
   queryOptions({
     queryKey: ["permissions"],
     queryFn: () => getAllPermissionsAction(),
     staleTime: 5 * 60 * 1000,
   });
-
 const permissionDetailOptions = (id: string) =>
   queryOptions({
     queryKey: ["permissions", id],
@@ -32,95 +25,36 @@ const permissionDetailOptions = (id: string) =>
     enabled: !!id,
   });
 
+// ─── Hooks: Queries
 export function usePermissions() {
   return useQuery(permissionsListOptions());
 }
-
 export function usePermission(id: string) {
   return useQuery(permissionDetailOptions(id));
 }
 
-// TODO: =============== التحديثات ===============
-const handleMutationSuccess = (
-  result: {
-    success: boolean;
-    data?: { message: string };
-    error?: { message: string };
-  },
-  invalidateKey: string[],
-  queryClient: ReturnType<typeof useQueryClient>,
-  successMessage: string,
-  errorMessagePrefix: string,
-) => {
-  if (result.success) {
-    queryClient.invalidateQueries({ queryKey: invalidateKey });
-    toast.success(result.data?.message || successMessage);
-  } else {
-    toast.error(errorMessagePrefix, {
-      description: result.error?.message || "حدث خطأ غير متوقع",
-    });
-  }
-};
-
+// ─── Hooks: Mutations
 export function useCreatePermission() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (formData: FormData) => createPermissionAction(formData),
-    onSuccess: (result) => {
-      handleMutationSuccess(
-        result,
-        ["permissions"],
-        queryClient,
-        "تم إنشاء الصلاحية بنجاح",
-        "خطأ في إنشاء الصلاحية",
-      );
-    },
-    onError: (error) => {
-      toast.error("خطأ غير متوقع", {
-        description: error.message || "يرجى المحاولة لاحقًا",
-      });
-    },
+  return useAdminMutation<FormData>({
+    mutationFn: createPermissionAction,
+    invalidateKeys: [["permissions"]],
+    successMessage: "تم إنشاء الصلاحية بنجاح",
+    errorMessage: "خطأ في إنشاء الصلاحية",
   });
 }
-
 export function useUpdatePermission() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (formData: FormData) => updatePermissionAction(formData),
-    onSuccess: (result) => {
-      handleMutationSuccess(
-        result,
-        ["permissions"],
-        queryClient,
-        "تم تحديث الصلاحية بنجاح",
-        "خطأ في تحديث الصلاحية",
-      );
-    },
-    onError: (error) => {
-      toast.error("خطأ غير متوقع", {
-        description: error.message || "يرجى المحاولة لاحقًا",
-      });
-    },
+  return useAdminMutation<FormData>({
+    mutationFn: updatePermissionAction,
+    invalidateKeys: [["permissions"]],
+    successMessage: "تم تحديث الصلاحية بنجاح",
+    errorMessage: "خطأ في تحديث الصلاحية",
   });
 }
-
 export function useDeletePermission() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (permissionId: string) => deletePermissionAction(permissionId),
-    onSuccess: (result) => {
-      handleMutationSuccess(
-        result,
-        ["permissions"],
-        queryClient,
-        "تم حذف الصلاحية بنجاح",
-        "خطأ في حذف الصلاحية",
-      );
-    },
-    onError: (error) => {
-      toast.error("خطأ غير متوقع", {
-        description: error.message || "يرجى المحاولة لاحقًا",
-      });
-    },
+  return useAdminMutation<string>({
+    mutationFn: deletePermissionAction,
+    invalidateKeys: [["permissions"]],
+    successMessage: "تم حذف الصلاحية بنجاح",
+    errorMessage: "خطأ في حذف الصلاحية",
   });
 }

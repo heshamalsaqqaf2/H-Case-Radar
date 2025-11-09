@@ -6,6 +6,36 @@ import { headers } from "next/headers";
 import { auth } from "./auth-server";
 
 /**
+ * يُعيد المستخدم الحالي من الجلسة.
+ * @throws APIError إذا لم يكن هناك جلسة نشطة.
+ * @returns
+ */
+export async function getCurrentUser() {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user) {
+      throw new APIError("UNAUTHORIZED", {
+        message: "You Are Not Signed In, Please Sign In First.",
+        cause: "not_logged_in",
+        code: "401",
+      });
+    }
+    return session.user;
+  } catch (error) {
+    // إذا كان الخطأ من Better Auth، أعد رميه كما هو
+    if (error instanceof APIError) {
+      throw error;
+    }
+    // أي خطأ آخر (شبكة، خادم، إلخ)
+    throw new APIError("INTERNAL_SERVER_ERROR", {
+      message: "Something Went Wrong, Please Try Again Later.",
+      cause: "session_fetch_failed",
+      code: "500",
+    });
+  }
+}
+
+/**
  * يُعيد معرّف المستخدم الحالي من الجلسة.
  * @throws APIError إذا لم يكن هناك جلسة نشطة.
  */

@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import type { Permission } from "@/types/permission";
+import type { Permission } from "@/types/tanstack-table-types/permission";
 
 const getActionBadgeVariant = (action: string) => {
   switch (action) {

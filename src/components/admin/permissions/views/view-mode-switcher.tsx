@@ -4,7 +4,7 @@
 import { Layers, LayoutGrid, Table } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { ViewMode } from "@/types/permission";
+import type { ViewMode } from "@/types/tanstack-table-types/permission";
 
 interface ViewModeSwitcherProps {
   viewMode: ViewMode;

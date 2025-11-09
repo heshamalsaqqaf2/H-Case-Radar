@@ -6,10 +6,7 @@ export const createRoleSchema = z.object({
     .string()
     .min(3)
     .max(30)
-    .regex(
-      /^[a-zA-Z0-9_]+$/,
-      "Name can only contain letters, numbers and underscores",
-    ),
+    .regex(/^[a-zA-Z0-9_]+$/, "Name can only contain letters, numbers and underscores"),
   description: z.string().min(10).max(100),
   isDefault: z.boolean().default(false),
 });

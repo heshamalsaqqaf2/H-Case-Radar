@@ -3,15 +3,11 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body className="antialiased">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <Providers>{children}</Providers>
           <Toaster richColors theme="light" position="bottom-right" />
         </ThemeProvider>

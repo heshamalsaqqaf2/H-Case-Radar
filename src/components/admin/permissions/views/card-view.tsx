@@ -1,6 +1,6 @@
 // src/components/admin/permissions/views/card-view.tsx
 
-import type { Permission } from "@/types/permission";
+import type { Permission } from "@/types/tanstack-table-types/permission";
 import { PermissionCardRow } from "./permission-card-row";
 
 interface CardViewProps {

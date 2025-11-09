@@ -1,55 +1,56 @@
-import { ProtectedComponent } from "@/components/auth/protected-component";
-import AreaChart1 from "@/components/ui/reui/charts/area-charts/area-chart-1";
-import LineChart8 from "@/components/ui/reui/charts/line-charts/line-chart-8";
-import StatisticCard2 from "@/components/ui/reui/statistic-cards/statistic-card-2";
-import StatisticCard15 from "@/components/ui/reui/statistic-cards/statistic-card-15";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/user/dashboard/layout/app-sidebar";
-import { ChartAreaInteractive } from "@/components/user/dashboard/layout/chart-area-interactive";
-import { DataTable } from "@/components/user/dashboard/layout/data-table";
 import { SectionCards } from "@/components/user/dashboard/layout/section-cards";
 import { SiteHeader } from "@/components/user/dashboard/layout/site-header";
-import data from "./data.json";
+import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actions";
+import { requireMultiplePermissions } from "@/utils/has-authorization";
 
-export default function Page() {
+export default async function DashboardPage() {
+  // استخدام واحد
+  // const hasAuthorizationAccessDashboard = await requireAuthorization(
+  //   AUDIT_LOG_ACTIONS.DASHBOARD.ACCESS,
+  //   "ليس لديك صلاحية للوصول للوحة التحكم",
+  // );
+
+  // if (hasAuthorizationAccessDashboard !== true) return hasAuthorizationAccessDashboard;
+
+  // أو استخدام متعدد
+  const hasMultipleAuthorization = await requireMultiplePermissions([
+    {
+      perm: AUDIT_LOG_ACTIONS.DASHBOARD.ACCESS,
+      message: `ليس لديك صلاحية للوصول لهذه الصفحة ${AUDIT_LOG_ACTIONS.DASHBOARD.ACCESS.toUpperCase()}`,
+    },
+    {
+      perm: AUDIT_LOG_ACTIONS.DASHBOARD.VIEW,
+      message: `ليس لديك صلاحية عرض مكونات لوحة التحكم ${AUDIT_LOG_ACTIONS.DASHBOARD.VIEW.toUpperCase()}`,
+    },
+  ]);
+
+  if (hasMultipleAuthorization !== true) return hasMultipleAuthorization;
+
   return (
-    <ProtectedComponent permission="user.dashboard.view">
-      <SidebarProvider
-        style={
-          {
-            "--sidebar-width": "calc(var(--spacing) * 72)",
-            "--header-height": "calc(var(--spacing) * 12)",
-          } as React.CSSProperties
-        }
-      >
-        <AppSidebar variant="floating" />
-        <SidebarInset>
-          <SiteHeader />
-          <div className="flex flex-1 flex-col">
-            <div className="@container/main flex flex-1 flex-col gap-2">
-              <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                <SectionCards />
-                <AreaChart1 />
-                <LineChart8 />
-                <div className="px-4 lg:px-6">
-                  <StatisticCard2 />
-                  <StatisticCard15 />
-                  {/* <ChartAreaInteractive /> */}
-                </div>
-                <DataTable data={data} />
-              </div>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
+      <AppSidebar collapsible="icon" variant="floating" side="right" />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+              <SectionCards />
+              {/* <AreaChart1 /> */}
+              {/* <LineChart8 /> */}
+              {/* <DataTable data={data} /> */}
             </div>
           </div>
-          {/* <div className="flex flex-1 flex-col gap-4 p-4">
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-          </div>
-          <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
-        </div> */}
-        </SidebarInset>
-      </SidebarProvider>
-    </ProtectedComponent>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

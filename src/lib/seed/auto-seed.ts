@@ -1,5 +1,5 @@
-import { database } from "@/lib/database";
 import { role } from "@/lib/database/schema";
+import { database } from "@/lib/database/server";
 import { databaseSeeder } from "./initial-data";
 
 export async function autoSeedIfNeeded() {

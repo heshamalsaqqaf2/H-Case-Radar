@@ -1,7 +1,7 @@
 // src/lib/authorization/services/admin/statistics-service.ts
 import { and, count, eq, gt, sql } from "drizzle-orm";
-import { authorizationService } from "@/lib/authentication/permission-system";
-import { database as db } from "@/lib/database";
+import { authorizationService } from "@/lib/authorization/services/core/authorization-service";
+import type { StatisticsData } from "@/lib/authorization/types/statistics";
 import {
   auditLog,
   permission,
@@ -10,8 +10,8 @@ import {
   user,
   userRoles,
 } from "@/lib/database/schema";
+import { database as db } from "@/lib/database/server";
 import { Errors } from "@/lib/errors/error-factory";
-import type { StatisticsData } from "@/lib/types/statistics";
 
 async function authorize(userId: string) {
   const check = await authorizationService.checkPermission(

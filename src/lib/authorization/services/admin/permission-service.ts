@@ -1,16 +1,16 @@
 // src/lib/authorization/services/admin/permission-service.ts
 import { eq, sql } from "drizzle-orm";
-import { authorizationService } from "@/lib/authentication/permission-system";
 import { getCurrentUserId } from "@/lib/authentication/session";
+import { authorizationService } from "@/lib/authorization/services/core/authorization-service";
+import type { SafePermission } from "@/lib/authorization/types/permission";
 import type {
   CreatePermissionInput,
   UpdatePermissionInput,
 } from "@/lib/authorization/validators/admin/permission-validator";
-import { database as db } from "@/lib/database";
 import { permission, rolePermissions } from "@/lib/database/schema";
+import { database as db } from "@/lib/database/server";
 import { Errors } from "@/lib/errors/error-factory";
 import { AppError } from "@/lib/errors/error-types";
-import type { SafePermission } from "@/lib/types/permission";
 
 // *تحقق من الصلاحية باستخدام نظامك RBAC/ABAC
 async function authorize(userId: string, requiredPermission: string) {
@@ -20,16 +20,6 @@ async function authorize(userId: string, requiredPermission: string) {
   );
   if (!check.allowed) {
     throw Errors.forbidden("إدارة الصلاحيات");
-  }
-}
-// !جلب جميع صلاحيات المستخدم الحالي
-export async function getCurrentUserPermissions(_userId: string) {
-  try {
-    const userId = await getCurrentUserId();
-    return await authorizationService.getUserPermissions(userId);
-  } catch (error) {
-    if (error instanceof AppError) throw error;
-    throw Errors.internal(error);
   }
 }
 
@@ -170,4 +160,14 @@ export async function getAllPermissions() {
     .select()
     .from(permission)
     .orderBy(permission.resource, permission.action);
+}
+
+export async function getCurrentUserPermissions(_userId: string) {
+  try {
+    const userId = await getCurrentUserId();
+    return await authorizationService.getUserPermissions(userId);
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw Errors.internal(error);
+  }
 }

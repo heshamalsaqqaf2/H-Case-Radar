@@ -1,8 +1,10 @@
+// src/app/admin/roles/[id]/page.tsx
 import { notFound, redirect } from "next/navigation";
-import { EditRoleForm } from "@/components/admin/roles/edit-role-form";
-import { authorizationService } from "@/lib/authentication/permission-system";
+import { EditRoleForm } from "@/app/admin/roles/components/edit-role-form";
 import { getCurrentUserId } from "@/lib/authentication/session";
-import { getRoleProfileData } from "@/lib/authorization/actions/admin/role-actions";
+import { getRoleProfileDataAction } from "@/lib/authorization/actions/admin/role-actions";
+import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actions";
+import { authorizationService } from "@/lib/authorization/services/core/authorization-service";
 
 interface PageProps {
   params: {
@@ -16,20 +18,25 @@ export default async function EditRolePage({ params }: PageProps) {
   const userId = await getCurrentUserId();
   const check = await authorizationService.checkPermission(
     { userId },
-    "role.update",
+    AUDIT_LOG_ACTIONS.ROLE.UPDATE,
   );
+
   if (!check.allowed) {
     redirect("/unauthorized");
   }
 
-  const roleData = await getRoleProfileData(id);
-  if (!roleData) {
+  const roleResult = await getRoleProfileDataAction({ roleId: id });
+
+  if (!roleResult.success || !roleResult.data) {
     notFound();
   }
 
   return (
     <div className="container mx-auto p-6">
-      <EditRoleForm role={roleData.role} permissions={roleData.permissions} />
+      <EditRoleForm
+        role={roleResult.data.role}
+        permissions={roleResult.data.permissions}
+      />
     </div>
   );
 }

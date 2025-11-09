@@ -1,143 +1,160 @@
-// src/lib/hooks/use-roles.ts
+// src/lib/authorization/hooks/admin/use-roles.ts
 "use client";
 
-import {
-  queryOptions,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { toast } from "sonner";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import {
   assignPermissionsToRoleAction,
   createRoleAction,
   deleteRoleAction,
+  getAllRolesAction,
   getRoleProfileDataAction,
   updateRoleAction,
 } from "@/lib/authorization/actions/admin/role-actions";
+import { useAdminMutation } from "@/lib/authorization/hooks/core";
+
+// ─── Query Options ───
+export const rolesListOptions = queryOptions({
+  queryKey: ["roles", "list"],
+  queryFn: () => getAllRolesAction(),
+  staleTime: 5 * 60 * 1000,
+  gcTime: 10 * 60 * 1000,
+});
 
 const roleProfileOptions = (roleId: string) =>
   queryOptions({
-    queryKey: ["roles", roleId],
-    queryFn: () => getRoleProfileDataAction(roleId),
+    queryKey: ["roles", "profile", roleId],
+    queryFn: () => getRoleProfileDataAction({ roleId }),
     enabled: !!roleId,
-    staleTime: 30 * 1000,
-    gcTime: 2 * 60 * 1000,
-    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
   });
 
+// ─── Hooks: Queries ───
+// export function useRolesList() {
+//   return useQuery(rolesListOptions);
+// }
+export function useRolesList() {
+  return useQuery({ ...rolesListOptions });
+}
 export function useRoleProfile(roleId: string) {
   return useQuery(roleProfileOptions(roleId));
 }
 
-// =============== التحديثات ===============
-const handleMutationSuccess = (
-  result: {
-    success: boolean;
-    data?: { message: string };
-    error?: { message: string };
-  },
-  invalidateKey: string[],
-  queryClient: ReturnType<typeof useQueryClient>,
-  successMessage: string,
-  errorMessagePrefix: string,
-) => {
-  if (result.success) {
-    queryClient.invalidateQueries({ queryKey: invalidateKey });
-    toast.success(result.data?.message || successMessage);
-  } else {
-    toast.error(errorMessagePrefix, {
-      description: result.error?.message || "حدث خطأ غير متوقع",
-    });
-  }
-};
-
+// ─── Hooks: Mutations ───
 export function useCreateRole() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (formData: FormData) => createRoleAction(formData),
-    onSuccess: (result) => {
-      handleMutationSuccess(
-        result,
-        ["roles"],
-        queryClient,
-        "تم إنشاء الدور بنجاح",
-        "خطأ في إنشاء الدور",
-      );
-    },
-    onError: (error) => {
-      toast.error("خطأ غير متوقع", {
-        description: error.message || "يرجى المحاولة لاحقًا",
-      });
-    },
+  return useAdminMutation<{
+    name: string;
+    description: string;
+    isDefault: boolean;
+  }>({
+    mutationFn: createRoleAction,
+    invalidateKeys: [["roles", "list"]],
+    successMessage: "تم إنشاء الدور بنجاح",
+    errorMessage: "خطأ في إنشاء الدور",
   });
 }
 
 export function useUpdateRole() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (formData: FormData) => updateRoleAction(formData),
-    onSuccess: (result) => {
-      handleMutationSuccess(
-        result,
-        ["roles"],
-        queryClient,
-        "تم تحديث الدور بنجاح",
-        "خطأ في تحديث الدور",
-      );
-    },
-    onError: (error) => {
-      toast.error("خطأ غير متوقع", {
-        description: error.message || "يرجى المحاولة لاحقًا",
-      });
-    },
+  return useAdminMutation<{
+    id: string;
+    name: string;
+    description: string;
+    isDefault: boolean;
+  }>({
+    mutationFn: updateRoleAction,
+    invalidateKeys: [
+      ["roles", "list"],
+      ["roles", "profile"],
+    ],
+    successMessage: "تم تحديث الدور بنجاح",
+    errorMessage: "خطأ في تحديث الدور",
   });
 }
 
 export function useDeleteRole() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (roleId: string) => deleteRoleAction(roleId),
-    onSuccess: (result) => {
-      handleMutationSuccess(
-        result,
-        ["roles"],
-        queryClient,
-        "تم حذف الدور بنجاح",
-        "خطأ في حذف الدور",
-      );
-    },
-    onError: (error) => {
-      toast.error("خطأ غير متوقع", {
-        description: error.message || "يرجى المحاولة لاحقًا",
-      });
-    },
+  return useAdminMutation<{ id: string }>({
+    mutationFn: deleteRoleAction,
+    invalidateKeys: [["roles", "list"]],
+    successMessage: "تم حذف الدور بنجاح",
+    errorMessage: "خطأ في حذف الدور",
   });
 }
 
 export function useAssignPermissionsToRole() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      roleId,
-      permissionIds,
-    }: {
-      roleId: string;
-      permissionIds: string[];
-    }) => assignPermissionsToRoleAction(roleId, permissionIds),
-    onSuccess: (result) => {
-      handleMutationSuccess(
-        result,
-        ["roles"],
-        queryClient,
-        "تم تعيين الصلاحيات بنجاح",
-        "خطأ في تعيين الصلاحيات",
-      );
-    },
-    onError: (error) => {
-      toast.error("خطأ غير متوقع", {
-        description: error.message || "يرجى المحاولة لاحقًا",
-      });
-    },
+  return useAdminMutation<{
+    roleId: string;
+    permissionIds: string[];
+  }>({
+    mutationFn: assignPermissionsToRoleAction,
+    invalidateKeys: [["roles", "profile"]],
+    successMessage: "تم تعيين الصلاحيات بنجاح",
+    errorMessage: "خطأ في تعيين الصلاحيات",
   });
 }
+
+// // src/lib/authorization/hooks/admin/use-roles.ts
+// "use client";
+
+// import { queryOptions, useQuery } from "@tanstack/react-query";
+// import {
+//   assignPermissionsToRoleAction,
+//   createRoleAction,
+//   deleteRoleAction,
+//   getRoleProfileDataAction,
+//   updateRoleAction,
+// } from "@/lib/authorization/actions/admin/role-actions";
+// import { useAdminMutation } from "@/lib/authorization/hooks/core";
+
+// // ─── Query Options
+// const roleProfileOptions = (roleId: string) =>
+//   queryOptions({
+//     queryKey: ["roles", roleId],
+//     queryFn: () => getRoleProfileDataAction(roleId),
+//     enabled: !!roleId,
+//     staleTime: 30 * 1000,
+//     gcTime: 2 * 60 * 1000,
+//     retry: 1,
+//   });
+
+// // ─── Hooks: Queries
+// export function useRoleProfile(roleId: string) {
+//   return useQuery(roleProfileOptions(roleId));
+// }
+
+// // ─── Hooks: Mutations
+// export function useCreateRole() {
+//   return useAdminMutation<FormData>({
+//     mutationFn: createRoleAction,
+//     invalidateKeys: [["roles"]],
+//     successMessage: "تم إنشاء الدور بنجاح",
+//     errorMessage: "خطأ في إنشاء الدور",
+//   });
+// }
+// export function useUpdateRole() {
+//   return useAdminMutation<FormData>({
+//     mutationFn: updateRoleAction,
+//     invalidateKeys: [["roles"]],
+//     successMessage: "تم تحديث الدور بنجاح",
+//     errorMessage: "خطأ في تحديث الدور",
+//   });
+// }
+// export function useDeleteRole() {
+//   return useAdminMutation<string>({
+//     mutationFn: deleteRoleAction,
+//     invalidateKeys: [["roles"]],
+//     successMessage: "تم حذف الدور بنجاح",
+//     errorMessage: "خطأ في حذف الدور",
+//   });
+// }
+// export function useAssignPermissionsToRole() {
+//   return useAdminMutation<{
+//     roleId: string;
+//     permissionIds: string[];
+//   }>({
+//     mutationFn: ({ roleId, permissionIds }) =>
+//       assignPermissionsToRoleAction(roleId, permissionIds),
+//     invalidateKeys: [["roles"]],
+//     successMessage: "تم تعيين الصلاحيات بنجاح",
+//     errorMessage: "خطأ في تعيين الصلاحيات",
+//   });
+// }

@@ -9,6 +9,11 @@ export async function getStatisticsAction() {
   try {
     const userId = await getCurrentUserId();
     const statistics = await getStatisticsData(userId);
+
+    if (!statistics) {
+      throw new Error("Statistics not found");
+    }
+
     return handleSuccess(statistics);
   } catch (error) {
     return handleFailure(error);

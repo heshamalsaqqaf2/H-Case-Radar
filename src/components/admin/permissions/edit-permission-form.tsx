@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeftIcon, Key, Loader2, Save } from "lucide-react";
+import { ArrowLeftIcon, Loader2, Save } from "lucide-react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpdatePermission } from "@/lib/authorization/hooks/admin/use-permissions";
-import type { SafePermission } from "@/lib/types/permission";
+import type { SafePermission } from "@/lib/authorization/types/permission";
 
 const formSchema = z.object({
   name: z
@@ -96,9 +96,9 @@ export function EditPermissionForm({ permission }: EditPermissionFormProps) {
 
     const result = await updatePermissionMutation.mutateAsync(formData);
     if (result.success) {
-      toast.success(result.message);
+      toast.success(result.success);
     } else {
-      toast.error("Error", { description: result.message });
+      toast.error("Error");
     }
   };
 

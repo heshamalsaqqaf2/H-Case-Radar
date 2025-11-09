@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { EditPermissionForm } from "@/components/admin/permissions/edit-permission-form";
-import { ProtectedComponent } from "@/components/auth/protected-component";
-import { getPermissionById } from "@/lib/authorization/actions/permission-actions";
+import { getPermissionById } from "@/lib/authorization/services/admin/permission-service";
 
 interface PageProps {
   params: {
@@ -18,17 +17,8 @@ export default async function EditPermissionPage({ params }: PageProps) {
   }
 
   return (
-    <ProtectedComponent permission="permission.edit">
-      <div className="container mx-auto p-6">
-        <EditPermissionForm permission={permissionId} />
-      </div>
-    </ProtectedComponent>
+    <div className="container mx-auto p-6">
+      <EditPermissionForm permission={permissionId} />
+    </div>
   );
-  // return (
-  //   <ProtectedComponent permission="permission.edit">
-  //     <div className="container mx-auto p-6">
-  //       <EditPermissionForm permission={permissionId as SafePermission} />
-  //     </div>
-  //   </ProtectedComponent>
-  // );
 }

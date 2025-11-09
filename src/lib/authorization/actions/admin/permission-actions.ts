@@ -2,16 +2,18 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { authorizationService } from "@/lib/authentication/permission-system";
 import { getCurrentUserId } from "@/lib/authentication/session";
+import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actions";
 import { createAuditLog } from "@/lib/authorization/services/admin/audit-log-service";
 import {
   createPermission,
   deletePermission,
   getAllPermissions,
+  getCurrentUserPermissions,
   getPermissionById,
   updatePermission,
 } from "@/lib/authorization/services/admin/permission-service";
+import { authorizationService } from "@/lib/authorization/services/core/authorization-service";
 import {
   createPermissionSchema,
   updatePermissionSchema,
@@ -31,12 +33,16 @@ export async function createPermissionAction(formData: FormData) {
     });
 
     const permission = await createPermission(userId, validatedData);
-    // TODO: Add audit log
-    await createAuditLog("permission.create", "permission", permission.id, {
-      name: permission.name,
-      resource: permission.resource,
-      action: permission.action,
-    });
+    await createAuditLog(
+      AUDIT_LOG_ACTIONS.PERMISSION.CREATE,
+      "permission",
+      permission.id,
+      {
+        name: permission.name,
+        resource: permission.resource,
+        action: permission.action,
+      },
+    );
 
     revalidatePath("/admin/permissions");
     return handleSuccess({ message: "تم إنشاء الصلاحية بنجاح" });
@@ -58,12 +64,16 @@ export async function updatePermissionAction(formData: FormData) {
     });
 
     const permission = await updatePermission(userId, validatedData);
-    // TODO: Add audit log
-    await createAuditLog("permission.update", "permission", permission.id, {
-      name: permission.name,
-      resource: permission.resource,
-      action: permission.action,
-    });
+    await createAuditLog(
+      AUDIT_LOG_ACTIONS.PERMISSION.UPDATE,
+      "permission",
+      permission.id,
+      {
+        name: permission.name,
+        resource: permission.resource,
+        action: permission.action,
+      },
+    );
     revalidatePath("/admin/permissions");
     return handleSuccess({ message: "تم تحديث الصلاحية بنجاح" });
   } catch (error) {
@@ -75,10 +85,14 @@ export async function deletePermissionAction(permissionId: string) {
   try {
     const userId = await getCurrentUserId();
     await deletePermission(userId, permissionId);
-    // TODO: Add audit log
-    await createAuditLog("permission.delete", "permission", permissionId, {
-      deletedAt: new Date().toISOString(),
-    });
+    await createAuditLog(
+      AUDIT_LOG_ACTIONS.PERMISSION.DELETE,
+      "permission",
+      permissionId,
+      {
+        deletedAt: new Date().toISOString(),
+      },
+    );
     revalidatePath("/admin/permissions");
     return handleSuccess({ message: "تم حذف الصلاحية بنجاح" });
   } catch (error) {
@@ -91,7 +105,7 @@ export async function getPermissionByIdAction(permissionId: string) {
     const userId = await getCurrentUserId();
     const check = await authorizationService.checkPermission(
       { userId },
-      "permissions.read",
+      AUDIT_LOG_ACTIONS.PERMISSION.VIEW,
     );
     if (!check.allowed) {
       throw Errors.forbidden("عرض الصلاحيات");
@@ -112,13 +126,28 @@ export async function getAllPermissionsAction() {
     const userId = await getCurrentUserId();
     const check = await authorizationService.checkPermission(
       { userId },
-      "permissions.read",
+      AUDIT_LOG_ACTIONS.PERMISSION.ACCESS,
     );
     if (!check.allowed) {
       throw Errors.forbidden("عرض الصلاحيات");
     }
 
     const permissions = await getAllPermissions();
+    return handleSuccess(permissions);
+  } catch (error) {
+    return handleFailure(error);
+  }
+}
+
+// الحصول على صلاحيات المستخدم الحالي
+export async function getCurrentUserPermissionsAction() {
+  try {
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      return handleFailure(new Error("User not authenticated"));
+    }
+
+    const permissions = await getCurrentUserPermissions(userId);
     return handleSuccess(permissions);
   } catch (error) {
     return handleFailure(error);

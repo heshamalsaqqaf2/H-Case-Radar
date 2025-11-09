@@ -39,7 +39,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import type { Permission } from "@/types/permission";
+import type { Permission } from "@/types/tanstack-table-types/permission";
 import { PermissionsTableToolbar } from "../table/permissions-table-toolbar";
 
 interface TableViewProps {

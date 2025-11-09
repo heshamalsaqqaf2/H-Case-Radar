@@ -15,7 +15,7 @@ export function Providers({ children }: Props) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 60 * 1000, // 60 minutes
+            staleTime: 60 * 60 * 1000,
           },
         },
       }),
@@ -24,7 +24,7 @@ export function Providers({ children }: Props) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>
   );
 }

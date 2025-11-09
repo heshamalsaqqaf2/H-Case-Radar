@@ -1,21 +1,31 @@
-import { QuickActions } from "@/components/admin/main/quick-actions";
-import { DashboardStats } from "@/components/admin/layouts-admin/dashboard-stats";
-// import { ProtectedComponent } from "@/components/auth/protected-component";
+import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actions";
+import { requireAuthorization, requireMultiplePermissions } from "@/utils/has-authorization";
 
-export default function AdminDashboard() {
+export default async function AdminDashboardPage() {
+  // استخدام واحد
+  // const authCheck = await requireAuthorization(
+  //   AUDIT_LOG_ACTIONS.ADMIN.ACCESS,
+  //   "ليس لديك صلاحية للوصول للأدوار",
+  // );
+
+  // if (authCheck !== true) return authCheck;
+
+  // أو استخدام متعدد
+  const multiCheck = await requireMultiplePermissions([
+    { perm: AUDIT_LOG_ACTIONS.ADMIN.ACCESS, message: "لا يمكنك الوصول للوحة التحكم" },
+    { perm: AUDIT_LOG_ACTIONS.ADMIN.VIEW, message: "لا يمكنك من عرض صفحات الوحة التحكم" },
+  ]);
+
+  if (multiCheck !== true) return multiCheck;
+
   return (
-    // <P permission="admin.dashboard.view">
-    <div className="container mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">لوحة تحكم الإدارة</h1>
-        <p className="mt-2">
-          مرحبا بك في لوحة تحكم الإدارة, يمكنك إدارة المستخدمين والصلاحيات
-          والأدوار
-        </p>
+    <div className="flex flex-1 flex-col gap-4 p-4">
+      <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+        <div className="bg-muted/50 aspect-video rounded-xl" />
+        <div className="bg-muted/50 aspect-video rounded-xl" />
+        <div className="bg-muted/50 aspect-video rounded-xl" />
       </div>
-      <DashboardStats />
-      <QuickActions />
+      <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
     </div>
-    // </P  rotectedComponent>
   );
 }

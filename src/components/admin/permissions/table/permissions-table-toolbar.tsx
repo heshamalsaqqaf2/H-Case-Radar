@@ -14,13 +14,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useDebounce } from "@/hooks/table/use-debounce";
-import type { Permission } from "@/types/permission";
+import type { Permission } from "@/types/tanstack-table-types/permission";
 import {
   type ExportFormat,
   exportToCSV,
   exportToExcel,
   exportToJSON,
-} from "@/utils/export-utils";
+} from "@/utils/tanstack-table/export-utils";
 import { BulkActions } from "./bulk-actions";
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 import { DataTableViewOptions } from "./data-table-view-options";

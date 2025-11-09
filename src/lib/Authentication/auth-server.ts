@@ -2,8 +2,8 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { admin, lastLoginMethod } from "better-auth/plugins";
-import { database } from "@/lib/database/index";
 import * as schema from "@/lib/database/schema";
+import { database } from "../database/server";
 
 export const auth = betterAuth({
   database: drizzleAdapter(database, {
@@ -14,6 +14,14 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
+  },
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        input: false,
+      },
+    },
   },
 
   plugins: [admin(), lastLoginMethod(), nextCookies()],

@@ -36,11 +36,11 @@ export function DeletePermissionDialog({
   const handleDelete = async () => {
     const result = await deletePermissionMutation.mutateAsync(permissionId);
     if (result.success) {
-      toast.success(result.message);
+      toast.success(result.success);
       setOpen(true);
       onSuccess?.();
     } else {
-      toast.error("Error", { description: result.message });
+      toast.error(result.error?.message || "حدث خطاء غير متوقع");
     }
   };
 

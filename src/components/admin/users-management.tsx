@@ -27,11 +27,7 @@ import {
 } from "@/lib/authorization/hooks/admin/use-users";
 
 export function UsersManagement() {
-  const {
-    data: users = [],
-    isLoading: usersLoading,
-    error: usersError,
-  } = useUsersWithRoles();
+  const { data: users = [], isLoading: usersLoading, error: usersError } = useUsersWithRoles();
   const { data: roles = [], isLoading: rolesLoading } = useRoles();
   const assignRoleMutation = useAssignRole();
   const removeRoleMutation = useRemoveRole();
@@ -86,11 +82,7 @@ export function UsersManagement() {
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
             <h3 className="font-bold">Error Loading Users</h3>
             <p>{usersError.message}</p>
-            <Button
-              onClick={() => window.location.reload()}
-              className="mt-2"
-              variant="outline"
-            >
+            <Button onClick={() => window.location.reload()} className="mt-2" variant="outline">
               Retry
             </Button>
           </div>
@@ -146,9 +138,7 @@ export function UsersManagement() {
 
             <Button
               onClick={handleAssignRole}
-              disabled={
-                !selectedUser || !selectedRole || assignRoleMutation.isPending
-              }
+              disabled={!selectedUser || !selectedRole || assignRoleMutation.isPending}
               className="w-full md:w-auto"
             >
               {assignRoleMutation.isPending ? "Assigning..." : "Assign Role"}
@@ -178,9 +168,7 @@ export function UsersManagement() {
                   {users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.name}</TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {user.email}
-                      </TableCell>
+                      <TableCell className="font-mono text-sm">{user.email}</TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-wrap">
                           {user.roles && user.roles.length > 0 ? (
@@ -192,9 +180,7 @@ export function UsersManagement() {
                               >
                                 {role.name}
                                 <Button
-                                  onClick={() =>
-                                    handleRemoveRole(user.id, role.id)
-                                  }
+                                  onClick={() => handleRemoveRole(user.id, role.id)}
                                   disabled={removeRoleMutation.isPending}
                                   className="h-3 w-3 p-0 hover:bg-destructive hover:text-destructive-foreground rounded flex items-center justify-center text-xs"
                                 >
@@ -203,9 +189,7 @@ export function UsersManagement() {
                               </Badge>
                             ))
                           ) : (
-                            <span className="text-gray-400 text-sm">
-                              No roles
-                            </span>
+                            <span className="text-gray-400 text-sm">No roles</span>
                           )}
                         </div>
                       </TableCell>
@@ -222,9 +206,7 @@ export function UsersManagement() {
           ) : (
             <div className="text-center py-8 text-gray-500">
               <p>No users found in the system.</p>
-              <p className="text-sm mt-2">
-                Make sure you have users in your database.
-              </p>
+              <p className="text-sm mt-2">Make sure you have users in your database.</p>
             </div>
           )}
         </CardContent>

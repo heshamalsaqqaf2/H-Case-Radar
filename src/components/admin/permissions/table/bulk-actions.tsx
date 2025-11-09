@@ -14,8 +14,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Permission } from "@/types/permission";
-import { exportToCSV } from "@/utils/export-utils";
+import type { Permission } from "@/types/tanstack-table-types/permission";
+import { exportToCSV } from "@/utils/tanstack-table/export-utils";
 
 interface BulkActionsProps {
   table: Table<Permission>;

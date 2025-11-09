@@ -1,20 +1,20 @@
-// src/lib/hooks/use-users.ts
+// src/lib/authorization/hooks/admin/use-users.ts
 "use client";
 
-import {
-  queryOptions,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { toast } from "sonner";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import {
   assignRoleToUserAction,
+  getCurrentUserAction,
+  getUserStatisticsAction,
   getUsersWithRolesAction,
   removeRoleFromUserAction,
+  toggleUserBanAction,
+  updateUserProfileAction,
 } from "@/lib/authorization/actions/admin/user-actions";
+import { useAdminMutation } from "@/lib/authorization/hooks/core";
+import type { UpdateUserInput } from "@/lib/authorization/types/user";
 
-// =============== الاستعلامات ===============
+// ─── Query Options ───
 const usersListOptions = () =>
   queryOptions({
     queryKey: ["users"],
@@ -22,80 +22,200 @@ const usersListOptions = () =>
     staleTime: 30 * 1000,
   });
 
+const currentUserOptions = () =>
+  queryOptions({
+    queryKey: ["currentUser"],
+    queryFn: () => getCurrentUserAction(),
+    staleTime: 10 * 60 * 1000, // 10 دقائق
+  });
+
+const userStatisticsOptions = (userId: string) =>
+  queryOptions({
+    queryKey: ["users", "statistics", userId],
+    queryFn: () => getUserStatisticsAction({ userId }),
+    enabled: !!userId,
+    staleTime: 2 * 60 * 1000, // 2 دقيقة
+  });
+
+// ─── Hooks: Queries ───
 export function useUsers() {
   return useQuery(usersListOptions());
 }
 
-// =============== التحديثات ===============
-const handleMutationSuccess = (
-  result: {
-    success: boolean;
-    data?: { message: string };
-    error?: { message: string };
-  },
-  invalidateKey: string[],
-  queryClient: ReturnType<typeof useQueryClient>,
-  successMessage: string,
-  errorMessagePrefix: string,
-) => {
-  if (result.success) {
-    queryClient.invalidateQueries({ queryKey: invalidateKey });
-    toast.success(result.data?.message || successMessage);
-  } else {
-    toast.error(errorMessagePrefix, {
-      description: result.error?.message || "حدث خطأ غير متوقع",
-    });
-  }
-};
+export function useCurrentUser() {
+  return useQuery(currentUserOptions());
+}
 
+export function useUserStatistics(userId: string) {
+  return useQuery(userStatisticsOptions(userId));
+}
+
+// ─── Hooks: Mutations ───
 export function useAssignRoleToUser() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (variables: { userId: string; roleId: string }) => {
-      const formData = new FormData();
-      formData.append("userId", variables.userId);
-      formData.append("roleId", variables.roleId);
-      return assignRoleToUserAction(formData);
+  return useAdminMutation<{ userId: string; roleId: string }>({
+    mutationFn: ({ userId, roleId }) => {
+      return assignRoleToUserAction({ userId, roleId });
     },
-    onSuccess: (result) => {
-      handleMutationSuccess(
-        result,
-        ["users"],
-        queryClient,
-        "تم تعيين الدور بنجاح",
-        "خطأ في تعيين الدور",
-      );
-    },
-    onError: (error) => {
-      toast.error("خطأ غير متوقع", {
-        description: error.message || "يرجى المحاولة لاحقًا",
-      });
-    },
+    invalidateKeys: [["users"], ["users", "statistics"]],
+    successMessage: "تم تعيين الدور بنجاح",
+    errorMessage: "خطأ في تعيين الدور",
   });
 }
 
 export function useRemoveRoleFromUser() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (variables: { userId: string; roleId: string }) => {
-      const formData = new FormData();
-      formData.append("userId", variables.userId);
-      formData.append("roleId", variables.roleId);
-      return removeRoleFromUserAction(formData);
+  return useAdminMutation<{ userId: string; roleId: string }>({
+    mutationFn: ({ userId, roleId }) => {
+      return removeRoleFromUserAction({ userId, roleId });
     },
-    onSuccess: (result) => {
-      handleMutationSuccess(
-        result,
-        ["users"],
-        queryClient,
-        "تم إزالة الدور بنجاح",
-        "خطأ في إزالة الدور",
-      );
-    },
-    onError: (error) => {
-      toast.error("خطأ غير متوقع", {
-        description: error.message || "يرجى المحاولة لاحقًا",
-      });
-    },
+    invalidateKeys: [["users"], ["users", "statistics"]],
+    successMessage: "تم إزالة الدور بنجاح",
+    errorMessage: "خطأ في إزالة الدور",
   });
 }
+
+export function useUpdateUserProfile() {
+  return useAdminMutation<{ targetUserId: string; updates: UpdateUserInput }>({
+    mutationFn: updateUserProfileAction,
+    invalidateKeys: [["users"], ["users", "statistics"]],
+    successMessage: "تم تحديث المستخدم بنجاح",
+    errorMessage: "خطأ في تحديث المستخدم",
+  });
+}
+
+export function useBanUser() {
+  return useAdminMutation<{ targetUserId: string; reason?: string }>({
+    mutationFn: ({ targetUserId, reason }) =>
+      toggleUserBanAction({ targetUserId, ban: true, reason }),
+    invalidateKeys: [["users"], ["users", "statistics"]],
+    successMessage: "تم حظر المستخدم بنجاح",
+    errorMessage: "خطأ في حظر المستخدم",
+  });
+}
+
+export function useUnbanUser() {
+  return useAdminMutation<{ targetUserId: string }>({
+    mutationFn: ({ targetUserId }) => toggleUserBanAction({ targetUserId, ban: false }),
+    invalidateKeys: [["users"], ["users", "statistics"]],
+    successMessage: "تم فك حظر المستخدم بنجاح",
+    errorMessage: "خطأ في فك حظر المستخدم",
+  });
+}
+
+// ─── Hooks: Utilities ───
+
+export const useCurrentUserManagement = () => {
+  const { data: currentUserResult, isLoading, error } = useCurrentUser();
+  const currentUser = currentUserResult?.success ? currentUserResult.data : null;
+
+  return {
+    currentUser,
+    isLoading,
+    error,
+    isAuthenticated: !!currentUser,
+    hasPermission: async (permission: string) => {
+      if (!currentUser) return false;
+
+      // try {
+      //   // ✅ استخدام Server Action مباشرة - بدون أي استيراد لـ authorization-service
+      //   const result = await getUsersWithRolesAndPermissionsAction();
+      //   return result.success ? result.data : false;
+      // } catch {
+      //   return false;
+      // }
+    },
+  };
+};
+
+export const useUserManagement = (userId: string) => {
+  const { data: userStats, isLoading: statsLoading, error: statsError } = useUserStatistics(userId);
+  const updateProfileMutation = useUpdateUserProfile();
+  const banMutation = useBanUser();
+  const unbanMutation = useUnbanUser();
+  const assignRoleMutation = useAssignRoleToUser();
+  const removeRoleMutation = useRemoveRoleFromUser();
+
+  return {
+    // البيانات
+    statistics: userStats?.success ? userStats.data : null,
+    statsLoading,
+    statsError: statsError || (userStats?.success === false ? userStats.error : null),
+
+    // الإجراءات
+    updateProfile: (updates: UpdateUserInput) =>
+      updateProfileMutation.mutateAsync({ targetUserId: userId, updates }),
+
+    banUser: (reason?: string) => banMutation.mutateAsync({ targetUserId: userId, reason }),
+
+    unbanUser: () => unbanMutation.mutateAsync({ targetUserId: userId }),
+
+    assignRole: (roleId: string) => assignRoleMutation.mutateAsync({ userId, roleId }),
+
+    removeRole: (roleId: string) => removeRoleMutation.mutateAsync({ userId, roleId }),
+
+    // حالات التحميل
+    isUpdating: updateProfileMutation.isPending,
+    isBanning: banMutation.isPending,
+    isUnbanning: unbanMutation.isPending,
+    isAssigningRole: assignRoleMutation.isPending,
+    isRemovingRole: removeRoleMutation.isPending,
+
+    // أخطاء الطفرات
+    updateError: updateProfileMutation.error,
+    banError: banMutation.error,
+    unbanError: unbanMutation.error,
+    assignRoleError: assignRoleMutation.error,
+    removeRoleError: removeRoleMutation.error,
+  };
+};
+
+// // src/authorization/hooks/admin/use-users.ts
+// "use client";
+
+// import { queryOptions, useQuery } from "@tanstack/react-query";
+// import {
+//   assignRoleToUserAction,
+//   getUsersWithRolesAction,
+//   removeRoleFromUserAction,
+// } from "@/lib/authorization/actions/admin/user-actions";
+// import { useAdminMutation } from "@/lib/authorization/hooks/core";
+
+// // ─── Query Options
+// const usersListOptions = () =>
+//   queryOptions({
+//     queryKey: ["users"],
+//     queryFn: () => getUsersWithRolesAction(),
+//     staleTime: 30 * 1000,
+//   });
+
+// // ─── Hooks: Queries
+// export function useUsers() {
+//   return useQuery(usersListOptions());
+// }
+
+// // ─── Hooks: Mutations
+// export function useAssignRoleToUser() {
+//   return useAdminMutation<{ userId: string; roleId: string }>({
+//     mutationFn: ({ userId, roleId }) => {
+//       const formData = new FormData();
+//       formData.append("userId", userId);
+//       formData.append("roleId", roleId);
+//       return assignRoleToUserAction(formData);
+//     },
+//     invalidateKeys: [["users"]],
+//     successMessage: "تم تعيين الدور بنجاح",
+//     errorMessage: "خطأ في تعيين الدور",
+//   });
+// }
+// export function useRemoveRoleFromUser() {
+//   return useAdminMutation<{ userId: string; roleId: string }>({
+//     mutationFn: ({ userId, roleId }) => {
+//       const formData = new FormData();
+//       formData.append("userId", userId);
+//       formData.append("roleId", roleId);
+//       return removeRoleFromUserAction(formData);
+//     },
+//     invalidateKeys: [["users"]],
+//     successMessage: "تم إزالة الدور بنجاح",
+//     errorMessage: "خطأ في إزالة الدور",
+//   });
+// }

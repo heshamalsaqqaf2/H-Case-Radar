@@ -1,33 +1,29 @@
 // src/lib/authorization/services/admin/role-service.ts
 import { and, eq, not, sql } from "drizzle-orm";
-import { authorizationService } from "@/lib/authentication/permission-system";
+import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actions";
+import { authorizationService } from "@/lib/authorization/services/core/authorization-service";
+import type {
+  Permission,
+  RoleProfileData,
+  RoleWithUserCount,
+} from "@/lib/authorization/types/roles";
 import type {
   CreateRoleInput,
   UpdateRoleInput,
 } from "@/lib/authorization/validators/admin/role-validator";
-import { database as db } from "@/lib/database";
-import {
-  permission,
-  role,
-  rolePermissions,
-  user,
-  userRoles,
-} from "@/lib/database/schema";
+import { permission, role, rolePermissions, user, userRoles } from "@/lib/database/schema";
+import { database as db } from "@/lib/database/server";
 import { Errors } from "@/lib/errors/error-factory";
-import type { RolePermission, RoleProfileData } from "@/lib/types/roles";
 
 async function authorize(userId: string, requiredPermission: string) {
-  const check = await authorizationService.checkPermission(
-    { userId },
-    requiredPermission,
-  );
+  const check = await authorizationService.checkPermission({ userId }, requiredPermission);
   if (!check.allowed) {
     throw Errors.forbidden("إدارة الأدوار");
   }
 }
 
 export async function createRole(userId: string, input: CreateRoleInput) {
-  await authorize(userId, "roles.create");
+  await authorize(userId, AUDIT_LOG_ACTIONS.ROLE.CREATE);
 
   const existing = await db
     .select({ id: role.id })
@@ -44,7 +40,7 @@ export async function createRole(userId: string, input: CreateRoleInput) {
 }
 
 export async function updateRole(userId: string, input: UpdateRoleInput) {
-  await authorize(userId, "roles.update");
+  await authorize(userId, AUDIT_LOG_ACTIONS.ROLE.UPDATE);
 
   const conflict = await db
     .select({ id: role.id })
@@ -67,7 +63,7 @@ export async function updateRole(userId: string, input: UpdateRoleInput) {
 }
 
 export async function deleteRole(userId: string, roleId: string) {
-  await authorize(userId, "roles.delete");
+  await authorize(userId, AUDIT_LOG_ACTIONS.ROLE.DELETE);
 
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)` })
@@ -87,21 +83,47 @@ export async function assignPermissionsToRole(
   roleId: string,
   permissionIds: string[],
 ) {
-  await authorize(userId, "roles.assign_permissions");
-
+  await authorize(userId, AUDIT_LOG_ACTIONS.ROLE.ASSIGN_PERMISSIONS);
   await db.delete(rolePermissions).where(eq(rolePermissions.roleId, roleId));
-
   if (permissionIds.length > 0) {
     const values = permissionIds.map((pid) => ({ roleId, permissionId: pid }));
     await db.insert(rolePermissions).values(values);
   }
 }
 
-// *جلب بيانات ملف معلومات الدور
-export async function getRoleProfileData(
-  roleId: string,
-): Promise<RoleProfileData | null> {
+export async function getAllRoles(): Promise<RoleWithUserCount[]> {
+  const roles = await db
+    .select({
+      id: role.id,
+      name: role.name,
+      description: role.description,
+      isDefault: role.isDefault,
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt,
+    })
+    .from(role)
+    .orderBy(role.name);
+
+  // جلب عدد المستخدمين لكل دور
+  const userCounts = await db
+    .select({
+      roleId: userRoles.roleId,
+      count: sql<number>`count(*)`,
+    })
+    .from(userRoles)
+    .groupBy(userRoles.roleId);
+
+  const userCountMap = new Map(userCounts.map((uc) => [uc.roleId, uc.count]));
+
+  return roles.map((role) => ({
+    ...role,
+    userCount: userCountMap.get(role.id) || 0,
+  }));
+}
+
+export async function getRoleProfileData(roleId: string): Promise<RoleProfileData | null> {
   const [roleData, usersData, permissionsData] = await Promise.all([
+    // ✅ جلب بيانات الدور
     db
       .select({
         id: role.id,
@@ -115,37 +137,52 @@ export async function getRoleProfileData(
       .where(eq(role.id, roleId))
       .limit(1),
 
+    // ✅ جلب المستخدمين - متوافق مع UserRoleAssignment
     db
       .select({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        createdAt: user.createdAt,
+        userId: user.id, // ✅ تغيير من id إلى userId
+        userName: user.name, // ✅ تغيير من name إلى userName
+        userEmail: user.email, // ✅ تغيير من email إلى userEmail
+        userCreatedAt: user.createdAt, // ✅ تغيير من createdAt إلى userCreatedAt
         assignedAt: userRoles.createdAt,
       })
       .from(userRoles)
       .innerJoin(user, eq(userRoles.userId, user.id))
       .where(eq(userRoles.roleId, roleId))
       .orderBy(user.name)
-      .limit(50),
+      .limit(20),
 
+    // ✅ جلب الصلاحيات - متوافق مع Permission[]
     db
       .select({
-        permissionId: permission.id,
-        permissionName: permission.name,
+        id: permission.id, // ✅ استخدام id بدل permissionId
+        name: permission.name, // ✅ استخدام name بدل permissionName
+        description: permission.description,
         resource: permission.resource,
         action: permission.action,
+        conditions: permission.conditions,
+        createdAt: permission.createdAt,
+        updatedAt: permission.updatedAt,
       })
       .from(rolePermissions)
       .innerJoin(permission, eq(rolePermissions.permissionId, permission.id))
       .where(eq(rolePermissions.roleId, roleId)),
   ]);
 
-  if (roleData.length === 0) return null;
+  if (roleData.length === 0) {
+    return null;
+  }
 
-  const activity = [
+  // ✅ activity متوافق مع النوع
+  const activity: Array<{
+    id: string;
+    action: string;
+    description: string;
+    timestamp: Date;
+    type: "view" | "create" | "update" | "delete";
+  }> = [
     {
-      id: 1,
+      id: "1", // ✅ تغيير من number إلى string
       action: "Profile Viewed",
       description: "Role profile was accessed",
       timestamp: new Date(),
@@ -154,9 +191,9 @@ export async function getRoleProfileData(
   ];
 
   return {
-    role: roleData[0],
-    users: usersData,
-    permissions: permissionsData as RolePermission[],
+    role: roleData[0], // ✅ إزالة userCount - ليس جزءاً من Role
+    users: usersData, // ✅ الآن متوافق مع UserRoleAssignment[]
+    permissions: permissionsData as unknown as Permission[], // ✅ الآن متوافق مع Permission[]
     statistics: {
       usersCount: usersData.length,
       permissionsCount: permissionsData.length,
@@ -164,6 +201,77 @@ export async function getRoleProfileData(
     activity,
   };
 }
+
+// export async function getRoleProfileData(roleId: string): Promise<RoleProfileData | null> {
+//   const [roleData, usersData, permissionsData] = await Promise.all([
+//     db
+//       .select({
+//         id: role.id,
+//         name: role.name,
+//         description: role.description,
+//         isDefault: role.isDefault,
+//         createdAt: role.createdAt,
+//         updatedAt: role.updatedAt,
+//       })
+//       .from(role)
+//       .where(eq(role.id, roleId))
+//       .limit(1),
+
+//     db
+//       .select({
+//         id: user.id,
+//         name: user.name,
+//         email: user.email,
+//         createdAt: user.createdAt,
+//         assignedAt: userRoles.createdAt,
+//       })
+//       .from(userRoles)
+//       .innerJoin(user, eq(userRoles.userId, user.id))
+//       .where(eq(userRoles.roleId, roleId))
+//       .orderBy(user.name)
+//       .limit(20), // ✅ حد معقول
+
+//     db
+//       .select({
+//         permissionId: permission.id,
+//         permissionName: permission.name,
+//         resource: permission.resource,
+//         action: permission.action,
+//       })
+//       .from(rolePermissions)
+//       .innerJoin(permission, eq(rolePermissions.permissionId, permission.id))
+//       .where(eq(rolePermissions.roleId, roleId)),
+//   ]);
+
+//   if (roleData.length === 0) {
+//     return null;
+//   }
+
+//   // ✅ activity أكثر واقعية (إذا كان لديك جدول audit)
+//   const activity = [
+//     {
+//       id: 1,
+//       action: "Profile Viewed",
+//       description: "Role profile was accessed",
+//       timestamp: new Date(),
+//       type: "view" as const,
+//     },
+//   ];
+
+//   return {
+//     role: {
+//       ...roleData[0],
+//       userCount: usersData.length,
+//     },
+//     users: usersData,
+//     permissions: permissionsData as RolePermission[],
+//     statistics: {
+//       usersCount: usersData.length,
+//       permissionsCount: permissionsData.length,
+//     },
+//     activity,
+//   };
+// }
 
 // export async function getRoleProfileData(roleId: string) {
 //   try {

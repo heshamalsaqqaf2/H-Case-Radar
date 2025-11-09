@@ -78,6 +78,7 @@ export function NavUser({
                 </div>
               </div>
             </DropdownMenuLabel>
+
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>

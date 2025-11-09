@@ -20,7 +20,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import type { Permission } from "@/types/permission";
+import type { Permission } from "@/types/tanstack-table-types/permission";
 import { PermissionCardRow } from "./table/permission-card-row";
 
 const groupPermissions = (

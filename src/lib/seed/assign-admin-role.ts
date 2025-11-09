@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { database as db } from "@/lib/database";
 import { role, user, userRoles } from "@/lib/database/schema";
+import { database as db } from "@/lib/database/server";
 
 export async function assignSuperAdminToCurrentUser(userEmail: string) {
   try {
