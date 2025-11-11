@@ -1,9 +1,13 @@
 // src/lib/authorization/services/admin/user-service.ts
+
 import { and, count, desc, eq, not } from "drizzle-orm";
+import { auth } from "@/lib/authentication/auth-server";
 import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actions";
 import { authorizationService } from "@/lib/authorization/services/core/authorization-service";
 import type {
   BaseUser,
+  CreateUserInput,
+  CreateUserResponse,
   UpdateUserInput,
   UserRole,
   UserWithRoles,
@@ -254,124 +258,76 @@ export async function updateLastLogin(userId: string): Promise<void> {
     .where(eq(user.id, userId));
 }
 
-// // src/lib/authorization/services/admin/user-service.ts
-// import { and, eq } from "drizzle-orm";
-// import { authorizationService } from "@/lib/authorization/services/core/authorization-service";
-// import type { UserWithRoles } from "@/lib/authorization/types/user";
-// import { role, user, userRoles } from "@/lib/database/schema";
-// import { database as db } from "@/lib/database/server";
-// import { Errors } from "@/lib/errors/error-factory";
+// استخدام Better Auth لإنشاء المستخدم
+export async function createUserWithRoles(
+  adminUserId: string,
+  userData: CreateUserInput,
+): Promise<CreateUserResponse> {
+  await authorize(adminUserId, AUDIT_LOG_ACTIONS.USER.CREATE);
 
-// async function authorize(userId: string, requiredPermission: string) {
-//   const check = await authorizationService.checkPermission({ userId }, requiredPermission);
-//   if (!check.allowed) {
-//     throw Errors.forbidden("إدارة المستخدمين");
-//   }
-// }
+  // التحقق من عدم تكرار البريد الإلكتروني
+  const [existingUser] = await db
+    .select({ id: user.id })
+    .from(user)
+    .where(eq(user.email, userData.email))
+    .limit(1);
 
-// export async function getUsersWithRoles(): Promise<UserWithRoles[]> {
-//   const allUsers = await db
-//     .select({
-//       id: user.id,
-//       name: user.name,
-//       email: user.email,
-//       createdAt: user.createdAt,
-//     })
-//     .from(user)
-//     .orderBy(user.name);
+  if (existingUser) {
+    throw Errors.conflict("البريد الإلكتروني مستخدم بالفعل");
+  }
 
-//   const allUserRoles = await db
-//     .select({
-//       userId: userRoles.userId,
-//       roleId: role.id,
-//       roleName: role.name,
-//       roleDescription: role.description,
-//     })
-//     .from(userRoles)
-//     .innerJoin(role, eq(userRoles.roleId, role.id));
+  // استخدام Better Auth لإنشاء المستخدم
+  const authResult = await auth.api.createUser({
+    body: {
+      name: userData.name,
+      email: userData.email,
+      password: userData.password,
+    },
+  });
 
-//   const userRoleMap = new Map<string, { id: string; name: string; description: string | null }[]>();
-//   allUserRoles.forEach((ur) => {
-//     const roles = userRoleMap.get(ur.userId) ?? [];
-//     roles.push({
-//       id: ur.roleId,
-//       name: ur.roleName,
-//       description: ur.roleDescription,
-//     });
-//     userRoleMap.set(ur.userId, roles);
-//   });
+  if (!authResult.user) {
+    throw Errors.internal("فشل في إنشاء المستخدم في نظام المصادقة");
+  }
 
-//   return allUsers.map((u) => ({
-//     id: u.id,
-//     name: u.name,
-//     email: u.email,
-//     createdAt: u.createdAt,
-//     roles: userRoleMap.get(u.id) ?? [],
-//   }));
-// }
+  const authUser = authResult.user;
 
-// export async function assignRoleToUser(userId: string, targetUserId: string, roleId: string) {
-//   await authorize(userId, "users.assign_roles");
+  // ✅ إنشاء كائن BaseUser متوافق مع الأنواع
+  const newUser: BaseUser = {
+    id: authUser.id,
+    name: authUser.name || userData.name,
+    email: authUser.email,
+    emailVerified: authUser.emailVerified || false,
+    image: authUser.image || null,
+    banned: false, // ✅ قيمة افتراضية
+    banReason: null, // ✅ قيمة افتراضية
+    banExpires: null, // ✅ قيمة افتراضية
+    lastLoginAt: null, // ✅ قيمة افتراضية
+    createdAt: authUser.createdAt || new Date(),
+    updatedAt: new Date(),
+  };
 
-//   const existing = await db
-//     .select()
-//     .from(userRoles)
-//     .where(and(eq(userRoles.userId, targetUserId), eq(userRoles.roleId, roleId)))
-//     .limit(1);
+  // تعيين الأدوار المطلوبة
+  const assignedRoles: UserRole[] = [];
+  if (userData.roleIds && userData.roleIds.length > 0) {
+    for (const roleId of userData.roleIds) {
+      await assignRoleToUser(adminUserId, newUser.id, roleId);
 
-//   if (existing.length > 0) {
-//     throw Errors.conflict("المستخدم يمتلك هذا الدور بالفعل");
-//   }
+      const [roleData] = await db.select().from(role).where(eq(role.id, roleId)).limit(1);
 
-//   await db.insert(userRoles).values({ userId: targetUserId, roleId });
-// }
+      if (roleData) {
+        assignedRoles.push({
+          id: roleData.id,
+          name: roleData.name,
+          description: roleData.description,
+          isDefault: roleData.isDefault,
+        });
+      }
+    }
+  }
 
-// export async function removeRoleFromUser(userId: string, targetUserId: string, roleId: string) {
-//   await authorize(userId, "users.remove_roles");
-
-//   await db
-//     .delete(userRoles)
-//     .where(and(eq(userRoles.userId, targetUserId), eq(userRoles.roleId, roleId)));
-// }
-
-// export async function getCurrentUser(userId: string) {
-//   try {
-//     const [userData] = await db
-//       .select({
-//         id: user.id,
-//         name: user.name,
-//         email: user.email,
-//         createdAt: user.createdAt,
-//         updatedAt: user.updatedAt,
-//       })
-//       .from(user)
-//       .where(eq(user.id, userId))
-//       .limit(1);
-
-//     if (!userData) {
-//       throw Errors.notFound("User");
-//     }
-
-//     return userData;
-//   } catch (error) {
-//     console.error("Error in getCurrentUser:", error);
-//     throw error;
-//   }
-// }
-
-// !الحصول على المستخدم الحالي
-// export async function getCurrentUser(userId: string) {
-//   try {
-//     userId = await getCurrentUserId();
-//     const userData = await db.query.user.findFirst({
-//       where: eq(user.id, userId),
-//     });
-//     if (!userData) {
-//       throw Errors.notFound("المستخدم");
-//     }
-//     return userData;
-//   } catch (error) {
-//     if (error instanceof AppError) throw error;
-//     throw Errors.internal(error);
-//   }
-// }
+  return {
+    user: newUser, // ✅ الآن متوافق مع BaseUser
+    temporaryPassword: userData.sendWelcomeEmail ? userData.password : undefined,
+    assignedRoles,
+  };
+}

@@ -1,36 +1,22 @@
-/** biome-ignore-all lint/suspicious/noArrayIndexKey: <explanation> */
-
 "use client";
-import {
-  AlertTriangle,
-  Database,
-  Play,
-  RefreshCw,
-  Trash2,
-  Users,
-} from "lucide-react";
+
+import { AlertTriangle, Database, Play, RefreshCw, Trash2, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
   clearDatabase,
   reseedDatabase,
   seedDatabase,
 } from "@/lib/authorization/actions/admin/seed-actions";
+
 export function SeedPanel() {
-  const [loading, setLoading] = useState<"seed" | "clear" | "reseed" | null>(
-    null,
-  );
+  const [loading, setLoading] = useState<"seed" | "clear" | "reseed" | null>(null);
+
   const handleAction = async (action: "seed" | "clear" | "reseed") => {
     setLoading(action);
 
@@ -67,6 +53,7 @@ export function SeedPanel() {
       setLoading(null);
     }
   };
+
   const actions = [
     {
       id: "seed" as const,
@@ -96,6 +83,7 @@ export function SeedPanel() {
       className: "bg-red-600 hover:bg-red-700 text-white",
     },
   ];
+
   const roles = [
     {
       name: "مالك النظام",
@@ -139,9 +127,7 @@ export function SeedPanel() {
             </div>
             <div>
               <CardTitle className="text-xl">تهيئة قاعدة البيانات</CardTitle>
-              <CardDescription>
-                تهيئة وإدارة أدوار وصلاحيات وأذونات قاعدة البيانات
-              </CardDescription>
+              <CardDescription>تهيئة وإدارة أدوار وصلاحيات وأذونات قاعدة البيانات</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -152,10 +138,8 @@ export function SeedPanel() {
               <div className="flex items-center justify-between text-sm">
                 <span className="font-medium flex items-center gap-2">
                   <RefreshCw className="h-4 w-4 animate-spin" />
-                  {loading === "seed" &&
-                    "Seeding database with default data..."}
-                  {loading === "clear" &&
-                    "Clearing all roles and permissions..."}
+                  {loading === "seed" && "Seeding database with default data..."}
+                  {loading === "clear" && "Clearing all roles and permissions..."}
                   {loading === "reseed" && "Reseeding database..."}
                 </span>
                 <span className="">Please wait...</span>
@@ -190,9 +174,7 @@ export function SeedPanel() {
                       {isLoading ? action.loadingLabel : action.label}
                     </span>
                   </div>
-                  <p className="text-xs opacity-90 text-center">
-                    {action.description}
-                  </p>
+                  <p className="text-xs opacity-90 text-center">{action.description}</p>
                 </Button>
               );
             })}
@@ -210,10 +192,7 @@ export function SeedPanel() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {actions.map((action) => (
-                  <div
-                    key={action.id}
-                    className="flex items-start gap-3 p-3 rounded-lg border"
-                  >
+                  <div key={action.id} className="flex items-start gap-3 p-3 rounded-lg border">
                     <action.icon className="h-4 w-4 mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="font-medium text-sm ">{action.label}</p>
@@ -246,9 +225,7 @@ export function SeedPanel() {
                         {role.name}
                       </Badge>
                     </div>
-                    <span className="text-xs text-right">
-                      {role.description}
-                    </span>
+                    <span className="text-xs text-right">{role.description}</span>
                   </div>
                 ))}
               </CardContent>
@@ -259,9 +236,8 @@ export function SeedPanel() {
           <Alert className="bg-amber-50 border-amber-200">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <AlertDescription className="text-amber-800">
-              <strong>هـــــــــام:</strong> ستؤدي هذه الإجراءات إلى تعديل بنية
-              قاعدة البيانات الخاصة بك. يوصى بإنشاء نسخة احتياطية قبل الشروع في
-              إجراء أي تغييرات.
+              <strong>هـــــــــام:</strong> ستؤدي هذه الإجراءات إلى تعديل بنية قاعدة البيانات
+              الخاصة بك. يوصى بإنشاء نسخة احتياطية قبل الشروع في إجراء أي تغييرات.
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -269,174 +245,3 @@ export function SeedPanel() {
     </div>
   );
 }
-
-// "use client";
-// import { useState } from "react";
-// import { toast } from "sonner";
-// import { Button } from "@/components/ui/button";
-// import {
-//   Card,
-//   CardContent,
-//   CardDescription,
-//   CardHeader,
-//   CardTitle,
-// } from "@/components/ui/card";
-// import {
-//   clearDatabase,
-//   reseedDatabase,
-//   seedDatabase,
-// } from "@/lib/authorization/actions/seed-actions";
-
-// export function SeedPanel() {
-//   const [loading, setLoading] = useState<"seed" | "clear" | "reseed" | null>(
-//     null,
-//   );
-
-//   const handleAction = async (action: "seed" | "clear" | "reseed") => {
-//     setLoading(action);
-
-//     try {
-//       let result = { success: false, message: "" };
-
-//       switch (action) {
-//         case "seed":
-//           result = await seedDatabase();
-//           break;
-//         case "clear":
-//           result = await clearDatabase();
-//           break;
-//         case "reseed":
-//           result = await reseedDatabase();
-//           break;
-//       }
-
-//       if (result.success) {
-//         toast.success("Success", {
-//           description: result.message,
-//         });
-//       } else {
-//         toast.error("Error", {
-//           description: result.message,
-//         });
-//       }
-//     } catch (error) {
-//       console.error(error);
-//       toast.error("Error", {
-//         description: "An unexpected error occurred",
-//       });
-//     } finally {
-//       setLoading(null);
-//     }
-//   };
-
-//   return (
-//     <Card className="w-full max-w-2xl mx-auto">
-//       <CardHeader>
-//         <CardTitle>Database Initialization</CardTitle>
-//         <CardDescription>
-//           Initialize the database with default roles and permissions
-//         </CardDescription>
-//       </CardHeader>
-//       <CardContent className="space-y-4">
-//         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-//           <Button
-//             onClick={() => handleAction("seed")}
-//             disabled={!!loading}
-//             variant="default"
-//             className="w-full"
-//           >
-//             {loading === "seed" ? "Seeding..." : "Seed Database"}
-//           </Button>
-
-//           <Button
-//             onClick={() => handleAction("clear")}
-//             disabled={!!loading}
-//             variant="outline"
-//             className="w-full"
-//           >
-//             {loading === "clear" ? "Clearing..." : "Clear Data"}
-//           </Button>
-
-//           <Button
-//             onClick={() => handleAction("reseed")}
-//             disabled={!!loading}
-//             variant="destructive"
-//             className="w-full"
-//           >
-//             {loading === "reseed" ? "Reseeding..." : "Reseed Database"}
-//           </Button>
-//         </div>
-
-//         <div className="text-sm text-muted-foreground space-y-2">
-//           <div className="p-3 bg-muted rounded-lg">
-//             <h4 className="font-semibold mb-2">Available Actions:</h4>
-//             <ul className="space-y-1 list-disc list-inside">
-//               <li>
-//                 <strong>Seed Database:</strong> Add default roles and
-//                 permissions
-//               </li>
-//               <li>
-//                 <strong>Clear Data:</strong> Remove all roles and permissions
-//               </li>
-//               <li>
-//                 <strong>Reseed Database:</strong> Clear and seed again
-//               </li>
-//             </ul>
-//           </div>
-
-//           <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-//             <h4 className="font-semibold mb-2 text-blue-800">Default Roles:</h4>
-//             <ul className="space-y-1">
-//               <li>
-//                 • <strong>super_admin:</strong> Full system access
-//               </li>
-//               <li>
-//                 • <strong>admin:</strong> Extensive administrative access
-//               </li>
-//               <li>
-//                 • <strong>moderator:</strong> Content management
-//               </li>
-//               <li>
-//                 • <strong>user:</strong> Regular user permissions
-//               </li>
-//               <li>
-//                 • <strong>viewer:</strong> Read-only access
-//               </li>
-//             </ul>
-//           </div>
-//         </div>
-//       </CardContent>
-//     </Card>
-//   );
-// }
-//               <li>
-//                 <strong>Reseed Database:</strong> Clear and seed again
-//               </li>
-//             </ul>
-//           </div>
-
-//           <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-//             <h4 className="font-semibold mb-2 text-blue-800">Default Roles:</h4>
-//             <ul className="space-y-1">
-//               <li>
-//                 • <strong>super_admin:</strong> Full system access
-//               </li>
-//               <li>
-//                 • <strong>admin:</strong> Extensive administrative access
-//               </li>
-//               <li>
-//                 • <strong>moderator:</strong> Content management
-//               </li>
-//               <li>
-//                 • <strong>user:</strong> Regular user permissions
-//               </li>
-//               <li>
-//                 • <strong>viewer:</strong> Read-only access
-//               </li>
-//             </ul>
-//           </div>
-//         </div>
-//       </CardContent>
-//     </Card>
-//   );
-// }

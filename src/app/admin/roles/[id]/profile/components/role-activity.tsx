@@ -9,13 +9,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface RoleActivityProps {
   roleId: string;
-  initialActivity?: Array<{
-    id: number;
-    action: string;
-    description: string;
-    timestamp: Date;
-    type: "view" | "create" | "update" | "delete";
-  }>;
+  initialActivity?:
+    | Array<{
+        id: string;
+        action: string;
+        description: string;
+        timestamp: Date;
+        type: "view" | "create" | "update" | "delete";
+      }>
+    | undefined;
 }
 
 export function RoleActivity({ roleId, initialActivity = [] }: RoleActivityProps) {
@@ -74,7 +76,7 @@ export function RoleActivity({ roleId, initialActivity = [] }: RoleActivityProps
       <CardContent>
         {displayActivities.length > 0 ? (
           <div className="space-y-4">
-            {displayActivities.map((activity) => (
+            {displayActivities?.map((activity) => (
               <div
                 key={activity.id}
                 className="flex items-start gap-4 pb-4 border-b last:border-0 last:pb-0 rtl:flex-row-reverse"

@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1761236032921,
-      "tag": "0000_pretty_liz_osborn",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1762111277382,
-      "tag": "0001_aspiring_leech",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1762114745718,
-      "tag": "0002_premium_caretaker",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1762115663323,
-      "tag": "0003_majestic_sage",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1762543004988,
-      "tag": "0004_hot_machine_man",
+      "when": 1762818603230,
+      "tag": "0000_supreme_kinsey_walden",
       "breakpoints": true
     }
   ]

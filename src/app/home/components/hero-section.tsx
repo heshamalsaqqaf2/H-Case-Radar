@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { ProtectedComponent } from "@/components/auth/protected-component";
-import CardFlip from "@/components/shared/card-flip";
+import CardFlip from "@/components/main/card-flip";
 import { Button } from "@/components/ui/button";
 import { AnimatedThemeToggler } from "@/components/ui/magic-ui/animated-theme-toggler";
 import { AnimatedTooltipPreview } from "./animated-tooltip";

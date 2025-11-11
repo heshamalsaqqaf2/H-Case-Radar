@@ -4,20 +4,12 @@ import { auth } from "@/lib/authentication/auth-server";
 
 export async function middleware(request: NextRequest) {
   const session = await auth.api.getSession({ headers: request.headers });
+
   if (!session) return NextResponse.redirect(new URL("/sign-in", request.url));
 
-  // if (request.nextUrl.pathname.startsWith("/admin")) {
-  //   const hasAdminAccess = await authorizationService.checkPermission(
-  //     { userId: session.user.id },
-  //     AUDIT_LOG_ACTIONS.ADMIN.VIEW,
-  //   );
-  //   if (!hasAdminAccess.allowed) {
-  //     return NextResponse.redirect(new URL("/", request.url));
-  //   }
-  // }
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*"],
+  matcher: ["/admin/:path*", "/dashboard/:path*", "/(auth)/:path*"],
 };

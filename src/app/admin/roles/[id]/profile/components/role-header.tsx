@@ -3,7 +3,7 @@
 
 import { ArrowLeft, Calendar, Edit, Key, Shield, Users, Zap } from "lucide-react";
 import Link from "next/link";
-import { QuickLoading } from "@/components/quick-loading";
+import { QuickLoading } from "@/components/shared/quick-loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

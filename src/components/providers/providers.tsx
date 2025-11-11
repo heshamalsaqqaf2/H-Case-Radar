@@ -9,7 +9,7 @@ interface Props {
 }
 
 export function Providers({ children }: Props) {
-  // useState لضمان إنشاء العميل مرة واحدة فقط
+  // TODO: Create the client once in the lifetime of the app
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -20,11 +20,10 @@ export function Providers({ children }: Props) {
         },
       }),
   );
-
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }

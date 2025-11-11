@@ -1,7 +1,7 @@
 // src/components/admin/roles/roles-table.tsx
 "use client";
 
-import { Edit, Loader2, MoreHorizontal, Shield, Trash2, User, Users } from "lucide-react";
+import { Edit, MoreHorizontal, Shield, Trash2, User, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -25,6 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -51,29 +52,32 @@ interface RolesTableProps {
 
 export function RolesTable({ initialRoles }: RolesTableProps) {
   const [roles, setRoles] = useState<Role[]>(initialRoles);
-  const [roleToDelete, setRoleToDelete] = useState<string | null>(null);
 
+  const [roleToDelete, setRoleToDelete] = useState<string | null>(null);
   const deleteRoleMutation = useDeleteRole();
 
   const handleDelete = async () => {
     if (!roleToDelete) return;
+
+    const previousRoles = roles;
+    setRoles(roles.filter((role) => role.id !== roleToDelete));
 
     await deleteRoleMutation.mutateAsync(
       { id: roleToDelete },
       {
         onSuccess: (result) => {
           if (result.success) {
-            // تحديث القائمة محلياً
             setRoles(roles.filter((role) => role.id !== roleToDelete));
             setRoleToDelete(null);
           }
         },
+        onError: () => {
+          // ✅ استعادة الحالة في حالة خطأ
+          setRoles(previousRoles);
+        },
       },
     );
   };
-
-  // ❌ إزالة استخدام useRolesList تماماً - نستخدم initialRoles فقط
-  // ❌ لا نستخدم useRolesList هنا إطلاقاً
 
   return (
     <>
@@ -195,13 +199,20 @@ export function RolesTable({ initialRoles }: RolesTableProps) {
           </AlertDialogHeader>
           <AlertDialogFooter className="rtl:flex-row-reverse">
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
+
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700 flex items-center gap-2 rtl:flex-row-reverse"
               disabled={deleteRoleMutation.isPending}
             >
-              {deleteRoleMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-              حذف
+              {deleteRoleMutation.isPending ? (
+                <>
+                  <Spinner className="h-4 w-4" />
+                  جاري الحذف
+                </>
+              ) : (
+                "حذف"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

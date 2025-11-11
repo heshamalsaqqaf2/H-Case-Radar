@@ -5,7 +5,7 @@ import "./globals.css";
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <Providers>{children}</Providers>
@@ -15,11 +15,3 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     </html>
   );
 }
-// /* <AppProvider
-//               initialDirection={direction}
-//               isFirstVisit={isFirstVisit}
-//             >
-//             </AppProvider> */
-// const headersList = await headers();
-// const direction = (headersList.get("x-direction") || "ltr") as "ltr" | "rtl";
-// const isFirstVisit = headersList.get("x-is-first-visit") === "true";

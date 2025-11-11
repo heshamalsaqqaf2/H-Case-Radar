@@ -197,7 +197,7 @@ export function RolePermissionsManager({ role, initialPermissions }: RolePermiss
             <div key={resource} className="space-y-2">
               <h4 className="font-medium text-sm capitalize">{resource.replace(/_/g, " ")}</h4>
               <div dir="ltr" className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-4">
-                {perms.map((perm: Permission) => (
+                {perms?.map((perm: Permission) => (
                   <div key={perm.id} className="flex items-center space-x-2">
                     <Checkbox
                       id={`perm-${perm.id}`}

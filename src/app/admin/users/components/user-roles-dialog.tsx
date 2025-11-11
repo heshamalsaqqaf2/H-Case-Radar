@@ -1,7 +1,20 @@
 // components/admin/users/user-roles-dialog.tsx
 "use client";
 
-import { Plus, Shield, User, X } from "lucide-react";
+import { IconTimeDuration60 } from "@tabler/icons-react";
+import {
+  BadgeX,
+  BadgeXIcon,
+  CalendarRangeIcon,
+  MailCheckIcon,
+  MailXIcon,
+  Plus,
+  Shield,
+  ShieldCloseIcon,
+  User,
+  VerifiedIcon,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { useRolesList } from "@/lib/authorization/hooks/admin/use-roles";
 import { useUserManagement } from "@/lib/authorization/hooks/admin/use-users";
 import type { UserRole, UserWithRoles } from "@/lib/authorization/types/user";
@@ -84,44 +98,93 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:min-w-[550px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
             إدارة أدوار المستخدم
           </DialogTitle>
           <DialogDescription>
-            إدارة الأدوار الممنوحة لـ <strong>{user.name}</strong>
+            إدارة الأدوار الممنوحة لـ <strong className="text-primary">{user.name}</strong>
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-2">
           {/* معلومات المستخدم */}
           <Card>
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-0">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <User className="h-4 w-4" />
+                <User className="h-4 w-4 text-primary" />
                 معلومات المستخدم
+                {user.banned ? (
+                  <Badge className="bg-red-50 text-red-600">
+                    محظور
+                    <ShieldCloseIcon className="animate-caret-blink text-red-500" />
+                  </Badge>
+                ) : (
+                  <Badge className="bg-green-50 text-green-600">
+                    نشط
+                    <VerifiedIcon className="animate-bounce text-green-600" />
+                  </Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-3">
-                {user.image ? (
-                  <Image
-                    src={user.image}
-                    alt={user.name}
-                    width={40}
-                    height={40}
-                    className="h-10 w-10 rounded-full"
-                  />
-                ) : (
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-                    <User className="h-5 w-5" />
+              <div className="space-y-2 flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  {user.image ? (
+                    <Image
+                      src={user.image}
+                      alt={user.name}
+                      width={40}
+                      height={40}
+                      className="h-10 w-10 rounded-full"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-10 font-bold items-center justify-center rounded-full bg-muted">
+                      {user.name.charAt(0) + user.name.charAt(1)}
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-medium">{user.name}</p>
+                    <div className="flex items-center gap-1">
+                      <MailCheckIcon className="size-3.5 text-primary" />
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <CalendarRangeIcon className="size-3.5 text-primary" />
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(user.createdAt).toLocaleTimeString("en-US") +
+                          " - " +
+                          new Date(user.createdAt).toLocaleDateString("en-US")}
+                      </p>
+                    </div>
                   </div>
-                )}
-                <div>
-                  <p className="font-medium">{user.name}</p>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                </div>
+                <div className="flex flex-col items-center">
+                  <p className="text-sm text-muted-foreground truncate mt-1">
+                    {user.emailVerified ? (
+                      <Badge className="text-xs text-green-600 bg-green-100">
+                        بريد متحقق <MailCheckIcon />
+                      </Badge>
+                    ) : (
+                      <Badge className="text-xs text-red-600 bg-red-100">
+                        بريد غير متحقق <MailXIcon />
+                      </Badge>
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground uppercase truncate mt-1">
+                    {user.roles && user.roles.length > 0 ? (
+                      <Badge className="py-1 px-2 bg-gradient-to-l rounded-sm border-none outline-none text-gray-50 text-xs from-emerald-500 to-lime-500">
+                        {user.roles[0].name}
+                      </Badge>
+                    ) : (
+                      <Badge className="mt-1 py-1 px-2 bg-gradient-to-l rounded-sm border-none outline-none text-gray-50 text-xs from-orange-500 to-amber-500">
+                        لا يوجد دور ممنوح{" "}
+                        <BadgeXIcon className="animate-spin mt-1 text-orange-700" />
+                      </Badge>
+                    )}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -132,7 +195,7 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <span>الأدوار الممنوحة</span>
-                <Badge variant="secondary" className="text-xs">
+                <Badge className="text-md bg-gradient-to-tr rounded-xs border-none outline-none text-gray-50 from-green-500 to-teal-500">
                   {userRoles.length}
                 </Badge>
               </CardTitle>
@@ -141,7 +204,9 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {userRoles.length === 0 ? (
-                  <p className="text-muted-foreground text-sm">لا توجد أدوار ممنوحة</p>
+                  <Badge className="bg-gradient-to-l from-teal-500 to-green-500 px-10 py-3 text-sm border-none outline-none m-auto">
+                    لا توجد أدوار ممنوحة
+                  </Badge>
                 ) : (
                   userRoles.map((role) => (
                     <Badge
@@ -149,12 +214,11 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
                       variant="secondary"
                       className="px-3 py-1.5 text-sm flex items-center gap-1"
                     >
-                      <Shield className="h-3 w-3" />
+                      <Shield className="h-4 w-4" />
                       <span>{role.name}</span>
                       <Button
-                        variant="ghost"
                         size="sm"
-                        className="h-4 w-4 p-0 ml-1 hover:bg-destructive hover:text-destructive-foreground"
+                        className="h-4 w-4 p-0 ml-1 rounded-xs hover:text-red-500 hover:font-extrabold"
                         onClick={() => handleRemoveRole(role.id)}
                         disabled={isRemovingRole}
                       >
@@ -179,15 +243,15 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
               </CardHeader>
               <CardContent>
                 <div className="flex gap-2">
-                  <Select value={selectedRoleId} onValueChange={setSelectedRoleId}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="اختر دورًا..." />
+                  <Select value={selectedRoleId} onValueChange={setSelectedRoleId} dir="rtl">
+                    <SelectTrigger className="flex-1 w-4/5">
+                      <SelectValue placeholder="اختر دورا جديدا لمنحه للمستخدم" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent align="end">
                       {assignableRoles.map((role: UserRole) => (
                         <SelectItem key={role.id} value={role.id}>
                           <div className="flex flex-col">
-                            <span>{role.name}</span>
+                            <span className="font-medium capitalize">{role.name}</span>
                             {role.description && (
                               <span className="text-xs text-muted-foreground">
                                 {role.description}
@@ -199,7 +263,11 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
                     </SelectContent>
                   </Select>
                   <Button onClick={handleAssignRole} disabled={!selectedRoleId || isAssigningRole}>
-                    {isAssigningRole ? "جاري الإضافة..." : "إضافة"}
+                    {isAssigningRole ? (
+                      <Spinner style={{ width: "20px", height: "20px" }} />
+                    ) : (
+                      "إضافة دور"
+                    )}
                   </Button>
                 </div>
               </CardContent>

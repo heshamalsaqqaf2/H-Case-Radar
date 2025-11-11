@@ -1,5 +1,5 @@
 import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actions";
-import { requireAuthorization, requireMultiplePermissions } from "@/utils/has-authorization";
+import { requireMultiplePermissions } from "@/utils/has-authorization";
 
 export default async function AdminDashboardPage() {
   // استخدام واحد

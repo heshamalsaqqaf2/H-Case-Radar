@@ -64,12 +64,8 @@ export function RecentActivity() {
                     {activity.type}
                   </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {activity.description}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {activity.timestamp}
-                </p>
+                <p className="text-sm text-muted-foreground">{activity.description}</p>
+                <p className="text-xs text-muted-foreground">{activity.timestamp}</p>
               </div>
             </div>
           ))}

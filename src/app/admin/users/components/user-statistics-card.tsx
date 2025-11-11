@@ -115,41 +115,43 @@ export function UserStatisticsCard({ user, open, onOpenChange }: UserStatisticsC
               </div>
             )}
 
-            {/* آخر نشاط */}
-            {statsResult?.success && statsResult.data.statistics.lastActivity && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">آخر نشاط</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>{formatDate(statsResult.data.statistics.lastActivity)}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+              {/* آخر نشاط */}
+              {statsResult?.success && statsResult.data.statistics.lastActivity && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">آخر نشاط</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span>{formatDate(statsResult.data.statistics.lastActivity)}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-            {/* معلومات الحظر */}
-            {user.banned && (
-              <Card className="border-destructive/50">
-                <CardHeader>
-                  <CardTitle className="text-sm text-destructive">معلومات الحظر</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-sm">
-                      <strong>سبب الحظر:</strong> {user.banReason || "غير محدد"}
-                    </p>
-                    {user.banExpires && (
+              {/* معلومات الحظر */}
+              {user.banned && (
+                <Card className="border-destructive/70 bg-destructive/10">
+                  <CardHeader>
+                    <CardTitle className="text-sm text-destructive">معلومات الحظر</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
                       <p className="text-sm">
-                        <strong>ينتهي الحظر في:</strong> {formatDate(user.banExpires)}
+                        <strong>سبب الحظر:</strong> {user.banReason || "غير محدد"}
                       </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                      {user.banExpires && (
+                        <p className="text-sm">
+                          <strong>ينتهي الحظر في:</strong> {formatDate(user.banExpires)}
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
         )}
       </DialogContent>

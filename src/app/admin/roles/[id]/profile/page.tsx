@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { RoleActivity } from "@/app/admin/roles/[id]/profile/components/role-activity";
 import { RoleHeader } from "@/app/admin/roles/[id]/profile/components/role-header";
-import { QuickLoading } from "@/components/quick-loading";
+import { QuickLoading } from "@/components/shared/quick-loading";
 import { getRoleProfileDataAction } from "@/lib/authorization/actions/admin/role-actions";
 import { RolePermissionsManager } from "../../components/role-permissions-manager";
 import { RoleUsers } from "../../components/role-users";

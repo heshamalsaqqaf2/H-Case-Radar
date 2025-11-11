@@ -4,6 +4,7 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import {
   assignRoleToUserAction,
+  createUserAction,
   getCurrentUserAction,
   getUserStatisticsAction,
   getUsersWithRolesAction,
@@ -12,21 +13,23 @@ import {
   updateUserProfileAction,
 } from "@/lib/authorization/actions/admin/user-actions";
 import { useAdminMutation } from "@/lib/authorization/hooks/core";
-import type { UpdateUserInput } from "@/lib/authorization/types/user";
+import type { ApiResponse, QueryOptions } from "@/lib/authorization/types/api";
+import type { UpdateUserInput, UserWithRoles } from "@/lib/authorization/types/user";
 
 // ─── Query Options ───
-const usersListOptions = () =>
+const usersListOptions = (options?: QueryOptions<UserWithRoles[]>) =>
   queryOptions({
     queryKey: ["users"],
-    queryFn: () => getUsersWithRolesAction(),
-    staleTime: 30 * 1000,
+    queryFn: (): Promise<ApiResponse<UserWithRoles[]>> => getUsersWithRolesAction(),
+    staleTime: options?.staleTime ?? 30 * 1000,
+    initialData: options?.initialData,
   });
 
 const currentUserOptions = () =>
   queryOptions({
     queryKey: ["currentUser"],
     queryFn: () => getCurrentUserAction(),
-    staleTime: 10 * 60 * 1000, // 10 دقائق
+    staleTime: 10 * 60 * 1000,
   });
 
 const userStatisticsOptions = (userId: string) =>
@@ -34,12 +37,12 @@ const userStatisticsOptions = (userId: string) =>
     queryKey: ["users", "statistics", userId],
     queryFn: () => getUserStatisticsAction({ userId }),
     enabled: !!userId,
-    staleTime: 2 * 60 * 1000, // 2 دقيقة
+    staleTime: 2 * 60 * 1000,
   });
 
 // ─── Hooks: Queries ───
-export function useUsers() {
-  return useQuery(usersListOptions());
+export function useUsers(options?: QueryOptions<UserWithRoles[]>) {
+  return useQuery(usersListOptions(options));
 }
 
 export function useCurrentUser() {
@@ -61,7 +64,6 @@ export function useAssignRoleToUser() {
     errorMessage: "خطأ في تعيين الدور",
   });
 }
-
 export function useRemoveRoleFromUser() {
   return useAdminMutation<{ userId: string; roleId: string }>({
     mutationFn: ({ userId, roleId }) => {
@@ -72,7 +74,6 @@ export function useRemoveRoleFromUser() {
     errorMessage: "خطأ في إزالة الدور",
   });
 }
-
 export function useUpdateUserProfile() {
   return useAdminMutation<{ targetUserId: string; updates: UpdateUserInput }>({
     mutationFn: updateUserProfileAction,
@@ -81,7 +82,6 @@ export function useUpdateUserProfile() {
     errorMessage: "خطأ في تحديث المستخدم",
   });
 }
-
 export function useBanUser() {
   return useAdminMutation<{ targetUserId: string; reason?: string }>({
     mutationFn: ({ targetUserId, reason }) =>
@@ -91,7 +91,6 @@ export function useBanUser() {
     errorMessage: "خطأ في حظر المستخدم",
   });
 }
-
 export function useUnbanUser() {
   return useAdminMutation<{ targetUserId: string }>({
     mutationFn: ({ targetUserId }) => toggleUserBanAction({ targetUserId, ban: false }),
@@ -100,9 +99,16 @@ export function useUnbanUser() {
     errorMessage: "خطأ في فك حظر المستخدم",
   });
 }
+export function useCreateUser() {
+  return useAdminMutation({
+    mutationFn: createUserAction,
+    invalidateKeys: [["users"], ["users", "statistics"]],
+    successMessage: "تم إنشاء المستخدم بنجاح",
+    errorMessage: "خطأ في إنشاء المستخدم",
+  });
+}
 
 // ─── Hooks: Utilities ───
-
 export const useCurrentUserManagement = () => {
   const { data: currentUserResult, isLoading, error } = useCurrentUser();
   const currentUser = currentUserResult?.success ? currentUserResult.data : null;
@@ -112,9 +118,8 @@ export const useCurrentUserManagement = () => {
     isLoading,
     error,
     isAuthenticated: !!currentUser,
-    hasPermission: async (permission: string) => {
+    hasPermission: async (_permission: string) => {
       if (!currentUser) return false;
-
       // try {
       //   // ✅ استخدام Server Action مباشرة - بدون أي استيراد لـ authorization-service
       //   const result = await getUsersWithRolesAndPermissionsAction();
@@ -125,7 +130,6 @@ export const useCurrentUserManagement = () => {
     },
   };
 };
-
 export const useUserManagement = (userId: string) => {
   const { data: userStats, isLoading: statsLoading, error: statsError } = useUserStatistics(userId);
   const updateProfileMutation = useUpdateUserProfile();
@@ -167,55 +171,3 @@ export const useUserManagement = (userId: string) => {
     removeRoleError: removeRoleMutation.error,
   };
 };
-
-// // src/authorization/hooks/admin/use-users.ts
-// "use client";
-
-// import { queryOptions, useQuery } from "@tanstack/react-query";
-// import {
-//   assignRoleToUserAction,
-//   getUsersWithRolesAction,
-//   removeRoleFromUserAction,
-// } from "@/lib/authorization/actions/admin/user-actions";
-// import { useAdminMutation } from "@/lib/authorization/hooks/core";
-
-// // ─── Query Options
-// const usersListOptions = () =>
-//   queryOptions({
-//     queryKey: ["users"],
-//     queryFn: () => getUsersWithRolesAction(),
-//     staleTime: 30 * 1000,
-//   });
-
-// // ─── Hooks: Queries
-// export function useUsers() {
-//   return useQuery(usersListOptions());
-// }
-
-// // ─── Hooks: Mutations
-// export function useAssignRoleToUser() {
-//   return useAdminMutation<{ userId: string; roleId: string }>({
-//     mutationFn: ({ userId, roleId }) => {
-//       const formData = new FormData();
-//       formData.append("userId", userId);
-//       formData.append("roleId", roleId);
-//       return assignRoleToUserAction(formData);
-//     },
-//     invalidateKeys: [["users"]],
-//     successMessage: "تم تعيين الدور بنجاح",
-//     errorMessage: "خطأ في تعيين الدور",
-//   });
-// }
-// export function useRemoveRoleFromUser() {
-//   return useAdminMutation<{ userId: string; roleId: string }>({
-//     mutationFn: ({ userId, roleId }) => {
-//       const formData = new FormData();
-//       formData.append("userId", userId);
-//       formData.append("roleId", roleId);
-//       return removeRoleFromUserAction(formData);
-//     },
-//     invalidateKeys: [["users"]],
-//     successMessage: "تم إزالة الدور بنجاح",
-//     errorMessage: "خطأ في إزالة الدور",
-//   });
-// }

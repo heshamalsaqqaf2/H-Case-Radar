@@ -13,14 +13,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { useDebounce } from "@/hooks/table/use-debounce";
+import { useDebounce } from "@/hooks/data-table/use-debounce";
 import type { Permission } from "@/types/tanstack-table-types/permission";
 import {
   type ExportFormat,
   exportToCSV,
   exportToExcel,
   exportToJSON,
-} from "@/utils/tanstack-table/export-utils";
+} from "@/utils/export-data-table";
 import { BulkActions } from "./bulk-actions";
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 import { DataTableViewOptions } from "./data-table-view-options";
@@ -72,9 +72,7 @@ export function PermissionsTableToolbar({
     async (format: ExportFormat) => {
       setIsExporting(true);
       try {
-        const filteredData = table
-          .getFilteredRowModel()
-          .rows.map((row) => row.original);
+        const filteredData = table.getFilteredRowModel().rows.map((row) => row.original);
 
         switch (format) {
           case "csv":
@@ -84,10 +82,7 @@ export function PermissionsTableToolbar({
             exportToJSON(filteredData, `permissions-${new Date().getTime()}`);
             break;
           case "excel":
-            await exportToExcel(
-              filteredData,
-              `permissions-${new Date().getTime()}`,
-            );
+            await exportToExcel(filteredData, `permissions-${new Date().getTime()}`);
             break;
         }
       } catch (error) {
@@ -168,9 +163,7 @@ export function PermissionsTableToolbar({
             className="rounded-full shrink-0"
             title="Reset all filters and sorting"
           >
-            <RotateCcw
-              className={`mr-2 h-4 w-4 ${isResetting ? "animate-spin" : ""}`}
-            />
+            <RotateCcw className={`mr-2 h-4 w-4 ${isResetting ? "animate-spin" : ""}`} />
             Reset
           </Button>
 
@@ -188,24 +181,15 @@ export function PermissionsTableToolbar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => handleExport("csv")}
-                className="flex items-center"
-              >
+              <DropdownMenuItem onClick={() => handleExport("csv")} className="flex items-center">
                 <FileText className="mr-2 h-4 w-4" />
                 Export as CSV
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleExport("json")}
-                className="flex items-center"
-              >
+              <DropdownMenuItem onClick={() => handleExport("json")} className="flex items-center">
                 <Database className="mr-2 h-4 w-4" />
                 Export as JSON
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleExport("excel")}
-                className="flex items-center"
-              >
+              <DropdownMenuItem onClick={() => handleExport("excel")} className="flex items-center">
                 <Download className="mr-2 h-4 w-4" />
                 Export as Excel
               </DropdownMenuItem>

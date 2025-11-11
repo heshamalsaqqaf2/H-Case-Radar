@@ -8,17 +8,11 @@ export interface AccessContext {
   environment?: Record<string, unknown>;
 }
 
-/**
- * نتيجة فحص الصلاحية
- */
 export interface PermissionCheck {
   allowed: boolean;
   reason?: string;
 }
 
-/**
- * تمثيل الصلاحية الآمن بعد استخراجها من قاعدة البيانات
- */
 export interface SafePermission {
   name: string;
   resource: string;

@@ -17,6 +17,9 @@ import {
 } from "@tabler/icons-react";
 import Link from "next/link";
 import type * as React from "react";
+import { NavMain } from "@/components/dashboard/layout/nav-main";
+import { NavSecondary } from "@/components/dashboard/layout/nav-secondary";
+import { NavUser } from "@/components/dashboard/layout/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -26,9 +29,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { NavMain } from "@/components/user/dashboard/layout/nav-main";
-import { NavSecondary } from "@/components/user/dashboard/layout/nav-secondary";
-import { NavUser } from "@/components/user/dashboard/layout/nav-user";
 
 const data = {
   user: {
@@ -141,10 +141,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
+            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
               <Link href="#">
                 <IconInnerShadowTop className="!size-5" />
                 <span className="text-base font-semibold">H-Case Radar.</span>

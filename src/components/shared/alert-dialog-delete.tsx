@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleAlertIcon, Loader2 } from "lucide-react";
+import { CircleAlertIcon } from "lucide-react";
 import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "../ui/spinner";
 
 interface AlertDialogDeleteProps {
   itemName: string;
@@ -40,7 +41,7 @@ export function AlertDialogDelete({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isInputCorrect && !isLoading) {
-      onConfirm(); // لا نغلق الـ Dialog هنا
+      onConfirm(); // Not Close Dialog
     }
   };
 
@@ -53,9 +54,7 @@ export function AlertDialogDelete({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent
-        onOpenAutoFocus={(e) => e.preventDefault()} // يمنع التركيز التلقائي على أول زر
-      >
+      <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="flex flex-col items-center gap-2">
           <div
             className="flex size-9 shrink-0 items-center justify-center rounded-full border"
@@ -64,13 +63,10 @@ export function AlertDialogDelete({
             <CircleAlertIcon className="opacity-80" size={16} />
           </div>
           <DialogHeader>
-            <DialogTitle className="sm:text-center">
-              حذف {itemType} نهائياً
-            </DialogTitle>
+            <DialogTitle className="sm:text-center">حذف {itemType} نهائياً</DialogTitle>
             <DialogDescription className="sm:text-center">
               <span className="font-semibold">{itemName}</span>
-              {description ||
-                `لا يمكن التراجع عن هذا الإجراء. للتأكيد، يرجى كتابة اسم ${itemType}`}
+              {description || `لا يمكن التراجع عن هذا الإجراء. للتأكيد، يرجى كتابة اسم ${itemType}`}
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -115,7 +111,7 @@ export function AlertDialogDelete({
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Spinner className="mr-2 h-4 w-4" />
                   جاري الحذف
                 </>
               ) : (

@@ -18,12 +18,25 @@ import {
 } from "@/components/ui/table";
 import { useBanUser, useUnbanUser, useUsers } from "@/lib/authorization/hooks/admin/use-users";
 import type { UserWithRoles } from "@/lib/authorization/types/user";
+import { CreateUserForm } from "./create-user-form";
 import { UserEditDialog } from "./user-edit-dialog";
 import { UserRolesDialog } from "./user-roles-dialog";
 import { UserStatisticsCard } from "./user-statistics-card";
 
-export function UsersList() {
-  const { data: usersResult, isLoading, error } = useUsers();
+interface UsersListProps {
+  initialUsers?: UserWithRoles[];
+}
+
+export function UsersList({ initialUsers }: UsersListProps) {
+  // const { data: usersResult, isLoading, error } = useUsers();
+  const {
+    data: usersResult,
+    isLoading,
+    error,
+  } = useUsers({
+    initialData: initialUsers ? { success: true, data: initialUsers } : undefined,
+  });
+
   const banMutation = useBanUser();
   const unbanMutation = useUnbanUser();
   const [editingUser, setEditingUser] = useState<UserWithRoles | null>(null);
@@ -33,20 +46,19 @@ export function UsersList() {
   if (isLoading) {
     return <UsersListSkeleton />;
   }
-
   if (error) {
     return (
       <Card className="border-destructive/50">
         <CardContent className="pt-6">
           <div className="text-center text-destructive">
             <p className="font-semibold">خطأ في تحميل المستخدمين</p>
+            <p className="text-xl mt-1">{error.name}</p>
             <p className="text-sm mt-1">{error.message}</p>
           </div>
         </CardContent>
       </Card>
     );
   }
-
   if (!usersResult?.success) {
     return (
       <Card className="border-destructive/50">
@@ -61,8 +73,12 @@ export function UsersList() {
   }
 
   const users = usersResult.data;
-
   const handleToggleBan = async (user: UserWithRoles) => {
+    // const selectRole = user.roles.find((role) => role.name !== "super_admin");
+    // if (!selectRole) {
+    //   return <p>لا يمكنك حظر المستخدم {selectRole}</p>;
+    // }
+
     if (user.banned) {
       await unbanMutation.mutateAsync({ targetUserId: user.id });
     } else {
@@ -72,7 +88,7 @@ export function UsersList() {
 
   const formatDate = (date: Date | null): string => {
     if (!date) return "لم يسجل دخول";
-    return new Date(date).toLocaleDateString("ar-SA", {
+    return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -95,13 +111,13 @@ export function UsersList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 px-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">إدارة المستخدمين</h1>
           <p className="text-muted-foreground mt-1">إدارة حسابات المستخدمين، الأدوار، والصلاحيات</p>
         </div>
-        <Badge variant="secondary" className="w-fit px-3 py-1 text-sm">
-          {users.length} مستخدم
+        <Badge className="w-fit px-3 py-1 text-sm bg-gradient-to-l from-teal-500 to-green-500">
+          {users.length} - All USERS
         </Badge>
       </div>
 
@@ -114,7 +130,8 @@ export function UsersList() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users.filter((u) => !u.banned && u.emailVerified).length}
+              {/* {users.filter((u) => !u.banned && u.emailVerified).length} */}
+              {users.filter((u) => !u.banned).length}
             </div>
             <p className="text-xs text-muted-foreground">من أصل {users.length} مستخدم</p>
           </CardContent>
@@ -149,17 +166,19 @@ export function UsersList() {
         <CardHeader>
           <CardTitle>قائمة المستخدمين</CardTitle>
           <CardDescription>عرض وإدارة جميع مستخدمي النظام</CardDescription>
+          {/* اضافة مستخدم */}
+          <CreateUserForm />
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[300px]">المستخدم</TableHead>
-                  <TableHead>الحالة</TableHead>
+                  <TableHead className="w-[100px]">المستخدم</TableHead>
+                  <TableHead className="w-[100px]">الحالة</TableHead>
                   <TableHead>الأدوار</TableHead>
-                  <TableHead className="w-[150px]">آخر دخول</TableHead>
-                  <TableHead className="w-[200px] text-center">الإجراءات</TableHead>
+                  <TableHead>آخر دخول</TableHead>
+                  <TableHead>الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -180,8 +199,8 @@ export function UsersList() {
                             className="h-10 w-10 rounded-full"
                           />
                         ) : (
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-                            <User className="h-5 w-5" />
+                          <div className="flex h-10 w-10 font-bold text-primary items-center justify-center rounded-full bg-muted">
+                            {user.name.charAt(0).toUpperCase()}
                           </div>
                         )}
                         <div className="flex flex-col">
@@ -315,20 +334,18 @@ function UsersListSkeleton() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-4 w-64" />
+          <Skeleton className="h-8 w-48 rounded-md bg-muted" />
+          <Skeleton className="h-4 w-64 rounded-md bg-gray-400" />
         </div>
-        <Skeleton className="h-6 w-16" />
+        <Skeleton className="h-6 w-16 rounded-md bg-gray-400" />
       </div>
-
       <div className="grid gap-6 lg:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-          <Skeleton key={i} className="h-24 w-full" />
+        {Array.from({ length: 3 }).map((_, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: <>
+          <Skeleton key={index} className="h-24 w-full rounded-md bg-gray-400" />
         ))}
       </div>
-
-      <Skeleton className="h-96 w-full" />
+      <Skeleton className="h-72 w-full rounded-md bg-gray-400" />
     </div>
   );
 }

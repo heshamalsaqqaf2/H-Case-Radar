@@ -3,7 +3,7 @@
 
 import { Mail, Plus, User, Users, Zap } from "lucide-react";
 import Link from "next/link";
-import { TableRowLoading } from "@/components/quick-loading";
+import { TableRowLoading } from "@/components/shared/quick-loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

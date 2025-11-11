@@ -32,10 +32,7 @@ export class SidebarService {
 
         for (const item of config) {
           // تفكيك action إلى resource و action (مثال: "role.access" → resource="role", action="access")
-          const [resource, action] = item.requiredAction.split(".") as [
-            string,
-            string,
-          ];
+          const [resource, action] = item.requiredAction.split(".") as [string, string];
           const check = await authorizationService.canPerformAction({
             userId,
             resource,
@@ -54,9 +51,7 @@ export class SidebarService {
           }
         }
         const duration = Date.now() - startTime;
-        console.log(
-          `✅ Sidebar loaded in ${duration}ms with ${visibleItems.length} items`,
-        );
+        console.log(`✅ Sidebar loaded in ${duration}ms with ${visibleItems.length} items`);
         // تتبع الاستخدام
         await this.trackSidebarUsage(userId, visibleItems.length);
 
@@ -129,10 +124,7 @@ export class SidebarService {
   /**
    * تتبع استخدام الـ Sidebar (يمكن تطويره ليرسل لإحصائيات)
    */
-  private async trackSidebarUsage(
-    userId: string,
-    itemCount: number,
-  ): Promise<void> {
+  private async trackSidebarUsage(userId: string, itemCount: number): Promise<void> {
     try {
       console.log(`📊 Sidebar Usage - User: ${userId}, Items: ${itemCount}`);
       // يمكنك هنا:

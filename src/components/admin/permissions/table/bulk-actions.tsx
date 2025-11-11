@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Permission } from "@/types/tanstack-table-types/permission";
-import { exportToCSV } from "@/utils/tanstack-table/export-utils";
+import { exportToCSV } from "@/utils/export-data-table";
 
 interface BulkActionsProps {
   table: Table<Permission>;
@@ -71,18 +71,12 @@ export function BulkActions({ table, onBulkDelete }: BulkActionsProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-48">
-          <DropdownMenuItem
-            onClick={handleBulkExport}
-            className="flex items-center"
-          >
+          <DropdownMenuItem onClick={handleBulkExport} className="flex items-center">
             <Download className="mr-2 h-4 w-4" />
             Export Selected
           </DropdownMenuItem>
 
-          <DropdownMenuItem
-            onClick={handleCopyIds}
-            className="flex items-center"
-          >
+          <DropdownMenuItem onClick={handleCopyIds} className="flex items-center">
             <Copy className="mr-2 h-4 w-4" />
             Copy IDs
           </DropdownMenuItem>

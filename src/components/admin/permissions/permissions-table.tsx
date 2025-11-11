@@ -16,29 +16,14 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table";
-import {
-  BarChart3,
-  Download,
-  Edit,
-  Key,
-  MoreHorizontal,
-  Shield,
-  Trash2,
-  Zap,
-} from "lucide-react";
+import { BarChart3, Download, Edit, Key, MoreHorizontal, Shield, Trash2, Zap } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AlertDialogDelete } from "@/components/shared/alert-dialog-delete";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
@@ -56,7 +41,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { usePerformance } from "@/hooks/table/use-performance";
+import { usePerformance } from "@/hooks/data-table/use-performance";
 import {
   useDeletePermission,
   usePermissions,
@@ -97,10 +82,7 @@ const getActionBadgeVariant = (action: string) => {
 const TableSkeleton = ({ pageSize = 15 }: { pageSize?: number }) => (
   <>
     {Array.from({ length: pageSize }).map((_, index) => (
-      <TableRow
-        key={`skeleton-${index}`}
-        className="border-b border-border/50 animate-pulse"
-      >
+      <TableRow key={`skeleton-${index}`} className="border-b border-border/50 animate-pulse">
         <TableCell className="py-4">
           <div className="flex items-center space-x-3">
             <div className="h-4 bg-muted rounded w-4 border border-primary/20" />
@@ -130,12 +112,7 @@ const TableSkeleton = ({ pageSize = 15 }: { pageSize?: number }) => (
 export function PermissionsTable() {
   usePerformance("PermissionsTable");
 
-  const {
-    data: permissionsData = [],
-    isLoading,
-    error,
-    refetch,
-  } = usePermissions();
+  const { data: permissionsData = [], isLoading, error, refetch } = usePermissions();
 
   const deletePermissionMutation = useDeletePermission();
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -160,9 +137,7 @@ export function PermissionsTable() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(() => {
     try {
       const saved = localStorage.getItem(TABLE_STATE_KEY);
-      return saved
-        ? JSON.parse(saved).columnFilters
-        : INITIAL_TABLE_STATE.columnFilters;
+      return saved ? JSON.parse(saved).columnFilters : INITIAL_TABLE_STATE.columnFilters;
     } catch {
       return INITIAL_TABLE_STATE.columnFilters;
     }
@@ -171,33 +146,25 @@ export function PermissionsTable() {
   const [globalFilter, setGlobalFilter] = useState(() => {
     try {
       const saved = localStorage.getItem(TABLE_STATE_KEY);
-      return saved
-        ? JSON.parse(saved).globalFilter
-        : INITIAL_TABLE_STATE.globalFilter;
+      return saved ? JSON.parse(saved).globalFilter : INITIAL_TABLE_STATE.globalFilter;
     } catch {
       return INITIAL_TABLE_STATE.globalFilter;
     }
   });
 
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-    () => {
-      try {
-        const saved = localStorage.getItem(TABLE_STATE_KEY);
-        return saved
-          ? JSON.parse(saved).columnVisibility
-          : INITIAL_TABLE_STATE.columnVisibility;
-      } catch {
-        return INITIAL_TABLE_STATE.columnVisibility;
-      }
-    },
-  );
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
+    try {
+      const saved = localStorage.getItem(TABLE_STATE_KEY);
+      return saved ? JSON.parse(saved).columnVisibility : INITIAL_TABLE_STATE.columnVisibility;
+    } catch {
+      return INITIAL_TABLE_STATE.columnVisibility;
+    }
+  });
 
   const [rowSelection, setRowSelection] = useState<RowSelectionState>(() => {
     try {
       const saved = localStorage.getItem(TABLE_STATE_KEY);
-      return saved
-        ? JSON.parse(saved).rowSelection
-        : INITIAL_TABLE_STATE.rowSelection;
+      return saved ? JSON.parse(saved).rowSelection : INITIAL_TABLE_STATE.rowSelection;
     } catch {
       return INITIAL_TABLE_STATE.rowSelection;
     }
@@ -221,10 +188,8 @@ export function PermissionsTable() {
 
     return {
       total: permissions.length,
-      static: permissions.filter((p: { conditions: any }) => !p.conditions)
-        .length,
-      dynamic: permissions.filter((p: { conditions: any }) => p.conditions)
-        .length,
+      static: permissions.filter((p: { conditions: any }) => !p.conditions).length,
+      dynamic: permissions.filter((p: { conditions: any }) => p.conditions).length,
       byResource: permissions.reduce(
         (acc, p) => {
           acc[p.resource] = (acc[p.resource] || 0) + 1;
@@ -240,10 +205,7 @@ export function PermissionsTable() {
         {} as Record<string, number>,
       ),
       recentlyAdded: permissions
-        .sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-        )
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 5),
     };
   }, [permissions]);
@@ -252,9 +214,7 @@ export function PermissionsTable() {
     const resources = new Set(permissions.map((p) => p.resource));
     return Array.from(resources).map((resource) => ({
       value: resource,
-      label: resource
-        .replace(/_/g, " ")
-        .replace(/\b\w/g, (l) => l.toUpperCase()),
+      label: resource.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
     }));
   }, [permissions]);
 
@@ -297,9 +257,7 @@ export function PermissionsTable() {
         if (successCount === permissionIds.length) {
           toast.success(`تم حذف ${successCount} صلاحية بنجاح`);
         } else {
-          toast.warning(
-            `تم حذف ${successCount} من ${permissionIds.length} صلاحية`,
-          );
+          toast.warning(`تم حذف ${successCount} من ${permissionIds.length} صلاحية`);
         }
 
         refetch();
@@ -332,9 +290,7 @@ export function PermissionsTable() {
               table.getIsAllPageRowsSelected() ||
               (table.getIsSomePageRowsSelected() && "indeterminate")
             }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Select all"
             className="translate-y-[2px] border-primary"
           />
@@ -361,11 +317,7 @@ export function PermissionsTable() {
             className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-accent/50 transition-colors"
           >
             <span>Name</span>
-            {column.getIsSorted() === "desc"
-              ? " ▼"
-              : column.getIsSorted() === "asc"
-                ? " ▲"
-                : ""}
+            {column.getIsSorted() === "desc" ? " ▼" : column.getIsSorted() === "asc" ? " ▲" : ""}
           </Button>
         ),
         cell: ({ row }) => {
@@ -398,11 +350,7 @@ export function PermissionsTable() {
             className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-accent/50 transition-colors"
           >
             <span>Resource</span>
-            {column.getIsSorted() === "desc"
-              ? " ▼"
-              : column.getIsSorted() === "asc"
-                ? " ▲"
-                : ""}
+            {column.getIsSorted() === "desc" ? " ▼" : column.getIsSorted() === "asc" ? " ▲" : ""}
           </Button>
         ),
         cell: ({ row }) => (
@@ -431,20 +379,13 @@ export function PermissionsTable() {
             className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-accent/50 transition-colors"
           >
             <span>Action</span>
-            {column.getIsSorted() === "desc"
-              ? " ▼"
-              : column.getIsSorted() === "asc"
-                ? " ▲"
-                : ""}
+            {column.getIsSorted() === "desc" ? " ▼" : column.getIsSorted() === "asc" ? " ▲" : ""}
           </Button>
         ),
         cell: ({ row }) => {
           const action = row.getValue("action") as string;
           return (
-            <Badge
-              variant={getActionBadgeVariant(action)}
-              className="capitalize"
-            >
+            <Badge variant={getActionBadgeVariant(action)} className="capitalize">
               {action}
             </Badge>
           );
@@ -470,9 +411,7 @@ export function PermissionsTable() {
               )}
               <Badge
                 variant={isDynamic ? "default" : "secondary"}
-                className={cn(
-                  isDynamic && "bg-cyan-600 hover:bg-cyan-700 text-white",
-                )}
+                className={cn(isDynamic && "bg-cyan-600 hover:bg-cyan-700 text-white")}
               >
                 {isDynamic ? "Dynamic" : "Static"}
               </Badge>
@@ -482,10 +421,7 @@ export function PermissionsTable() {
         filterFn: (row, _id, value) => {
           if (value === "all" || !value) return true;
           const hasConditions = !!row.original.conditions;
-          return (
-            (value === "dynamic" && hasConditions) ||
-            (value === "static" && !hasConditions)
-          );
+          return (value === "dynamic" && hasConditions) || (value === "static" && !hasConditions);
         },
         size: 100,
       },
@@ -582,17 +518,11 @@ export function PermissionsTable() {
       <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20">
         <CardContent className="p-8">
           <div className="flex flex-col items-center justify-center text-center text-red-600 dark:text-red-400">
-            <div className="text-lg font-semibold mb-2">
-              خطأ في تحميل الصلاحيات
-            </div>
+            <div className="text-lg font-semibold mb-2">خطأ في تحميل الصلاحيات</div>
             <div className="text-sm text-muted-foreground dark:text-muted-foreground">
               {error.message}
             </div>
-            <Button
-              onClick={() => refetch()}
-              variant="outline"
-              className="mt-4"
-            >
+            <Button onClick={() => refetch()} variant="outline" className="mt-4">
               إعادة المحاولة
             </Button>
           </div>
@@ -674,18 +604,12 @@ export function PermissionsTable() {
                         key={header.id}
                         className="h-12 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider last:pr-6"
                         style={{
-                          width:
-                            header.getSize() !== 150
-                              ? header.getSize()
-                              : undefined,
+                          width: header.getSize() !== 150 ? header.getSize() : undefined,
                         }}
                       >
                         {header.isPlaceholder
                           ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
+                          : flexRender(header.column.columnDef.header, header.getContext())}
                       </TableHead>
                     ))}
                   </TableRow>
@@ -693,9 +617,7 @@ export function PermissionsTable() {
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableSkeleton
-                    pageSize={table.getState().pagination.pageSize}
-                  />
+                  <TableSkeleton pageSize={table.getState().pagination.pageSize} />
                 ) : table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
                     <TableRow
@@ -709,15 +631,10 @@ export function PermissionsTable() {
                           className="py-4"
                           style={{
                             width:
-                              cell.column.getSize() !== 150
-                                ? cell.column.getSize()
-                                : undefined,
+                              cell.column.getSize() !== 150 ? cell.column.getSize() : undefined,
                           }}
                         >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
                       ))}
                     </TableRow>
@@ -730,9 +647,7 @@ export function PermissionsTable() {
                     >
                       <div className="flex flex-col items-center justify-center py-8">
                         <Key className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                        <div className="text-lg font-semibold mb-2">
-                          No permissions found
-                        </div>
+                        <div className="text-lg font-semibold mb-2">No permissions found</div>
                         <div className="text-sm text-muted-foreground">
                           {globalFilter || columnFilters.length > 0
                             ? "Try adjusting your search or filters"
@@ -751,8 +666,8 @@ export function PermissionsTable() {
             <div className="flex-1 text-sm text-muted-foreground">
               <div className="flex flex-wrap items-center gap-4">
                 <span>
-                  Showing {table.getFilteredRowModel().rows.length} of{" "}
-                  {permissions.length} total permissions
+                  Showing {table.getFilteredRowModel().rows.length} of {permissions.length} total
+                  permissions
                 </span>
                 {table.getFilteredSelectedRowModel().rows.length > 0 && (
                   <Badge variant="secondary">
@@ -779,8 +694,7 @@ export function PermissionsTable() {
                 </select>
               </div>
               <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                Page {table.getState().pagination.pageIndex + 1} of{" "}
-                {table.getPageCount()}
+                Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
               </div>
               <div className="flex items-center space-x-2">
                 <Button

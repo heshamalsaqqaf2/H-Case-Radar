@@ -1,7 +1,7 @@
+import { AppSidebar } from "@/components/dashboard/layout/app-sidebar";
+import { SectionCards } from "@/components/dashboard/layout/section-cards";
+import { SiteHeader } from "@/components/dashboard/layout/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/user/dashboard/layout/app-sidebar";
-import { SectionCards } from "@/components/user/dashboard/layout/section-cards";
-import { SiteHeader } from "@/components/user/dashboard/layout/site-header";
 import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actions";
 import { requireMultiplePermissions } from "@/utils/has-authorization";
 

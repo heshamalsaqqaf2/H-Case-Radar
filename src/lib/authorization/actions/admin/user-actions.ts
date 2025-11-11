@@ -7,6 +7,7 @@ import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actio
 import { createAuditLog } from "@/lib/authorization/services/admin/audit-log-service";
 import {
   assignRoleToUser,
+  createUserWithRoles,
   getCurrentUser,
   getUserStatistics,
   getUsersWithRoles,
@@ -16,7 +17,7 @@ import {
   updateUserProfile,
 } from "@/lib/authorization/services/admin/user-service";
 import { authorizationService } from "@/lib/authorization/services/core/authorization-service";
-import type { UpdateUserInput } from "@/lib/authorization/types/user";
+import type { CreateUserInput, UpdateUserInput } from "@/lib/authorization/types/user";
 import { handleFailure, handleSuccess } from "@/lib/errors/action-handler";
 import { Errors } from "@/lib/errors/error-factory";
 
@@ -191,105 +192,24 @@ export async function getUserStatisticsAction(input: { userId: string }) {
   }
 }
 
-// // src/lib/authorization/actions/admin/user-actions.ts
-// "use server";
+// ✅ Action
+export async function createUserAction(input: CreateUserInput) {
+  try {
+    const adminUserId = await getCurrentUserId();
+    const result = await createUserWithRoles(adminUserId, input);
 
-// import { revalidatePath } from "next/cache";
-// import { getCurrentUserId } from "@/lib/authentication/session";
-// import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actions";
-// import { createAuditLog } from "@/lib/authorization/services/admin/audit-log-service";
-// import {
-//   assignRoleToUser,
-//   getCurrentUser,
-//   getUsersWithRoles,
-//   removeRoleFromUser,
-// } from "@/lib/authorization/services/admin/user-service";
-// import { authorizationService } from "@/lib/authorization/services/core/authorization-service";
-// import { handleFailure, handleSuccess } from "@/lib/errors/action-handler";
-// import { Errors } from "@/lib/errors/error-factory";
+    await createAuditLog(AUDIT_LOG_ACTIONS.USER.CREATE, "user", result.user.id, {
+      createdBy: adminUserId,
+      assignedRoles: input.roleIds,
+      sendWelcomeEmail: input.sendWelcomeEmail,
+    });
 
-// export async function getUsersWithRolesAction() {
-//   try {
-//     const userId = await getCurrentUserId();
-//     const check = await authorizationService.checkPermission(
-//       { userId },
-//       AUDIT_LOG_ACTIONS.USER.VIEW,
-//     );
-//     if (!check.allowed) {
-//       throw Errors.forbidden("عرض المستخدمين");
-//     }
-
-//     const users = await getUsersWithRoles();
-//     return handleSuccess(users);
-//   } catch (error) {
-//     return handleFailure(error);
-//   }
-// }
-
-// export async function assignRoleToUserAction(formData: FormData) {
-//   try {
-//     const userId = await getCurrentUserId();
-//     const targetUserId = formData.get("userId")?.toString() ?? "";
-//     const roleId = formData.get("roleId")?.toString() ?? "";
-
-//     if (!targetUserId || !roleId) {
-//       throw Errors.validation("بيانات غير كافية");
-//     }
-
-//     await assignRoleToUser(userId, targetUserId, roleId);
-//     await createAuditLog(
-//       AUDIT_LOG_ACTIONS.USER.ASSIGN_ROLE,
-//       "user",
-//       targetUserId,
-//       {
-//         roleId,
-//         assignedBy: userId,
-//       },
-//     );
-//     revalidatePath("/admin/users");
-//     return handleSuccess({ message: "تم تعيين الدور بنجاح" });
-//   } catch (error) {
-//     return handleFailure(error);
-//   }
-// }
-
-// export async function removeRoleFromUserAction(formData: FormData) {
-//   try {
-//     const userId = await getCurrentUserId();
-//     const targetUserId = formData.get("userId")?.toString() ?? "";
-//     const roleId = formData.get("roleId")?.toString() ?? "";
-
-//     if (!targetUserId || !roleId) {
-//       throw Errors.validation("بيانات غير كافية");
-//     }
-
-//     await removeRoleFromUser(userId, targetUserId, roleId);
-//     await createAuditLog(
-//       AUDIT_LOG_ACTIONS.USER.REMOVE_ROLE,
-//       "user",
-//       targetUserId,
-//       {
-//         roleId,
-//         removedBy: userId,
-//       },
-//     );
-//     revalidatePath("/admin/users");
-//     return handleSuccess({ message: "تم إزالة الدور بنجاح" });
-//   } catch (error) {
-//     return handleFailure(error);
-//   }
-// }
-
-// export async function getCurrentUserAction() {
-//   try {
-//     const userId = await getCurrentUserId();
-//     if (!userId) {
-//       return handleFailure(new Error("User not authenticated"));
-//     }
-
-//     const user = await getCurrentUser(userId);
-//     return handleSuccess(user);
-//   } catch (error) {
-//     return handleFailure(error);
-//   }
-// }
+    revalidatePath("/admin/users");
+    return handleSuccess({
+      message: "تم إنشاء المستخدم بنجاح",
+      data: result,
+    });
+  } catch (error) {
+    return handleFailure(error);
+  }
+}

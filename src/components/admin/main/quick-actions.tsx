@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  KeyRound,
-  Settings,
-  ShieldPlus,
-  UserCog,
-  UserPlus,
-} from "lucide-react";
+import { KeyRound, Settings, ShieldPlus, UserCog, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,9 +65,7 @@ export function QuickActions() {
                 <action.icon className={`h-6 w-6 text-${action.color}-500`} />
                 <div className="text-center">
                   <div className="font-medium text-sm">{action.title}</div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {action.description}
-                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">{action.description}</div>
                 </div>
               </Button>
             </Link>

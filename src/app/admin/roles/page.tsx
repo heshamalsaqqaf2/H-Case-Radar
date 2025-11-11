@@ -55,7 +55,6 @@ export default async function RolesPage() {
       </div>
 
       {hasCreatePermission.allowed && <CreateRoleForm />}
-
       <RolesTable initialRoles={initialRoles} />
     </div>
   );
