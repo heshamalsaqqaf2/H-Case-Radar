@@ -9,10 +9,10 @@ export interface BaseUser {
   name: string;
   email: string;
   emailVerified: boolean;
-  image: string | null;
   banned: boolean | null;
   banReason: string | null;
   banExpires: Date | null;
+  image: string | null;
   lastLoginAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -36,13 +36,17 @@ export interface UserPermission {
 export interface CreateUserInput {
   name: string;
   email: string;
+  personalEmail: string;
   password: string;
   roleIds?: string[];
-  sendWelcomeEmail?: boolean;
+  accountStatus?: string;
+  sendCredentialsEmail: boolean;
 }
 export interface UpdateUserInput {
   name?: string;
   email?: string;
+  personalEmail?: string;
+  accountStatus?: string;
   banned?: boolean | null;
   banReason?: string | null;
   roleIds?: string[];

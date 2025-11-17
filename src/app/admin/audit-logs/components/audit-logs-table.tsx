@@ -1,265 +1,238 @@
-/** biome-ignore-all lint/a11y/noLabelWithoutControl: <> */
+// src/components/ui/audit/audit-logs-table.tsx
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: <> */
 "use client";
 
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { AlertTriangle, CheckCircle, Clock, Eye, Info, Shield, User, XCircle } from "lucide-react";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useAuditLogs } from "@/lib/authorization/hooks/admin/use-audit-logs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { AuditLog } from "@/lib/database/schema";
-import type { AuditLogFilters } from "../actions";
-import { AuditLogDetailsDialog } from "./audit-log-details-dialog";
+import { AuditLogDetails } from "./audit-log-details";
 
-const DEFAULT_FILTERS: AuditLogFilters = {
-  page: 1,
-  perPage: 20,
+interface AuditLogsTableProps {
+  logs: AuditLog[];
+  isLoading?: boolean;
+}
+
+const getSeverityVariant = (severity: string | null) => {
+  switch (severity) {
+    case "critical":
+      return "destructive";
+    case "high":
+      return "destructive";
+    case "medium":
+      return "secondary";
+    case "low":
+      return "outline";
+    case "info":
+      return "default";
+    default:
+      return "outline";
+  }
 };
 
-export function AuditLogsTable() {
-  const [filters, setFilters] = useState<AuditLogFilters>(DEFAULT_FILTERS);
+const getStatusIcon = (status: string | null) => {
+  switch (status) {
+    case "success":
+      return <CheckCircle className="h-4 w-4 text-green-600" />;
+    case "failure":
+      return <XCircle className="h-4 w-4 text-red-600" />;
+    case "warning":
+      return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+    default:
+      return <Info className="h-4 w-4 text-gray-600" />;
+  }
+};
+
+const getActionColor = (action: string) => {
+  if (action.includes("login")) return "blue";
+  if (action.includes("create")) return "green";
+  if (action.includes("update")) return "yellow";
+  if (action.includes("delete")) return "red";
+  if (action.includes("failed") || action.includes("unauthorized")) return "red";
+  return "gray";
+};
+
+export function AuditLogsTable({ logs, isLoading }: AuditLogsTableProps) {
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
-  const { data, isPending, error } = useAuditLogs(filters);
-
-  const handleFilterChange = (newFilters: Partial<AuditLogFilters>) => {
-    setFilters((prev) => ({
-      ...DEFAULT_FILTERS, // ← نحافظ على القيم الافتراضية
-      ...prev,
-      ...newFilters,
-      page: 1, // إعادة التصفح عند تغيير الفلاتر
-    }));
-  };
-
-  const handlePageChange = (page: number) => {
-    setFilters((prev) => ({ ...prev, page }));
-  };
-
-  if (error) {
+  if (isLoading) {
     return (
-      <Card>
-        <CardContent className="py-8 text-center text-destructive">
-          فشل تحميل السجلات: {error.message}
-        </CardContent>
-      </Card>
+      <ScrollArea className="h-[600px]">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>النشاط</TableHead>
+              <TableHead>الكيان</TableHead>
+              <TableHead>المستخدم</TableHead>
+              <TableHead>الحالة</TableHead>
+              <TableHead>الخطورة</TableHead>
+              <TableHead>التاريخ</TableHead>
+              <TableHead>الإجراءات</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {[...Array(10)].map((_, i) => (
+              <TableRow key={i}>
+                <TableCell>
+                  <Skeleton className="h-4 w-32" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-20" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-24" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-16" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-16" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-24" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-8 w-8 rounded" />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </ScrollArea>
     );
   }
 
-  // ✅ الآن data تحتوي على: logs, total, page, perPage مباشرةً
-  const logs = data?.logs || [];
-  const total = data?.total || 0;
-  const currentPage = data?.page || 1;
-  const perPage = data?.perPage || 20;
+  if (!logs.length) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+        <Shield className="h-12 w-12 mb-4 opacity-50" />
+        <h3 className="text-lg font-semibold">لا توجد سجلات</h3>
+        <p className="text-sm">لم يتم العثور على سجلات تدقيق تطابق معايير البحث</p>
+      </div>
+    );
+  }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>سجلات النظام</CardTitle>
-        <CardDescription>
-          {total} سجل أمني. قم بتصفية النتائج حسب الحاجة.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {/* فلاتر */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div>
-            <label className="text-sm font-medium">الكيان</label>
-            <Input
-              placeholder="user, role, ..."
-              value={filters.entity || ""}
-              onChange={(e) =>
-                handleFilterChange({ entity: e.target.value || undefined })
-              }
-              disabled={isPending}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium">الإجراء</label>
-            <Input
-              placeholder="create, update, ..."
-              value={filters.action || ""}
-              onChange={(e) =>
-                handleFilterChange({ action: e.target.value || undefined })
-              }
-              disabled={isPending}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium">من تاريخ</label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                  disabled={isPending}
-                >
-                  {filters.startDate
-                    ? format(new Date(filters.startDate), "PPP", { locale: ar })
-                    : "اختر تاريخًا"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={
-                    filters.startDate ? new Date(filters.startDate) : undefined
-                  }
-                  onSelect={(date) =>
-                    handleFilterChange({ startDate: date?.toISOString() })
-                  }
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div>
-            <label className="text-sm font-medium">إلى تاريخ</label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                  disabled={isPending}
-                >
-                  {filters.endDate
-                    ? format(new Date(filters.endDate), "PPP", { locale: ar })
-                    : "اختر تاريخًا"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={
-                    filters.endDate ? new Date(filters.endDate) : undefined
-                  }
-                  onSelect={(date) =>
-                    handleFilterChange({ endDate: date?.toISOString() })
-                  }
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-
-        {/* جدول السجلات */}
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>المستخدم</TableHead>
-                <TableHead>الإجراء</TableHead>
-                <TableHead>الكيان</TableHead>
-                <TableHead>التفاصيل</TableHead>
-                <TableHead>التاريخ</TableHead>
-                <TableHead>الإجراءات</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isPending ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
-                    جاري التحميل...
-                  </TableCell>
-                </TableRow>
-              ) : logs.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
-                    لا توجد سجلات تطابق المعايير المحددة.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                logs.map((log: AuditLog) => (
-                  <TableRow key={log.id}>
-                    <TableCell className="font-medium">
-                      {log.userId === "anonymous" ? "مجهول" : log.userId}
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">
+    <>
+      <ScrollArea className="h-[300px]">
+        <Table>
+          <TableHeader className="sticky top-0 bg-background">
+            <TableRow>
+              <TableHead className="w-[300px]">النشاط</TableHead>
+              <TableHead>الكيان</TableHead>
+              <TableHead>المستخدم</TableHead>
+              <TableHead>الحالة</TableHead>
+              <TableHead>الخطورة</TableHead>
+              <TableHead>التاريخ</TableHead>
+              <TableHead className="w-20">الإجراءات</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {logs.map((log) => (
+              <TableRow key={log.id} className="group">
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full bg-${getActionColor(log.action)}-500`} />
+                    <span className="max-w-[280px] truncate" title={log.action}>
                       {log.action}
-                    </TableCell>
-                    <TableCell className="capitalize">{log.entity}</TableCell>
-                    <TableCell>
-                      <span className="text-xs text-muted-foreground">
-                        انقر للعرض
+                    </span>
+                  </div>
+                  {log.description && (
+                    <p className="text-sm text-muted-foreground mt-1 truncate" title={log.description}>
+                      {log.description}
+                    </p>
+                  )}
+                </TableCell>
+
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs">
+                      {log.entity}
+                    </Badge>
+                    {log.entityId && (
+                      <span className="text-xs text-muted-foreground" title={log.entityId}>
+                        #{log.entityId.slice(0, 8)}...
                       </span>
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(log.createdAt), "PPP p", { locale: ar })}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedLog(log)}
-                        disabled={isPending}
-                      >
-                        عرض
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                    )}
+                  </div>
+                </TableCell>
 
-        {/* تصفح الصفحات */}
-        {total > perPage && (
-          <div className="flex items-center justify-between pt-4">
-            <div className="text-sm text-muted-foreground">
-              عرض {(currentPage - 1) * perPage + 1}–
-              {Math.min(currentPage * perPage, total)} من {total}
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1 || isPending}
-              >
-                السابق
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage * perPage >= total || isPending}
-              >
-                التالي
-              </Button>
-            </div>
-          </div>
-        )}
-      </CardContent>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <User className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-sm">
+                      {log.userId === "anonymous" ? "مجهول" : log.userId?.slice(0, 8)}
+                    </span>
+                  </div>
+                  {log.ipAddress && (
+                    <span className="text-xs text-muted-foreground" title={log.ipAddress}>
+                      {log.ipAddress}
+                    </span>
+                  )}
+                </TableCell>
 
-      {selectedLog && (
-        <AuditLogDetailsDialog
-          log={selectedLog}
-          open={!!selectedLog}
-          onOpenChange={(open) => !open && setSelectedLog(null)}
-        />
-      )}
-    </Card>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {getStatusIcon(log.status)}
+                    <Badge variant={log.status === "success" ? "default" : "secondary"} className="text-xs">
+                      {log.status === "success"
+                        ? "ناجح"
+                        : log.status === "failure"
+                          ? "فاشل"
+                          : log.status === "warning"
+                            ? "تحذير"
+                            : "غير معروف"}
+                    </Badge>
+                  </div>
+                </TableCell>
+
+                <TableCell>
+                  <Badge variant={getSeverityVariant(log.severity)} className="text-xs">
+                    {log.severity === "critical"
+                      ? "حرج"
+                      : log.severity === "high"
+                        ? "عالي"
+                        : log.severity === "medium"
+                          ? "متوسط"
+                          : log.severity === "low"
+                            ? "منخفض"
+                            : "معلومات"}
+                  </Badge>
+                </TableCell>
+
+                <TableCell>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="h-3 w-3 text-muted-foreground" />
+                    <span title={format(new Date(log.createdAt), "PPPPpp", { locale: ar })}>
+                      {format(new Date(log.createdAt), "yyyy-MM-dd HH:mm", { locale: ar })}
+                    </span>
+                  </div>
+                </TableCell>
+
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedLog(log)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </ScrollArea>
+
+      {/* تفاصيل السجل */}
+      <AuditLogDetails log={selectedLog} isOpen={!!selectedLog} onClose={() => setSelectedLog(null)} />
+    </>
   );
 }

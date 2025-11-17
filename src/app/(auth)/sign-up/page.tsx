@@ -8,14 +8,7 @@ import { useTheme } from "next-themes";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MagicCard } from "@/components/ui/magic-ui/magic-card";
@@ -47,10 +40,7 @@ export default function SignUp() {
 
   return (
     <Card className="w-full max-w-sm border-none p-0 shadow-none z-50 rounded-md rounded-t-none m-auto mt-5 flex flex-col">
-      <MagicCard
-        gradientColor={theme === "dark" ? "#262626" : "#D9D9D955"}
-        className="p-0"
-      >
+      <MagicCard gradientColor={theme === "dark" ? "#262626" : "#D9D9D955"} className="p-0">
         <CardHeader>
           <CardTitle className="text-lg md:text-xl">Sign Up</CardTitle>
           <CardDescription className="text-xs md:text-sm">
@@ -167,11 +157,7 @@ export default function SignUp() {
                 });
               }}
             >
-              {loading ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                "Create an account"
-              )}
+              {loading ? <Loader2 size={16} className="animate-spin" /> : "Create an account"}
             </Button>
           </div>
         </CardContent>
@@ -179,14 +165,8 @@ export default function SignUp() {
           <div className="flex justify-center w-full border-t pt-4">
             <p className="text-center text-xs text-neutral-500">
               built with{" "}
-              <Link
-                href="https://better-auth.com"
-                className="underline"
-                target="_blank"
-              >
-                <span className="dark:text-white/70 cursor-pointer">
-                  better-auth.
-                </span>
+              <Link href="https://better-auth.com" className="underline" target="_blank">
+                <span className="dark:text-white/70 cursor-pointer">better-auth.</span>
               </Link>
             </p>
           </div>

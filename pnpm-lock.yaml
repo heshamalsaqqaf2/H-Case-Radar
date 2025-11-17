@@ -197,6 +197,9 @@ dependencies:
   unique-names-generator:
     specifier: ^4.7.1
     version: 4.7.1
+  uuid:
+    specifier: ^13.0.0
+    version: 13.0.0
   vaul:
     specifier: ^1.1.2
     version: 1.1.2(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.1.0)(react@19.1.0)
@@ -209,8 +212,8 @@ devDependencies:
     specifier: 2.2.0
     version: 2.2.0
   '@tailwindcss/postcss':
-    specifier: ^4
-    version: 4.0.0
+    specifier: ^4.1.17
+    version: 4.1.17
   '@types/node':
     specifier: ^20
     version: 20.0.0
@@ -226,6 +229,9 @@ devDependencies:
   '@types/react-dom':
     specifier: ^19
     version: 19.0.0
+  '@types/uuid':
+    specifier: ^11.0.0
+    version: 11.0.0
   autoprefixer:
     specifier: ^10.4.22
     version: 10.4.22(postcss@8.5.6)
@@ -239,8 +245,8 @@ devDependencies:
     specifier: ^8.5.6
     version: 8.5.6
   tailwindcss:
-    specifier: ^4
-    version: 4.0.0
+    specifier: ^4.1.17
+    version: 4.1.17
   ts-node:
     specifier: ^10.9.2
     version: 10.9.2(@types/node@20.0.0)(typescript@5.0.2)
@@ -3752,15 +3758,14 @@ packages:
       '@tailwindcss/oxide-win32-x64-msvc': 4.1.17
     dev: true
 
-  /@tailwindcss/postcss@4.0.0:
-    resolution: {integrity: sha512-lI2bPk4TvwavHdehjr5WiC6HnZ59hacM6ySEo4RM/H7tsjWd8JpqiNW9ThH7rO/yKtrn4mGBoXshpvn8clXjPg==}
+  /@tailwindcss/postcss@4.1.17:
+    resolution: {integrity: sha512-+nKl9N9mN5uJ+M7dBOOCzINw94MPstNR/GtIhz1fpZysxL/4a+No64jCBD6CPN+bIHWFx3KWuu8XJRrj/572Dw==}
     dependencies:
       '@alloc/quick-lru': 5.2.0
       '@tailwindcss/node': 4.1.17
       '@tailwindcss/oxide': 4.1.17
-      lightningcss: 1.30.2
       postcss: 8.5.6
-      tailwindcss: 4.0.0
+      tailwindcss: 4.1.17
     dev: true
 
   /@tanstack/query-core@5.90.5:
@@ -3894,6 +3899,13 @@ packages:
     resolution: {integrity: sha512-MY3oPudxvMYyesqs/kW1Bh8y9VqSmf+tzqw3ae8a9DZW68pUe3zAdHeI1jc6iAysuRdACnVknHP8AhwD4/dxtg==}
     dependencies:
       csstype: 3.1.3
+
+  /@types/uuid@11.0.0:
+    resolution: {integrity: sha512-HVyk8nj2m+jcFRNazzqyVKiZezyhDKrGUA3jlEcg/nZ6Ms+qHwocba1Y/AaVaznJTAM9xpdFSh+ptbNrhOGvZA==}
+    deprecated: This is a stub types definition. uuid provides its own type definitions, so you do not need this installed.
+    dependencies:
+      uuid: 13.0.0
+    dev: true
 
   /acorn-walk@8.3.4:
     resolution: {integrity: sha512-ueEepnujpqee2o5aIYnvHU6C0A42MNdsIDeqy5BydrkuC5R1ZuUFnm27EeFJGoEHJQgn3uleRvmTXaJgfXbt4g==}
@@ -5181,10 +5193,6 @@ packages:
     resolution: {integrity: sha512-gBXpgUm/3rp1lMZZrM/w7D8GKqshif0zAymAhbCyIt8KMe+0v9DQ7cdYLR4FHH/cKpdTXb+A/tKKU3eolfsI+g==}
     dev: false
 
-  /tailwindcss@4.0.0:
-    resolution: {integrity: sha512-ULRPI3A+e39T7pSaf1xoi58AqqJxVCLg8F/uM5A3FadUbnyDTgltVnXJvdkTjwCOGA6NazqHVcwPJC5h2vRYVQ==}
-    dev: true
-
   /tailwindcss@4.1.17:
     resolution: {integrity: sha512-j9Ee2YjuQqYT9bbRTfTZht9W/ytp5H+jJpZKiYdP/bpnXARAuELt9ofP0lPnmHjbga7SNQIxdTAXCmtKVYjN+Q==}
     dev: true
@@ -5322,6 +5330,10 @@ packages:
     dependencies:
       react: 19.1.0
     dev: false
+
+  /uuid@13.0.0:
+    resolution: {integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==}
+    hasBin: true
 
   /v8-compile-cache-lib@3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}

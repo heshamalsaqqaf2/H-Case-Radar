@@ -42,10 +42,7 @@ export async function getUsersWithRolesAction() {
 export async function getUsersWithRolesAndPermissionsAction() {
   try {
     const userId = await getCurrentUserId();
-    const check = await authorizationService.checkPermission(
-      { userId },
-      AUDIT_LOG_ACTIONS.USER.VIEW,
-    );
+    const check = await authorizationService.checkPermission({ userId }, AUDIT_LOG_ACTIONS.USER.VIEW);
     if (!check.allowed) {
       throw Errors.forbidden("عرض المستخدمين");
     }
@@ -113,13 +110,9 @@ export async function getCurrentUserAction() {
   }
 }
 
-export async function updateUserProfileAction(input: {
-  targetUserId: string;
-  updates: UpdateUserInput;
-}) {
+export async function updateUserProfileAction(input: { targetUserId: string; updates: UpdateUserInput }) {
   try {
     const adminUserId = await getCurrentUserId();
-
     const updatedUser = await updateUserProfile(adminUserId, input.targetUserId, input.updates);
 
     await createAuditLog(AUDIT_LOG_ACTIONS.USER.UPDATE, "user", input.targetUserId, {
@@ -137,21 +130,16 @@ export async function updateUserProfileAction(input: {
   }
 }
 
-export async function toggleUserBanAction(input: {
-  targetUserId: string;
-  ban: boolean;
-  reason?: string;
-}) {
+export async function toggleUserBanAction(input: { targetUserId: string; ban: boolean; reason?: string }) {
   try {
     const adminUserId = await getCurrentUserId();
-
-    const updatedUser = await toggleUserBan(
-      adminUserId,
-      input.targetUserId,
-      input.ban,
-      input.reason,
-    );
-
+    // === التحقق المبكر والأكثر كفاءة باستخدام الدالة الجديدة ===
+    // const isSuperAdmin = await hasRole(input.targetUserId, "super_admin");
+    // if (!isSuperAdmin) {
+    //   return handleFailure(new Error("لا يمكن حظر مستخدم لديه دور super_admin"));
+    //   // throw Errors.forbidden("لا يمكن حظر مستخدم لديه دور super_admin");
+    // }
+    const updatedUser = await toggleUserBan(adminUserId, input.targetUserId, input.ban, input.reason);
     await createAuditLog(
       input.ban ? AUDIT_LOG_ACTIONS.USER.BAN : AUDIT_LOG_ACTIONS.USER.UNBAN,
       "user",
@@ -164,6 +152,7 @@ export async function toggleUserBanAction(input: {
     );
 
     revalidatePath("/admin/users");
+
     return handleSuccess({
       message: input.ban ? "تم حظر المستخدم بنجاح" : "تم فك حظر المستخدم بنجاح",
       data: updatedUser,
@@ -176,10 +165,7 @@ export async function toggleUserBanAction(input: {
 export async function getUserStatisticsAction(input: { userId: string }) {
   try {
     const userId = await getCurrentUserId();
-    const check = await authorizationService.checkPermission(
-      { userId },
-      AUDIT_LOG_ACTIONS.STATISTICS.VIEW,
-    );
+    const check = await authorizationService.checkPermission({ userId }, AUDIT_LOG_ACTIONS.STATISTICS.VIEW);
 
     if (!check.allowed) {
       throw Errors.forbidden("عرض إحصائيات المستخدم");
@@ -192,7 +178,6 @@ export async function getUserStatisticsAction(input: { userId: string }) {
   }
 }
 
-// ✅ Action
 export async function createUserAction(input: CreateUserInput) {
   try {
     const adminUserId = await getCurrentUserId();
@@ -201,7 +186,9 @@ export async function createUserAction(input: CreateUserInput) {
     await createAuditLog(AUDIT_LOG_ACTIONS.USER.CREATE, "user", result.user.id, {
       createdBy: adminUserId,
       assignedRoles: input.roleIds,
-      sendWelcomeEmail: input.sendWelcomeEmail,
+      personalEmail: input.personalEmail,
+      accountStatus: input.accountStatus,
+      sendCredentialsEmail: input.sendCredentialsEmail,
     });
 
     revalidatePath("/admin/users");

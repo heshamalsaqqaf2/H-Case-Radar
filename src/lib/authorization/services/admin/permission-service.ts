@@ -1,6 +1,7 @@
 // src/lib/authorization/services/admin/permission-service.ts
 import { eq, sql } from "drizzle-orm";
 import { getCurrentUserId } from "@/lib/authentication/session";
+import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actions";
 import { authorizationService } from "@/lib/authorization/services/core/authorization-service";
 import type { SafePermission } from "@/lib/authorization/types/permission";
 import type {
@@ -14,27 +15,18 @@ import { AppError } from "@/lib/errors/error-types";
 
 // *تحقق من الصلاحية باستخدام نظامك RBAC/ABAC
 async function authorize(userId: string, requiredPermission: string) {
-  const check = await authorizationService.checkPermission(
-    { userId },
-    requiredPermission,
-  );
+  const check = await authorizationService.checkPermission({ userId }, requiredPermission);
   if (!check.allowed) {
     throw Errors.forbidden("إدارة الصلاحيات");
   }
 }
 
 // *تحليل شروط JSON بأمان
-function parseConditions(
-  conditionsStr?: string,
-): Record<string, unknown> | null {
+function parseConditions(conditionsStr?: string): Record<string, unknown> | null {
   if (!conditionsStr) return null;
   try {
     const parsed = JSON.parse(conditionsStr);
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      !Array.isArray(parsed)
-    ) {
+    if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
       return parsed;
     }
     throw new Error("Conditions must be a JSON object");
@@ -43,11 +35,8 @@ function parseConditions(
   }
 }
 
-export async function createPermission(
-  userId: string,
-  input: CreatePermissionInput,
-) {
-  await authorize(userId, "permissions.create");
+export async function createPermission(userId: string, input: CreatePermissionInput) {
+  await authorize(userId, AUDIT_LOG_ACTIONS.PERMISSION.CREATE);
 
   const existing = await db
     .select({ id: permission.id })
@@ -74,11 +63,8 @@ export async function createPermission(
   return newPermission;
 }
 
-export async function updatePermission(
-  userId: string,
-  input: UpdatePermissionInput,
-) {
-  await authorize(userId, "permissions.update");
+export async function updatePermission(userId: string, input: UpdatePermissionInput) {
+  await authorize(userId, AUDIT_LOG_ACTIONS.PERMISSION.UPDATE);
 
   const existing = await db
     .select({ id: permission.id })
@@ -109,7 +95,7 @@ export async function updatePermission(
 }
 
 export async function deletePermission(userId: string, permissionId: string) {
-  await authorize(userId, "permissions.delete");
+  await authorize(userId, AUDIT_LOG_ACTIONS.PERMISSION.DELETE);
 
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)` })
@@ -124,22 +110,14 @@ export async function deletePermission(userId: string, permissionId: string) {
   await db.delete(permission).where(eq(permission.id, permissionId));
 }
 
-export async function getPermissionById(
-  permissionId: string,
-): Promise<SafePermission | null> {
-  const result = await db
-    .select()
-    .from(permission)
-    .where(eq(permission.id, permissionId))
-    .limit(1);
+export async function getPermissionById(permissionId: string): Promise<SafePermission | null> {
+  const result = await db.select().from(permission).where(eq(permission.id, permissionId)).limit(1);
 
   if (result.length === 0) return null;
 
   const raw = result[0];
   const conditions =
-    typeof raw.conditions === "object" &&
-    raw.conditions !== null &&
-    !Array.isArray(raw.conditions)
+    typeof raw.conditions === "object" && raw.conditions !== null && !Array.isArray(raw.conditions)
       ? (raw.conditions as Record<string, unknown>)
       : null;
 
@@ -156,10 +134,7 @@ export async function getPermissionById(
 }
 
 export async function getAllPermissions() {
-  return await db
-    .select()
-    .from(permission)
-    .orderBy(permission.resource, permission.action);
+  return await db.select().from(permission).orderBy(permission.resource, permission.action);
 }
 
 export async function getCurrentUserPermissions(_userId: string) {

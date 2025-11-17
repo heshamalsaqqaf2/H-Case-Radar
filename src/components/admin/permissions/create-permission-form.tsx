@@ -8,13 +8,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -25,13 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createPermissionAction } from "@/lib/authorization/actions/admin/permission-actions"; // ✅ Server Action
 
@@ -40,10 +28,7 @@ const formSchema = z.object({
     .string()
     .min(3, "Name must be at least 3 characters")
     .max(100, "Name must be less than 100 characters")
-    .regex(
-      /^[a-zA-Z0-9._-]+$/,
-      "Name can only contain letters, numbers, dots, underscores, and hyphens",
-    ),
+    .regex(/^[a-zA-Z0-9._-]+$/, "Name can only contain letters, numbers, dots, underscores, and hyphens"),
   description: z.string().max(200).optional(),
   resource: z.string().min(1, "Resource is required"),
   action: z.string().min(1, "Action is required"),
@@ -117,10 +102,7 @@ export function CreatePermissionForm() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4"
-                >
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   {/* الحقول كما هي */}
                   <FormField
                     control={form.control}
@@ -129,14 +111,9 @@ export function CreatePermissionForm() {
                       <FormItem>
                         <FormLabel>إسم الصلاحية</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="e.g., user.create, post.delete.own"
-                            {...field}
-                          />
+                          <Input placeholder="e.g., user.create, post.delete.own" {...field} />
                         </FormControl>
-                        <FormDescription>
-                          المعرف الفريد لهذا الإذن (مثل: user.create)
-                        </FormDescription>
+                        <FormDescription>المعرف الفريد لهذا الإذن (مثل: user.create)</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -149,11 +126,7 @@ export function CreatePermissionForm() {
                       <FormItem>
                         <FormLabel>الوصف</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="صف ما يسمح به هذا الإذن..."
-                            {...field}
-                            rows={2}
-                          />
+                          <Textarea placeholder="صف ما يسمح به هذا الإذن..." {...field} rows={2} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -168,10 +141,7 @@ export function CreatePermissionForm() {
                         <FormItem>
                           <FormLabel>المصدر</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="e.g., user, post, admin"
-                              {...field}
-                            />
+                            <Input placeholder="e.g., user, post, admin" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -184,22 +154,20 @@ export function CreatePermissionForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>الإجراء</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="اختر إجراء" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="read">قراءة</SelectItem>
+                              <SelectItem value="view">عرض</SelectItem>
                               <SelectItem value="create">إنشاء</SelectItem>
                               <SelectItem value="update">تحديث</SelectItem>
                               <SelectItem value="delete">حذف</SelectItem>
                               <SelectItem value="manage">إدارة</SelectItem>
                               <SelectItem value="assign">تعيين</SelectItem>
+                              <SelectItem value="status">حالة</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -223,8 +191,7 @@ export function CreatePermissionForm() {
                           />
                         </FormControl>
                         <FormDescription>
-                          كائن JSON للوصول المشروط (ABAC). اتركه فارغًا إذا لم
-                          تكن هناك شروط.
+                          كائن JSON للوصول المشروط (ABAC). اتركه فارغًا إذا لم تكن هناك شروط.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

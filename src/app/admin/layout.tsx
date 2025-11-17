@@ -37,7 +37,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <SidebarProvider
         style={
           {

@@ -1,0 +1,754 @@
+// src/lib/database/seeder.ts
+
+import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actions";
+import { permission, role, rolePermissions } from "@/lib/database/schema";
+import { database as db } from "@/lib/database/server";
+
+export interface SeedPermission {
+  name: string;
+  description: string;
+  resource: string;
+  action: string;
+  conditions?: Record<string, unknown>;
+}
+
+export interface SeedRole {
+  name: string;
+  description: string;
+  isDefault?: boolean;
+  permissions: string[];
+}
+
+export class DatabaseSeeder {
+  private permissions: SeedPermission[] = [
+    // ─────────────────────────────────────────────────────────────────
+    // صلاحيات النظام الأساسية والوصول
+    // ─────────────────────────────────────────────────────────────────
+    {
+      name: AUDIT_LOG_ACTIONS.SYSTEM.ACCESS,
+      description: "الوصول إلى النظام",
+      resource: "system",
+      action: "access",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.SYSTEM.VIEW,
+      description: "عرض إعدادات النظام",
+      resource: "system",
+      action: "view",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.SYSTEM.MANAGE,
+      description: "إدارة النظام",
+      resource: "system",
+      action: "manage",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.SYSTEM.CONFIGURE,
+      description: "تكوين النظام",
+      resource: "system",
+      action: "configure",
+    },
+
+    // ─────────────────────────────────────────────────────────────────
+    // صلاحيات لوحة التحكم والإدارة
+    // ─────────────────────────────────────────────────────────────────
+    {
+      name: AUDIT_LOG_ACTIONS.ADMIN.ACCESS,
+      description: "الوصول إلى لوحة الإدارة",
+      resource: "admin",
+      action: "access",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.ADMIN.VIEW,
+      description: "عرض لوحة الإدارة",
+      resource: "admin",
+      action: "view",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.ADMIN.CONFIGURE,
+      description: "تكوين إعدادات الإدارة",
+      resource: "admin",
+      action: "configure",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.DASHBOARD.ACCESS,
+      description: "الوصول إلى لوحة التحكم",
+      resource: "dashboard",
+      action: "access",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.DASHBOARD.VIEW,
+      description: "عرض لوحة التحكم",
+      resource: "dashboard",
+      action: "view",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.DASHBOARD.CONFIGURE,
+      description: "تكوين لوحة التحكم",
+      resource: "dashboard",
+      action: "configure",
+    },
+
+    // ─────────────────────────────────────────────────────────────────
+    // صلاحيات إدارة المستخدمين
+    // ─────────────────────────────────────────────────────────────────
+    {
+      name: AUDIT_LOG_ACTIONS.USER.ACCESS,
+      description: "الوصول إلى قسم المستخدمين",
+      resource: "user",
+      action: "access",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.USER.VIEW,
+      description: "عرض قائمة المستخدمين",
+      resource: "user",
+      action: "view",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.USER.CREATE,
+      description: "إنشاء مستخدمين جدد",
+      resource: "user",
+      action: "create",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.USER.UPDATE,
+      description: "تعديل بيانات المستخدمين",
+      resource: "user",
+      action: "update",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.USER.DELETE,
+      description: "حذف المستخدمين",
+      resource: "user",
+      action: "delete",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.USER.ASSIGN_ROLE,
+      description: "تعيين أدوار للمستخدمين",
+      resource: "user",
+      action: "assign_role",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.USER.REMOVE_ROLE,
+      description: "إزالة أدوار من المستخدمين",
+      resource: "user",
+      action: "remove_role",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.USER.ASSIGN_PERMISSIONS,
+      description: "تعيين صلاحيات للمستخدمين",
+      resource: "user",
+      action: "assign_permissions",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.USER.UPDATE_PROFILE,
+      description: "تعديل بيانات المستخدم",
+      resource: "user",
+      action: "update_profile",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.USER.BAN,
+      description: "تحظير المستخدمين",
+      resource: "user",
+      action: "ban",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.USER.UNBAN,
+      description: "استرجاع حظر المستخدمين",
+      resource: "user",
+      action: "unban",
+    },
+
+    // ─────────────────────────────────────────────────────────────────
+    // صلاحيات إدارة الأدوار
+    // ─────────────────────────────────────────────────────────────────
+    {
+      name: AUDIT_LOG_ACTIONS.ROLE.ACCESS,
+      description: "الوصول إلى قسم الأدوار",
+      resource: "role",
+      action: "access",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.ROLE.VIEW,
+      description: "عرض قائمة الأدوار",
+      resource: "role",
+      action: "view",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.ROLE.CREATE,
+      description: "إنشاء أدوار جديدة",
+      resource: "role",
+      action: "create",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.ROLE.UPDATE,
+      description: "تعديل الأدوار",
+      resource: "role",
+      action: "update",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.ROLE.DELETE,
+      description: "حذف الأدوار",
+      resource: "role",
+      action: "delete",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.ROLE.ASSIGN_PERMISSIONS,
+      description: "تعيين صلاحيات للأدوار",
+      resource: "role",
+      action: "assign_permissions",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.ROLE.ASSIGN_USERS,
+      description: "تعيين مستخدمين للأدوار",
+      resource: "role",
+      action: "assign_users",
+    },
+
+    // ─────────────────────────────────────────────────────────────────
+    // صلاحيات إدارة الصلاحيات
+    // ─────────────────────────────────────────────────────────────────
+    {
+      name: AUDIT_LOG_ACTIONS.PERMISSION.ACCESS,
+      description: "الوصول إلى قسم الصلاحيات",
+      resource: "permission",
+      action: "access",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.PERMISSION.VIEW,
+      description: "عرض قائمة الصلاحيات",
+      resource: "permission",
+      action: "view",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.PERMISSION.CREATE,
+      description: "إنشاء صلاحيات جديدة",
+      resource: "permission",
+      action: "create",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.PERMISSION.UPDATE,
+      description: "تعديل الصلاحيات",
+      resource: "permission",
+      action: "update",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.PERMISSION.DELETE,
+      description: "حذف الصلاحيات",
+      resource: "permission",
+      action: "delete",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.PERMISSION.ASSIGN_ROLES,
+      description: "تعيين أدوار للصلاحيات",
+      resource: "permission",
+      action: "assign_roles",
+    },
+
+    // ─────────────────────────────────────────────────────────────────
+    // صلاحيات السجلات الأمنية والتدقيق
+    // ─────────────────────────────────────────────────────────────────
+    {
+      name: AUDIT_LOG_ACTIONS.AUDIT_LOG.ACCESS,
+      description: "الوصول إلى سجلات التدقيق",
+      resource: "audit",
+      action: "access",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.AUDIT_LOG.VIEW,
+      description: "عرض سجلات التدقيق",
+      resource: "audit",
+      action: "view",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.AUDIT_LOG.EXPORT,
+      description: "تصدير سجلات التدقيق",
+      resource: "audit",
+      action: "export",
+    },
+
+    // ─────────────────────────────────────────────────────────────────
+    // صلاحيات الإحصائيات والتقارير
+    // ─────────────────────────────────────────────────────────────────
+    {
+      name: AUDIT_LOG_ACTIONS.STATISTICS.ACCESS,
+      description: "الوصول إلى الإحصائيات",
+      resource: "statistics",
+      action: "access",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.STATISTICS.VIEW,
+      description: "عرض الإحصائيات",
+      resource: "statistics",
+      action: "view",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.STATISTICS.SEARCH,
+      description: "البحث في الإحصائيات",
+      resource: "statistics",
+      action: "search",
+    },
+
+    // ─────────────────────────────────────────────────────────────────
+    // صلاحيات إعدادات النظام
+    // ─────────────────────────────────────────────────────────────────
+    {
+      name: AUDIT_LOG_ACTIONS.SETTINGS.ACCESS,
+      description: "الوصول إلى الإعدادات",
+      resource: "settings",
+      action: "access",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.SETTINGS.VIEW,
+      description: "عرض الإعدادات",
+      resource: "settings",
+      action: "view",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.SETTINGS.UPDATE,
+      description: "تعديل الإعدادات",
+      resource: "settings",
+      action: "update",
+    },
+
+    // ─────────────────────────────────────────────────────────────────
+    // صلاحيات الشكاوى Complaints
+    // ─────────────────────────────────────────────────────────────────
+
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.ACCESS,
+      description: "الوصول إلى الشكاوى",
+      resource: "complaint",
+      action: "access",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.VIEW,
+      description: "عرض الشكاوى",
+      resource: "complaint",
+      action: "view",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.VIEW_STATISTICS,
+      description: "عرض احصائيات الشكاوى",
+      resource: "complaint",
+      action: "view_statistics",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.CREATE,
+      description: "إنشاء شكوى جديدة",
+      resource: "complaint",
+      action: "create",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.UPDATE,
+      description: "تعديل شكوى",
+      resource: "complaint",
+      action: "update",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.DELETE,
+      description: "حذف شكوى",
+      resource: "complaint",
+      action: "delete",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.ASSIGN,
+      description: "تعيين شكوى",
+      resource: "complaint",
+      action: "assign",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.ASSIGN_USERS,
+      description: "تعيين مستخدمين لشكوى",
+      resource: "complaint",
+      action: "assign_users",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.REPORT,
+      description: "تقرير شكوى",
+      resource: "complaint",
+      action: "report",
+    },
+
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.RESOLVE,
+      description: "حل شكوى",
+      resource: "complaint",
+      action: "resolve",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.CLOSE,
+      description: "اغلاق شكوى",
+      resource: "complaint",
+      action: "close",
+    },
+    // ──────────────────────────────────────────────────────────────────
+    // صلاحيات التعليقات على الشكوى Complaint Comments
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_COMMENT.ACCESS,
+      description: "الوصول إلى التعليقات على الشكوى",
+      resource: "complaint_comment",
+      action: "access",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_COMMENT.VIEW,
+      description: "عرض التعليقات على الشكوى",
+      resource: "complaint_comment",
+      action: "view",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_COMMENT.ADD,
+      description: "إضافة تعليق على شكوى",
+      resource: "complaint_comment",
+      action: "create",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_COMMENT.UPDATE,
+      description: "تعديل تعليق على شكوى",
+      resource: "complaint_comment",
+      action: "update",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_COMMENT.DELETE,
+      description: "حذف تعليق على شكوى",
+      resource: "complaint_comment",
+      action: "delete",
+    },
+
+    // ────────────────────────────────────────────────────────────────
+    // صلاحيات المرفقات على الشكوى Complaint Attachments
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_ATTACHMENT.ACCESS,
+      description: "الوصول إلى المرفقات على الشكوى",
+      resource: "complaint_attachment",
+      action: "access",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_ATTACHMENT.VIEW,
+      description: "عرض المرفقات على الشكوى",
+      resource: "complaint_attachment",
+      action: "view",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_ATTACHMENT.ADD,
+      description: "إضافة مرفقات على شكوى",
+      resource: "complaint_attachment",
+      action: "create",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_ATTACHMENT.UPDATE,
+      description: "تعديل مرفقات على شكوى",
+      resource: "complaint_attachment",
+      action: "update",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_ATTACHMENT.DELETE,
+      description: "حذف مرفقات على شكوى",
+      resource: "complaint_attachment",
+      action: "delete",
+    },
+
+    // ─────────────────────────────────────────────────────────────────
+    // صلاحيات قاعدة البيانات والتهيئة
+    // ─────────────────────────────────────────────────────────────────
+    {
+      name: AUDIT_LOG_ACTIONS.DATABASE_SEEDER.ACCESS,
+      description: "الوصول إلى أداة التهيئة",
+      resource: "seeder",
+      action: "access",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.DATABASE_SEEDER.VIEW,
+      description: "عرض حالة التهيئة",
+      resource: "seeder",
+      action: "view",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.DATABASE_SEEDER.RUN,
+      description: "تشغيل عملية التهيئة",
+      resource: "seeder",
+      action: "run",
+    },
+    {
+      name: AUDIT_LOG_ACTIONS.DATABASE_SEEDER.REVERT,
+      description: "تراجع عن التهيئة",
+      resource: "seeder",
+      action: "revert",
+    },
+  ];
+
+  private roles: SeedRole[] = [
+    {
+      name: "super_admin",
+      description: "مدير النظام العام - يمتلك جميع الصلاحيات",
+      isDefault: false,
+      permissions: [
+        // النظام والإدارة
+        AUDIT_LOG_ACTIONS.SYSTEM.ACCESS,
+        AUDIT_LOG_ACTIONS.SYSTEM.VIEW,
+        AUDIT_LOG_ACTIONS.SYSTEM.MANAGE,
+        AUDIT_LOG_ACTIONS.SYSTEM.CONFIGURE,
+        AUDIT_LOG_ACTIONS.ADMIN.ACCESS,
+        AUDIT_LOG_ACTIONS.ADMIN.VIEW,
+        AUDIT_LOG_ACTIONS.ADMIN.CONFIGURE,
+        AUDIT_LOG_ACTIONS.DASHBOARD.ACCESS,
+        AUDIT_LOG_ACTIONS.DASHBOARD.VIEW,
+        AUDIT_LOG_ACTIONS.DASHBOARD.CONFIGURE,
+
+        // إدارة المستخدمين
+        AUDIT_LOG_ACTIONS.USER.ACCESS,
+        AUDIT_LOG_ACTIONS.USER.VIEW,
+        AUDIT_LOG_ACTIONS.USER.CREATE,
+        AUDIT_LOG_ACTIONS.USER.UPDATE,
+        AUDIT_LOG_ACTIONS.USER.DELETE,
+        AUDIT_LOG_ACTIONS.USER.ASSIGN_ROLE,
+        AUDIT_LOG_ACTIONS.USER.REMOVE_ROLE,
+        AUDIT_LOG_ACTIONS.USER.ASSIGN_PERMISSIONS,
+        AUDIT_LOG_ACTIONS.USER.LOGIN,
+        AUDIT_LOG_ACTIONS.USER.BAN,
+        AUDIT_LOG_ACTIONS.USER.UNBAN,
+        AUDIT_LOG_ACTIONS.USER.UPDATE_PROFILE,
+
+        // إدارة الأدوار
+        AUDIT_LOG_ACTIONS.ROLE.ACCESS,
+        AUDIT_LOG_ACTIONS.ROLE.VIEW,
+        AUDIT_LOG_ACTIONS.ROLE.CREATE,
+        AUDIT_LOG_ACTIONS.ROLE.UPDATE,
+        AUDIT_LOG_ACTIONS.ROLE.DELETE,
+        AUDIT_LOG_ACTIONS.ROLE.ASSIGN_PERMISSIONS,
+        AUDIT_LOG_ACTIONS.ROLE.ASSIGN_USERS,
+
+        // إدارة الصلاحيات
+        AUDIT_LOG_ACTIONS.PERMISSION.ACCESS,
+        AUDIT_LOG_ACTIONS.PERMISSION.VIEW,
+        AUDIT_LOG_ACTIONS.PERMISSION.CREATE,
+        AUDIT_LOG_ACTIONS.PERMISSION.UPDATE,
+        AUDIT_LOG_ACTIONS.PERMISSION.DELETE,
+        AUDIT_LOG_ACTIONS.PERMISSION.ASSIGN_ROLES,
+
+        // إدارة الشكاوى
+        AUDIT_LOG_ACTIONS.COMPLAINT.ACCESS,
+        AUDIT_LOG_ACTIONS.COMPLAINT.VIEW_STATISTICS,
+        AUDIT_LOG_ACTIONS.COMPLAINT.VIEW,
+        AUDIT_LOG_ACTIONS.COMPLAINT.CREATE,
+        AUDIT_LOG_ACTIONS.COMPLAINT.UPDATE,
+        AUDIT_LOG_ACTIONS.COMPLAINT.DELETE,
+        AUDIT_LOG_ACTIONS.COMPLAINT.REPORT,
+        AUDIT_LOG_ACTIONS.COMPLAINT.RESOLVE,
+        AUDIT_LOG_ACTIONS.COMPLAINT.CLOSE,
+        AUDIT_LOG_ACTIONS.COMPLAINT.ASSIGN,
+        AUDIT_LOG_ACTIONS.COMPLAINT.ASSIGN_USERS,
+
+        AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_COMMENT.ADD,
+        AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_COMMENT.UPDATE,
+        AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_COMMENT.DELETE,
+        AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_COMMENT.ACCESS,
+        AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_COMMENT.VIEW,
+
+        AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_ATTACHMENT.ACCESS,
+        AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_ATTACHMENT.VIEW,
+        AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_ATTACHMENT.ADD,
+        AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_ATTACHMENT.UPDATE,
+        AUDIT_LOG_ACTIONS.COMPLAINT.COMPLAINT_ATTACHMENT.DELETE,
+
+        // السجلات والإحصائيات
+        AUDIT_LOG_ACTIONS.AUDIT_LOG.ACCESS,
+        AUDIT_LOG_ACTIONS.AUDIT_LOG.VIEW,
+        AUDIT_LOG_ACTIONS.AUDIT_LOG.EXPORT,
+        AUDIT_LOG_ACTIONS.STATISTICS.ACCESS,
+        AUDIT_LOG_ACTIONS.STATISTICS.VIEW,
+        AUDIT_LOG_ACTIONS.STATISTICS.SEARCH,
+
+        // الإعدادات
+        AUDIT_LOG_ACTIONS.SETTINGS.ACCESS,
+        AUDIT_LOG_ACTIONS.SETTINGS.VIEW,
+        AUDIT_LOG_ACTIONS.SETTINGS.UPDATE,
+
+        // إدارة قاعدة البيانات
+        AUDIT_LOG_ACTIONS.DATABASE_SEEDER.ACCESS,
+        AUDIT_LOG_ACTIONS.DATABASE_SEEDER.VIEW,
+        AUDIT_LOG_ACTIONS.DATABASE_SEEDER.RUN,
+        AUDIT_LOG_ACTIONS.DATABASE_SEEDER.REVERT,
+      ],
+    },
+    {
+      name: "admin",
+      description: "مدير النظام - يمتلك صلاحيات إدارية واسعة",
+      isDefault: false,
+      permissions: [
+        // النظام والإدارة
+        AUDIT_LOG_ACTIONS.SYSTEM.ACCESS,
+        AUDIT_LOG_ACTIONS.ADMIN.ACCESS,
+        AUDIT_LOG_ACTIONS.ADMIN.VIEW,
+        AUDIT_LOG_ACTIONS.DASHBOARD.ACCESS,
+        AUDIT_LOG_ACTIONS.DASHBOARD.VIEW,
+
+        // إدارة المستخدمين
+        AUDIT_LOG_ACTIONS.USER.ACCESS,
+        AUDIT_LOG_ACTIONS.USER.VIEW,
+        AUDIT_LOG_ACTIONS.USER.CREATE,
+        AUDIT_LOG_ACTIONS.USER.UPDATE,
+
+        // إدارة الأدوار
+        AUDIT_LOG_ACTIONS.ROLE.ACCESS,
+        AUDIT_LOG_ACTIONS.ROLE.VIEW,
+
+        // إدارة الصلاحيات
+        AUDIT_LOG_ACTIONS.PERMISSION.ACCESS,
+        AUDIT_LOG_ACTIONS.PERMISSION.VIEW,
+
+        // السجلات والإحصائيات
+        AUDIT_LOG_ACTIONS.AUDIT_LOG.ACCESS,
+        AUDIT_LOG_ACTIONS.AUDIT_LOG.VIEW,
+        AUDIT_LOG_ACTIONS.STATISTICS.ACCESS,
+        AUDIT_LOG_ACTIONS.STATISTICS.VIEW,
+
+        // الإعدادات
+        AUDIT_LOG_ACTIONS.SETTINGS.ACCESS,
+        AUDIT_LOG_ACTIONS.SETTINGS.VIEW,
+      ],
+    },
+    {
+      name: "user",
+      description: "مستخدم عادي - صلاحيات أساسية",
+      isDefault: true,
+      permissions: [
+        AUDIT_LOG_ACTIONS.SYSTEM.ACCESS,
+        AUDIT_LOG_ACTIONS.DASHBOARD.ACCESS,
+        AUDIT_LOG_ACTIONS.DASHBOARD.VIEW,
+      ],
+    },
+  ];
+
+  async seed(): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log("🚀 بدء عملية تهيئة قاعدة البيانات...");
+
+      // التحقق من الاتصال أولاً
+      try {
+        await db.select().from(role).limit(1);
+      } catch (error) {
+        console.error("❌ فشل الاتصال بقاعدة البيانات:", error);
+        return {
+          success: false,
+          message: "فشل الاتصال بقاعدة البيانات. يرجى التحقق من إعدادات الاتصال.",
+        };
+      }
+
+      // التحقق مما إذا كانت البيانات موجودة مسبقاً
+      const existingRoles = await db.select().from(role).limit(1);
+      if (existingRoles.length > 0) {
+        console.log("ℹ️ قاعدة البيانات مهيئة مسبقاً، تخطي العملية...");
+        return {
+          success: true,
+          message: "قاعدة البيانات مهيئة مسبقاً. لا حاجة لإجراء أي عمل.",
+        };
+      }
+
+      // 1. إنشاء الصلاحيات
+      console.log("📝 إنشاء الصلاحيات...");
+      const createdPermissions = await db.insert(permission).values(this.permissions).returning();
+
+      console.log(`✅ تم إنشاء ${createdPermissions.length} صلاحية`);
+
+      // خريطة للصلاحيات
+      const permissionMap = new Map(createdPermissions.map((p) => [p.name, p]));
+
+      // 2. إنشاء الأدوار
+      console.log("👥 إنشاء الأدوار...");
+      const createdRoles = await db
+        .insert(role)
+        .values(
+          this.roles.map((role) => ({
+            name: role.name,
+            description: role.description,
+            isDefault: role.isDefault || false,
+          })),
+        )
+        .returning();
+
+      console.log(`✅ تم إنشاء ${createdRoles.length} دور`);
+
+      // خريطة للأدوار
+      const roleMap = new Map(createdRoles.map((r) => [r.name, r]));
+
+      // 3. ربط الصلاحيات بالأدوار
+      console.log("🔗 ربط الصلاحيات بالأدوار...");
+      const rolePermissionEntries: (typeof rolePermissions.$inferInsert)[] = [];
+
+      for (const seedRole of this.roles) {
+        const role = roleMap.get(seedRole.name);
+        if (!role) {
+          console.warn(`⚠️ الدور ${seedRole.name} غير موجود، تخطي...`);
+          continue;
+        }
+
+        for (const permissionName of seedRole.permissions) {
+          const permission = permissionMap.get(permissionName);
+          if (permission) {
+            rolePermissionEntries.push({
+              roleId: role.id,
+              permissionId: permission.id,
+            });
+          } else {
+            console.warn(`⚠️ الصلاحية ${permissionName} غير موجودة للدور ${seedRole.name}`);
+          }
+        }
+      }
+
+      if (rolePermissionEntries.length > 0) {
+        await db.insert(rolePermissions).values(rolePermissionEntries);
+        console.log(`✅ تم إنشاء ${rolePermissionEntries.length} علاقة بين الأدوار والصلاحيات`);
+      }
+
+      console.log("🎉 اكتملت عملية تهيئة قاعدة البيانات بنجاح!");
+
+      return {
+        success: true,
+        message: `تمت التهيئة بنجاح: ${createdPermissions.length} صلاحية، ${createdRoles.length} دور، ${rolePermissionEntries.length} علاقة.`,
+      };
+    } catch (error) {
+      console.error("❌ فشلت عملية تهيئة قاعدة البيانات:", error);
+
+      let errorMessage = "حدث خطأ غير معروف";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      return {
+        success: false,
+        message: `فشلت التهيئة: ${errorMessage}`,
+      };
+    }
+  }
+
+  async clear(): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log("🧹 حذف البيانات الموجودة...");
+
+      // حذف البيانات بالترتيب الصحيح
+      await db.delete(rolePermissions);
+      await db.delete(permission);
+      await db.delete(role);
+
+      console.log("✅ تم حذف البيانات بنجاح!");
+      return { success: true, message: "تم حذف جميع بيانات الصلاحيات." };
+    } catch (error) {
+      console.error("❌ فشل حذف البيانات:", error);
+      return {
+        success: false,
+        message: `فشل حذف البيانات: ${error instanceof Error ? error.message : "خطأ غير معروف"}`,
+      };
+    }
+  }
+
+  async reseed(): Promise<{ success: boolean; message: string }> {
+    const clearResult = await this.clear();
+    if (!clearResult.success) {
+      return clearResult;
+    }
+    return await this.seed();
+  }
+}
+
+export const databaseSeeder = new DatabaseSeeder();

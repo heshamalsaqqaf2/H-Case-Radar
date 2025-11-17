@@ -52,7 +52,27 @@ export const AUDIT_LOG_ACTIONS = {
     DELETE: "complaint.delete",
     VIEW: "complaint.view",
     ACCESS: "complaint.access",
+    RESOLVE: "complaint.resolve",
+    CLOSE: "complaint.close",
+    REPORT: "complaint.report",
+    ASSIGN: "complaint.assign",
     ASSIGN_USERS: "complaint.assign_users",
+    VIEW_STATISTICS: "complaint.view_statistics",
+
+    COMPLAINT_COMMENT: {
+      ADD: "complaint_comment.add",
+      UPDATE: "complaint_comment.update",
+      DELETE: "complaint_comment.delete",
+      VIEW: "complaint_comment.view",
+      ACCESS: "complaint_comment.access",
+    },
+    COMPLAINT_ATTACHMENT: {
+      ADD: "complaint_attachment.add",
+      UPDATE: "complaint_attachment.update",
+      DELETE: "complaint_attachment.delete",
+      VIEW: "complaint_attachment.view",
+      ACCESS: "complaint_attachment.access",
+    },
   },
   STATISTICS: {
     ACCESS: "statistics.access",

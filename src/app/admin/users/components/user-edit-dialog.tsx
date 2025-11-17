@@ -9,13 +9,7 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -26,6 +20,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpdateUserProfile } from "@/lib/authorization/hooks/admin/use-users";
@@ -44,8 +39,10 @@ export function UserEditDialog({ user, open, onOpenChange }: UserEditDialogProps
   const form = useForm<z.infer<typeof updateUserSchema>>({
     resolver: zodResolver(updateUserSchema),
     defaultValues: {
-      name: user.name || "",
+      name: user.name,
       email: user.email,
+      // personalEmail: user.,
+      // accountStatus: user.accountStatus || false,
       banned: user.banned || false,
       banReason: user.banReason || "",
     },
@@ -54,10 +51,12 @@ export function UserEditDialog({ user, open, onOpenChange }: UserEditDialogProps
   useEffect(() => {
     if (open) {
       form.reset({
-        name: user.name || "",
+        name: user.name,
         email: user.email,
-        banned: user.banned || false,
-        banReason: user.banReason || "",
+        // personalEmail: user.personalEmail,
+        // accountStatus: user.accountStatus || false,
+        banned: user.banned,
+        banReason: user.banReason,
       });
     }
   }, [user, open, form]);
@@ -71,7 +70,6 @@ export function UserEditDialog({ user, open, onOpenChange }: UserEditDialogProps
       onOpenChange(false);
     } catch (error) {
       // الخطأ معالج تلقائياً في useAdminMutation
-      console.error(error);
     }
   };
 
@@ -106,9 +104,7 @@ export function UserEditDialog({ user, open, onOpenChange }: UserEditDialogProps
               {user.email}
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <Badge variant={user.banned ? "destructive" : "default"}>
-                {user.banned ? "محظور" : "نشط"}
-              </Badge>
+              <Badge variant={user.banned ? "destructive" : "default"}>{user.banned ? "محظور" : "نشط"}</Badge>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Calendar className="h-3 w-3" />
                 {new Date(user.createdAt).toLocaleDateString("en-US")}
@@ -146,6 +142,48 @@ export function UserEditDialog({ user, open, onOpenChange }: UserEditDialogProps
                 </FormItem>
               )}
             />
+
+            {/* <FormField
+              control={form.control}
+              name="personalEmail"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>البريد الإلكتروني الشخصي</FormLabel>
+                  <FormControl>
+                    <Input type="email" {...field} placeholder="أدخل البريد الإلكتروني الشخصي..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            /> */}
+
+            {/* <FormField
+              control={form.control}
+              name="accountStatus"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">حالة الحساب</FormLabel>
+                    <FormDescription>تغيير حالة الحساب</FormDescription>
+                  </div>
+                  <FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value ? "accepted" : "rejected"}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="حالة الحساب" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">قيد التحقق</SelectItem>
+                        <SelectItem value="accepted">مقبول</SelectItem>
+                        <SelectItem value="rejected">مرفوض</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                </FormItem>
+              )}
+            /> */}
 
             <FormField
               control={form.control}

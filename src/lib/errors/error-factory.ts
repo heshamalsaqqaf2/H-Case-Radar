@@ -33,22 +33,14 @@ export const Errors = {
    * خطأ صلاحيات (غير مسموح)
    */
   forbidden(action: string = "هذا الإجراء"): AppError {
-    return AppError.create(
-      "FORBIDDEN",
-      `Access denied to ${action}`,
-      `غير مسموح لك بتنفيذ ${action}.`,
-    );
+    return AppError.create("FORBIDDEN", `Access denied to ${action}`, `غير مسموح لك بتنفيذ ${action}.`);
   },
 
   /**
    * خطأ مورد غير موجود
    */
   notFound(resource: string = "الموارد"): AppError {
-    return AppError.create(
-      "NOT_FOUND",
-      `${resource} not found`,
-      `${resource} الذي طلبته غير موجود.`,
-    );
+    return AppError.create("NOT_FOUND", `${resource} not found`, `${resource} الذي طلبته غير موجود.`);
   },
 
   /**
@@ -84,5 +76,20 @@ export const Errors = {
       "حدث خطأ غير متوقع. تم إبلاغ فريق الدعم.",
       originalError,
     );
+  },
+
+  // bade request
+  badRequest(message: string): AppError {
+    return AppError.create(
+      "BAD_REQUEST",
+      `Bad request: ${message}`,
+      "البيانات المدخلة غير صالحة. يرجى التحقق من الحقول.",
+      message,
+    );
+  },
+
+  // unauthorized
+  unauthorized(message: string): AppError {
+    return AppError.create("UNAUTHORIZED", `Unauthorized: ${message}`, "غير مصرح بالوصول.", message);
   },
 };

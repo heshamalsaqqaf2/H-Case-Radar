@@ -7,13 +7,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -31,16 +25,10 @@ import { useCreateRole } from "@/lib/authorization/hooks/admin/use-roles";
 const formSchema = z.object({
   name: z
     .string()
-    .min(2, "يجب أن يكون الاسم至少 2 أحرف")
+    .min(2, "يجب أن يكون 2 أحرف")
     .max(50, "يجب أن يكون الاسم أقل من 50 حرف")
-    .regex(
-      /^[a-zA-Z0-9_]+$/,
-      "يمكن أن يحتوي الاسم على أحرف وأرقام وشرطات سفلية فقط",
-    ),
-  description: z
-    .string()
-    .min(5, "يجب أن يكون الوصف至少 5 أحرف")
-    .max(200, "يجب أن يكون الوصف أقل من 200 حرف"),
+    .regex(/^[a-zA-Z0-9_]+$/, "يمكن أن يحتوي الاسم على أحرف وأرقام وشرطات سفلية فقط"),
+  description: z.string().min(5, "يجب أن يكون  5 أحرف").max(200, "يجب أن يكون الوصف أقل من 200 حرف"),
   isDefault: z.boolean(),
 });
 
@@ -88,9 +76,7 @@ export function CreateRoleForm({ onSuccess }: { onSuccess?: () => void }) {
     <Card>
       <CardHeader>
         <CardTitle>إنشاء دور جديد</CardTitle>
-        <CardDescription>
-          إضافة دور جديد إلى النظام, وتعيين صلاحيات لهذا الدور.
-        </CardDescription>
+        <CardDescription>إضافة دور جديد إلى النظام, وتعيين صلاحيات لهذا الدور.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -102,15 +88,9 @@ export function CreateRoleForm({ onSuccess }: { onSuccess?: () => void }) {
                 <FormItem>
                   <FormLabel>اسم الدور</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="مثال: content_manager"
-                      {...field}
-                      dir="ltr"
-                    />
+                    <Input placeholder="مثال: content_manager" {...field} dir="ltr" />
                   </FormControl>
-                  <FormDescription>
-                    معرف فريد للدور. استخدم الأحرف الصغيرة مع علامات التسطير.
-                  </FormDescription>
+                  <FormDescription>معرف فريد للدور. استخدم الأحرف الصغيرة مع علامات التسطير.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -123,14 +103,9 @@ export function CreateRoleForm({ onSuccess }: { onSuccess?: () => void }) {
                 <FormItem>
                   <FormLabel>وصف الدور</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="صف ما يمكن أن يفعله هذا الدور..."
-                      {...field}
-                    />
+                    <Textarea placeholder="صف ما يمكن أن يفعله هذا الدور..." {...field} />
                   </FormControl>
-                  <FormDescription>
-                    وصف موجز لغرض الدور والأذونات.
-                  </FormDescription>
+                  <FormDescription>وصف موجز لغرض الدور والأذونات.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -142,30 +117,19 @@ export function CreateRoleForm({ onSuccess }: { onSuccess?: () => void }) {
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rtl:space-x-reverse">
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>دور إفتراضي</FormLabel>
-                    <FormDescription>
-                      تعيين هذا الدور للمستخدمين الجدد تلقائيًا
-                    </FormDescription>
+                    <FormDescription>تعيين هذا الدور للمستخدمين الجدد تلقائيًا</FormDescription>
                   </div>
                 </FormItem>
               )}
             />
 
             <div className="flex gap-3 rtl:flex-row-reverse">
-              <Button
-                type="submit"
-                disabled={createRoleMutation.isPending}
-                className="gap-2"
-              >
-                {createRoleMutation.isPending && (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                )}
+              <Button type="submit" disabled={createRoleMutation.isPending} className="gap-2">
+                {createRoleMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 إنشاء الدور
               </Button>
 

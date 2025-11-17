@@ -30,8 +30,7 @@ export function handleFailure(error: unknown) {
   // معالجة أخطاء Zod
   if (error instanceof Error && "issues" in error) {
     const zodError = error as { issues: { message: string }[] };
-    const firstMessage =
-      zodError.issues[0]?.message || "بيانات الإدخال غير صالحة";
+    const firstMessage = zodError.issues[0]?.message || "بيانات الإدخال غير صالحة";
     const appError = AppError.create(
       "VALIDATION_ERROR",
       `Zod validation failed: ${firstMessage}`,

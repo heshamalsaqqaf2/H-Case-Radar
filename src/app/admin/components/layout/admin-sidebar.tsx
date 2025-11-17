@@ -1,7 +1,7 @@
 "use client";
 
 import { IconInnerShadowTop, IconLockAccessOff } from "@tabler/icons-react";
-import { LayoutDashboard } from "lucide-react";
+import { Database, LayoutDashboard, SettingsIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -47,9 +47,9 @@ export function AdminSidebar({ items, user }: AdminSidebarProps) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
+            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:p-1.5!">
               <Link href="#">
-                <IconInnerShadowTop className="!size-5" />
+                <IconInnerShadowTop className="size-5!" />
                 <span className="text-base font-semibold">H-Case Radar</span>
               </Link>
             </SidebarMenuButton>

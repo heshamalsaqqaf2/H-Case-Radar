@@ -1,113 +1,22 @@
-"use client";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { MagicCard } from "@/components/ui/magic-ui/magic-card";
-import { authClient } from "@/lib/authentication/auth-client";
+// app/(auth)/sign-in/page.tsx
+import { checkUserSession } from "@/lib/authentication/actions/auth-actions";
+import { SignInPageClient } from "./sign-in-client";
 
-export default function SignInPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  // const router = useRouter();
+// Server Component - للتعامل مع الجلسة واتخاذ قرارات التوجيه
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string }>;
+}) {
+  const session = await checkUserSession();
+  const resolvedSearchParams = await searchParams;
+  const callbackUrl = resolvedSearchParams.callbackUrl || "/";
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  // إذا كان المستخدم مسجلاً دخوله وحالة حسابه "مقبولة"
+  if (session?.user && session.user.accountStatus === "accepted") {
+    // لا نقوم بالتوجيه مباشرة، بل نعرض الشاشة المناسبة
+    // ونمرر الحالة إلى Client Component
+  }
 
-    const displayUser = {
-      EMAIL: email,
-      PASSWORD: password,
-    };
-    try {
-      await authClient.signIn.email({
-        email,
-        password,
-        fetchOptions: {
-          onSuccess: () => {
-            toast.message(`Successfully logged in`, {
-              description: (
-                <pre>
-                  <code>{JSON.stringify(displayUser, null, 2)}</code>
-                </pre>
-              ),
-            });
-            setTimeout(() => {
-              // router.push("/admin");
-              window.location.href = "/";
-            }, 2000);
-          },
-          onError: (ctx) => {
-            toast.error("Error logging in", {
-              description: ctx.error.message,
-            });
-          },
-        },
-      });
-    } catch (error) {
-      toast.error("Something went wrong", {
-        description: error instanceof Error ? error.message : "Unknown error",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <MagicCard className="p-8 rounded-xl">
-        <div className="max-w-md w-full space-y-8 space-x-8">
-          <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold">
-              Sign in to admin panel
-            </h2>
-          </div>
-          <form className="mt-8 space-y-6" onSubmit={handleSignIn}>
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <div>
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-              >
-                {isLoading ? "Signing in..." : "Sign in"}
-              </Button>
-            </div>
-          </form>
-        </div>
-      </MagicCard>
-    </div>
-  );
+  return <SignInPageClient initialSession={session} callbackUrl={callbackUrl} />;
 }

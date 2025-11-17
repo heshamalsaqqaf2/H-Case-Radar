@@ -93,9 +93,7 @@ export function UserStatisticsCard({ user, open, onOpenChange }: UserStatisticsC
                     <Shield className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">
-                      {statsResult.data.statistics.rolesCount}
-                    </div>
+                    <div className="text-2xl font-bold">{statsResult.data.statistics.rolesCount}</div>
                     <p className="text-xs text-muted-foreground">دور ممنوح للمستخدم</p>
                   </CardContent>
                 </Card>
@@ -106,9 +104,7 @@ export function UserStatisticsCard({ user, open, onOpenChange }: UserStatisticsC
                     <LogIn className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">
-                      {statsResult.data.statistics.loginCount}
-                    </div>
+                    <div className="text-2xl font-bold">{statsResult.data.statistics.loginCount}</div>
                     <p className="text-xs text-muted-foreground">مرة دخول إلى النظام</p>
                   </CardContent>
                 </Card>
@@ -152,6 +148,8 @@ export function UserStatisticsCard({ user, open, onOpenChange }: UserStatisticsC
                 </Card>
               )}
             </div>
+
+            {/* الصلاحيات */}
           </div>
         )}
       </DialogContent>

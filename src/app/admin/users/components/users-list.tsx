@@ -8,14 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useBanUser, useUnbanUser, useUsers } from "@/lib/authorization/hooks/admin/use-users";
 import type { UserWithRoles } from "@/lib/authorization/types/user";
 import { CreateUserForm } from "./create-user-form";
@@ -39,6 +32,8 @@ export function UsersList({ initialUsers }: UsersListProps) {
 
   const banMutation = useBanUser();
   const unbanMutation = useUnbanUser();
+  // const { data: permissionsResult } = usePermissions();
+
   const [editingUser, setEditingUser] = useState<UserWithRoles | null>(null);
   const [managingRolesUser, setManagingRolesUser] = useState<UserWithRoles | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
@@ -76,9 +71,8 @@ export function UsersList({ initialUsers }: UsersListProps) {
   const handleToggleBan = async (user: UserWithRoles) => {
     // const selectRole = user.roles.find((role) => role.name !== "super_admin");
     // if (!selectRole) {
-    //   return <p>لا يمكنك حظر المستخدم {selectRole}</p>;
+    //   return toast.warning("لا يمكن من حظر حساب لديه دور" + " 'SuperAdmin'");
     // }
-
     if (user.banned) {
       await unbanMutation.mutateAsync({ targetUserId: user.id });
     } else {
@@ -98,15 +92,15 @@ export function UsersList({ initialUsers }: UsersListProps) {
   };
 
   const getStatusVariant = (user: UserWithRoles) => {
-    if (user.banned) return "destructive";
-    if (user.emailVerified) return "default";
-    return "secondary";
+    if (user.banned) return "bg-red-100 text-red-500";
+    if (user.emailVerified) return "bg-green-100 text-green-500";
+    return "bg-orange-100 text-orange-500";
   };
 
   const getStatusText = (user: UserWithRoles) => {
     if (user.banned) return "محظور";
     if (user.emailVerified) return "نشط";
-    return "غير مفعل";
+    return "غير متحقق";
   };
 
   return (
@@ -116,7 +110,7 @@ export function UsersList({ initialUsers }: UsersListProps) {
           <h1 className="text-3xl font-bold tracking-tight">إدارة المستخدمين</h1>
           <p className="text-muted-foreground mt-1">إدارة حسابات المستخدمين، الأدوار، والصلاحيات</p>
         </div>
-        <Badge className="w-fit px-3 py-1 text-sm bg-gradient-to-l from-teal-500 to-green-500">
+        <Badge className="w-fit px-3 py-1 text-sm bg-linear-to-l from-teal-500 to-green-500">
           {users.length} - All USERS
         </Badge>
       </div>
@@ -174,20 +168,22 @@ export function UsersList({ initialUsers }: UsersListProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[100px]">المستخدم</TableHead>
-                  <TableHead className="w-[100px]">الحالة</TableHead>
+                  <TableHead className="w-10">ID</TableHead>
+                  <TableHead className="w-[110px]">المستخدم</TableHead>
+                  <TableHead>الحالة</TableHead>
                   <TableHead>الأدوار</TableHead>
                   <TableHead>آخر دخول</TableHead>
                   <TableHead>الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {users.map((user, index = 1) => (
                   <TableRow
                     key={user.id}
                     className="hover:bg-muted/50 cursor-pointer"
                     onClick={() => setSelectedUser(user)}
                   >
+                    <TableCell>{++index}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         {user.image ? (
@@ -209,13 +205,15 @@ export function UsersList({ initialUsers }: UsersListProps) {
                             <Mail className="h-3 w-3" />
                             {user.email}
                           </div>
+                          {/* <div className="flex items-center gap-1 text-sm text-blue-800">
+                            <Mailbox className="h-3 w-3" />
+                            {user.personalEmail}
+                          </div> */}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={getStatusVariant(user)} className="capitalize">
-                        {getStatusText(user)}
-                      </Badge>
+                      <Badge className={getStatusVariant(user)}>{getStatusText(user)}</Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
@@ -223,7 +221,7 @@ export function UsersList({ initialUsers }: UsersListProps) {
                           <Badge
                             key={role.id}
                             variant="outline"
-                            className="text-xs max-w-[100px] truncate"
+                            className="text-xs uppercase bg-blue-100 text-blue-500 border-none max-w-[100px] truncate"
                           >
                             {role.name}
                           </Badge>
@@ -278,11 +276,7 @@ export function UsersList({ initialUsers }: UsersListProps) {
                           disabled={banMutation.isPending || unbanMutation.isPending}
                           title={user.banned ? "فك الحظر" : "حظر المستخدم"}
                         >
-                          {user.banned ? (
-                            <UserCheck className="h-4 w-4" />
-                          ) : (
-                            <Ban className="h-4 w-4" />
-                          )}
+                          {user.banned ? <UserCheck className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
                         </Button>
                       </div>
                     </TableCell>
@@ -293,7 +287,7 @@ export function UsersList({ initialUsers }: UsersListProps) {
           </div>
 
           {users.length === 0 && (
-            <div className="text-center py-8">
+            <div className="text-right py-8">
               <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">لا توجد مستخدمين</p>
             </div>
@@ -303,11 +297,7 @@ export function UsersList({ initialUsers }: UsersListProps) {
 
       {/* Dialogs */}
       {editingUser && (
-        <UserEditDialog
-          user={editingUser}
-          open={!!editingUser}
-          onOpenChange={() => setEditingUser(null)}
-        />
+        <UserEditDialog user={editingUser} open={!!editingUser} onOpenChange={() => setEditingUser(null)} />
       )}
 
       {managingRolesUser && (

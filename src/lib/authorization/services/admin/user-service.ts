@@ -16,6 +16,7 @@ import type {
 import { auditLog, role, user, userRoles } from "@/lib/database/schema";
 import { database as db } from "@/lib/database/server";
 import { Errors } from "@/lib/errors/error-factory";
+import { sendCredentialsEmail } from "@/lib/services/email/templates/sendCredentialsEmail";
 
 async function authorize(userId: string, requiredPermission: string) {
   const check = await authorizationService.checkPermission({ userId }, requiredPermission);
@@ -114,9 +115,7 @@ export async function assignRoleToUser(userId: string, targetUserId: string, rol
 export async function removeRoleFromUser(userId: string, targetUserId: string, roleId: string) {
   await authorize(userId, AUDIT_LOG_ACTIONS.USER.REMOVE_ROLE); //"users.remove_roles"
 
-  await db
-    .delete(userRoles)
-    .where(and(eq(userRoles.userId, targetUserId), eq(userRoles.roleId, roleId)));
+  await db.delete(userRoles).where(and(eq(userRoles.userId, targetUserId), eq(userRoles.roleId, roleId)));
 }
 
 export async function getCurrentUser(userId: string) {
@@ -194,14 +193,14 @@ export async function toggleUserBan(
   ban: boolean,
   reason?: string,
 ): Promise<BaseUser> {
-  await authorize(adminUserId, AUDIT_LOG_ACTIONS.USER.MANAGE); //"user.manage"
+  await authorize(adminUserId, AUDIT_LOG_ACTIONS.USER.BAN); //"user.manage"
 
   const [updatedUser] = await db
     .update(user)
     .set({
       banned: ban,
       banReason: reason || null,
-      banExpires: ban ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null, // 30 يوم
+      banExpires: ban ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : null, // 7 days
       updatedAt: new Date(),
     })
     .where(eq(user.id, targetUserId))
@@ -210,7 +209,6 @@ export async function toggleUserBan(
   if (!updatedUser) {
     throw Errors.notFound("المستخدم");
   }
-
   return updatedUser;
 }
 
@@ -282,6 +280,11 @@ export async function createUserWithRoles(
       name: userData.name,
       email: userData.email,
       password: userData.password,
+      data: {
+        personalEmail: userData.personalEmail,
+        sendCredentialsEmail: userData.sendCredentialsEmail,
+        accountStatus: userData.accountStatus,
+      },
     },
   });
 
@@ -289,7 +292,7 @@ export async function createUserWithRoles(
     throw Errors.internal("فشل في إنشاء المستخدم في نظام المصادقة");
   }
 
-  const authUser = authResult.user;
+  const authUser = authResult.user as BaseUser;
 
   // ✅ إنشاء كائن BaseUser متوافق مع الأنواع
   const newUser: BaseUser = {
@@ -297,12 +300,12 @@ export async function createUserWithRoles(
     name: authUser.name || userData.name,
     email: authUser.email,
     emailVerified: authUser.emailVerified || false,
-    image: authUser.image || null,
-    banned: false, // ✅ قيمة افتراضية
-    banReason: null, // ✅ قيمة افتراضية
-    banExpires: null, // ✅ قيمة افتراضية
-    lastLoginAt: null, // ✅ قيمة افتراضية
-    createdAt: authUser.createdAt || new Date(),
+    image: authUser.image || "",
+    banned: false,
+    banReason: null,
+    banExpires: null,
+    lastLoginAt: null,
+    createdAt: authUser.createdAt,
     updatedAt: new Date(),
   };
 
@@ -311,9 +314,7 @@ export async function createUserWithRoles(
   if (userData.roleIds && userData.roleIds.length > 0) {
     for (const roleId of userData.roleIds) {
       await assignRoleToUser(adminUserId, newUser.id, roleId);
-
       const [roleData] = await db.select().from(role).where(eq(role.id, roleId)).limit(1);
-
       if (roleData) {
         assignedRoles.push({
           id: roleData.id,
@@ -325,9 +326,56 @@ export async function createUserWithRoles(
     }
   }
 
+  // ارسال بيانات الدخول عبر البريد الإلكتروني
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const loginUrl = `${baseUrl}/sign-in`; // أو المسار الذي تستخدمه لتسجيل الدخول
+  if (userData.sendCredentialsEmail) {
+    console.log("DEBUG: Attempting to send welcome email to:", userData.personalEmail); // ← أضف هذا
+    await sendCredentialsEmail({
+      to: userData.personalEmail,
+      subject: "بيانات حسابك في نظام إدارة البلاغات",
+      email: userData.email,
+      password: userData.password,
+      urlCallback: loginUrl,
+    });
+  }
+
   return {
     user: newUser, // ✅ الآن متوافق مع BaseUser
-    temporaryPassword: userData.sendWelcomeEmail ? userData.password : undefined,
+    temporaryPassword: userData.sendCredentialsEmail ? userData.password : undefined,
     assignedRoles,
   };
 }
+
+/**
+ * تتحقق مما إذا كان المستخدم المحدد لديه دور معين باستخدام Drizzle ORM.
+ * هذه الدالة مصممة خصيصًا للمخطط الذي يستخدم `text` لمعرف المستخدم و `uuid` لمعرف الدور.
+ * @param userId - معرف المستخدم (من نوع text) الذي نريد التحقق منه.
+ * @param roleName - اسم الدور الذي نبحث عنه (مثال: "super_admin").
+ * @returns Promise<boolean> - يرجع true إذا كان المستخدم لديه الدور، و false خلاف ذلك.
+ */
+// export async function hasRole(userId: string, roleName: string): Promise<boolean> {
+//   if (!userId || !roleName) {
+//     throw Errors.forbidden("عرض الأدوار");
+//   }
+
+//   // استعلام علائقي (Relational Query) للتحقق من دور المستخدم
+//   const userWithRole = await db.query.user.findFirst({
+//     where: eq(user.id, userId), // البحث عن المستخدم باستخدام معرفه النصي
+//     with: {
+//       // جلب العلاقة مع الأدوار عبر جدول user_roles
+//       userRoles: {
+//         with: {
+//           // جلب تفاصيل الدور نفسه
+//           role: true,
+//         },
+//         // تصفية النتائج للبحث عن دور معين فقط
+//         where: eq(role.name, roleName),
+//       },
+//     },
+//   });
+
+//   // إذا تم العثور على المستخدم وكان لديه دور واحد على الأقل يطابق الاسم المطلوب
+//   // فإن userWithRole.userRoles لن يكون مصفوفة فارغة
+//   return !!userWithRole && userWithRole.userRoles.length > 0;
+// }

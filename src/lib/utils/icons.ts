@@ -1,10 +1,15 @@
 // src/lib/utils/icons.ts
 import {
-  BarChart3,
+  AlertTriangle,
+  AlertTriangleIcon,
+  DatabaseIcon,
+  FileChartColumn,
+  FileText,
   KeyRound,
   LayoutDashboard,
   type LucideIcon,
   ScrollText,
+  Settings,
   ShieldCheck,
   Users,
 } from "lucide-react";
@@ -15,8 +20,13 @@ export const ICON_MAP = {
   Users,
   ShieldCheck,
   KeyRound,
+  AlertTriangle,
   ScrollText,
-  BarChart3,
+  AlertTriangleIcon,
+  FileText,
+  DatabaseIcon,
+  FileChartColumn,
+  Settings,
 } as const;
 
 // نوع لأسماء الأيقونات

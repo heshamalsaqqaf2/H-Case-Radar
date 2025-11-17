@@ -20,16 +20,12 @@ export async function getVisibleNavItems(): Promise<NavItem[]> {
     // جلب معلومات البيئة لدعم ABAC (اختياري لكن مؤسسي)
     const headersList = await headers();
     const environment = {
-      ipAddress:
-        headersList.get("x-forwarded-for") ?? headersList.get("remote-addr"),
+      ipAddress: headersList.get("x-forwarded-for") ?? headersList.get("remote-addr"),
       userAgent: headersList.get("user-agent"),
       tenantId: headersList.get("tenant-id"),
       time: new Date().toISOString(),
     };
-    const navItems = await sidebarService.getVisibleSidebarItems(
-      userId,
-      environment,
-    );
+    const navItems = await sidebarService.getVisibleSidebarItems(userId, environment);
     return navItems;
   } catch (error) {
     const errorUserAgent = Errors.internal("فشل في استخراج معلومات العميل");

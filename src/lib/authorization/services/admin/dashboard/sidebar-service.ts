@@ -24,7 +24,7 @@ export class SidebarService {
     return unstable_cache(
       async () => {
         // الكود الحالي
-        console.log(`🔄 Loading sidebar for user: ${userId}`);
+        // console.log(`🔄 Loading sidebar for user: ${userId}`);
         const startTime = Date.now();
 
         const config = this.getSidebarConfig();
@@ -39,9 +39,7 @@ export class SidebarService {
             action,
             environment,
           });
-          console.log(
-            `🔐 Permission check: ${item.requiredAction} - ${check.allowed ? "✅" : "❌"}`,
-          );
+          // console.log(`🔐 Permission check: ${item.requiredAction} - ${check.allowed ? "✅" : "❌"}`);
           if (check.allowed) {
             visibleItems.push({
               title: item.title,
@@ -51,7 +49,7 @@ export class SidebarService {
           }
         }
         const duration = Date.now() - startTime;
-        console.log(`✅ Sidebar loaded in ${duration}ms with ${visibleItems.length} items`);
+        // console.log(`✅ Sidebar loaded in ${duration}ms with ${visibleItems.length} items`);
         // تتبع الاستخدام
         await this.trackSidebarUsage(userId, visibleItems.length);
 
@@ -59,7 +57,7 @@ export class SidebarService {
       },
       [`sidebar-items-${userId}`],
       {
-        revalidate: 300, // 5 دقائق
+        revalidate: 300, // فقط للتجربة
         tags: [`sidebar-${userId}`],
       },
     )();
@@ -74,7 +72,6 @@ export class SidebarService {
     href: string;
     icon: string;
     requiredAction: string; // resource.action
-    order: number;
   }> {
     return [
       {
@@ -82,44 +79,63 @@ export class SidebarService {
         href: "/admin/dashboard",
         icon: "LayoutDashboard",
         requiredAction: AUDIT_LOG_ACTIONS.ADMIN.ACCESS,
-        order: 1,
       },
       {
         title: "المستخدمون",
         href: "/admin/users",
         icon: "Users",
         requiredAction: AUDIT_LOG_ACTIONS.USER.ACCESS,
-        order: 2,
       },
       {
         title: "الأدوار",
         href: "/admin/roles",
         icon: "ShieldCheck",
         requiredAction: AUDIT_LOG_ACTIONS.ROLE.ACCESS,
-        order: 3,
       },
       {
         title: "الصلاحيات",
         href: "/admin/permissions",
         icon: "KeyRound",
         requiredAction: AUDIT_LOG_ACTIONS.PERMISSION.ACCESS,
-        order: 4,
       },
+      {
+        title: "إدارة البلاغات",
+        href: "/admin/complaints",
+        icon: "AlertTriangle",
+        requiredAction: AUDIT_LOG_ACTIONS.COMPLAINT.ACCESS,
+      },
+      {
+        title: "الإحصائيات",
+        href: "/admin/statistics",
+        icon: "FileChartColumn",
+        requiredAction: AUDIT_LOG_ACTIONS.STATISTICS.ACCESS,
+      },
+      {
+        title: "التقارير",
+        href: "/admin/reports",
+        icon: "FileText",
+        requiredAction: AUDIT_LOG_ACTIONS.REPORT.ACCESS,
+      },
+
       {
         title: "السجلات الأمنية",
         href: "/admin/audit-logs",
         icon: "ScrollText",
         requiredAction: AUDIT_LOG_ACTIONS.AUDIT_LOG.ACCESS,
-        order: 5,
       },
       {
-        title: "الإحصائيات",
-        href: "/admin/statistics",
-        icon: "BarChart3",
-        requiredAction: AUDIT_LOG_ACTIONS.STATISTICS.ACCESS,
-        order: 6,
+        title: "تهيئة قاعدة البيانات",
+        href: "/admin/seed",
+        icon: "DatabaseIcon",
+        requiredAction: AUDIT_LOG_ACTIONS.DATABASE_SEEDER.ACCESS,
       },
-    ].sort((a, b) => a.order - b.order);
+      {
+        title: "الاعدادات",
+        href: "/admin/settings",
+        icon: "Settings",
+        requiredAction: AUDIT_LOG_ACTIONS.SETTINGS.ACCESS,
+      },
+    ];
   }
   /**
    * تتبع استخدام الـ Sidebar (يمكن تطويره ليرسل لإحصائيات)

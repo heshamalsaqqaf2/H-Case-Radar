@@ -8,6 +8,7 @@ import {
   getCurrentUserAction,
   getUserStatisticsAction,
   getUsersWithRolesAction,
+  getUsersWithRolesAndPermissionsAction,
   removeRoleFromUserAction,
   toggleUserBanAction,
   updateUserProfileAction,
@@ -84,8 +85,7 @@ export function useUpdateUserProfile() {
 }
 export function useBanUser() {
   return useAdminMutation<{ targetUserId: string; reason?: string }>({
-    mutationFn: ({ targetUserId, reason }) =>
-      toggleUserBanAction({ targetUserId, ban: true, reason }),
+    mutationFn: ({ targetUserId, reason }) => toggleUserBanAction({ targetUserId, ban: true, reason }),
     invalidateKeys: [["users"], ["users", "statistics"]],
     successMessage: "تم حظر المستخدم بنجاح",
     errorMessage: "خطأ في حظر المستخدم",
@@ -147,13 +147,9 @@ export const useUserManagement = (userId: string) => {
     // الإجراءات
     updateProfile: (updates: UpdateUserInput) =>
       updateProfileMutation.mutateAsync({ targetUserId: userId, updates }),
-
     banUser: (reason?: string) => banMutation.mutateAsync({ targetUserId: userId, reason }),
-
     unbanUser: () => unbanMutation.mutateAsync({ targetUserId: userId }),
-
     assignRole: (roleId: string) => assignRoleMutation.mutateAsync({ userId, roleId }),
-
     removeRole: (roleId: string) => removeRoleMutation.mutateAsync({ userId, roleId }),
 
     // حالات التحميل

@@ -8,7 +8,9 @@ export type ErrorCode =
   | "CONFLICT"
   | "DATABASE_ERROR"
   | "NETWORK_ERROR"
-  | "INTERNAL_SERVER_ERROR";
+  | "INTERNAL_SERVER_ERROR"
+  | "BAD_REQUEST"
+  | "UNAUTHORIZED";
 
 export interface AppErrorMetadata {
   code: ErrorCode;
@@ -33,12 +35,7 @@ export class AppError extends Error {
     this.name = "AppError";
   }
 
-  static create(
-    code: ErrorCode,
-    message: string,
-    userMessage?: string,
-    original?: unknown,
-  ) {
+  static create(code: ErrorCode, message: string, userMessage?: string, original?: unknown) {
     return new AppError({
       code,
       message,
