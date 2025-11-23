@@ -14,6 +14,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!user) redirect("/sign-in");
 
   let visibleNavItems: Awaited<ReturnType<typeof getVisibleNavItems>>;
+
   try {
     visibleNavItems = await getVisibleNavItems();
   } catch (error) {

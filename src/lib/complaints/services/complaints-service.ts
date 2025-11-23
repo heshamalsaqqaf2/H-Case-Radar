@@ -10,10 +10,15 @@ import {
   canTransition,
   isClosed,
   isFinalStatus,
+  isResolved,
 } from "@/lib/complaints/state/complaint-status";
 import type {
-  ComplaintEscalationLevel,
+  ComplaintActivityType,
+  ComplaintEscalationLevelType,
+  ComplaintPriorityType,
   ComplaintProfileData,
+  ComplaintSatisfactionRatingType,
+  ComplaintSourceType,
   ComplaintStats,
   ComplaintSummary,
   ComplaintWithUserDetails,
@@ -41,12 +46,8 @@ import { authorizeComplaints } from "@/lib/shared/functions/authorize-complaints
    Types & Constants
    --------------------------- */
 type ActivityMeta = Record<string, unknown> | null;
-type UserInfoMap = Map<string, { name?: string; email?: string }>;
+type UserInfoMap = Map<string, { name: string; email: string }>;
 
-interface _CursorData {
-  createdAt: string;
-  id: string;
-}
 interface PaginatedResult<T> {
   items: T[];
   nextCursor: string | null;
@@ -74,13 +75,11 @@ class ComplaintRepository {
   static async findById(complaintId: string) {
     return await ComplaintsRepo.findById(complaintId);
   }
-
   static async findByIdOrThrow(complaintId: string) {
     const complaint = await ComplaintRepository.findById(complaintId);
     if (!complaint) throw Errors.notFound("الشكوى");
     return complaint;
   }
-
   static async updateStatus(
     complaintId: string,
     status: ComplaintStatusType,
@@ -93,6 +92,7 @@ class ComplaintRepository {
         updatedAt: new Date(),
         lastActivityAt: new Date(),
         ...additionalFields,
+        assignedTo: additionalFields.assignedTo ?? undefined,
       })
       .where(eq(complaintsTable.id, complaintId))
       .returning();
@@ -100,30 +100,19 @@ class ComplaintRepository {
     if (!updated) throw Errors.notFound("الشكوى");
     return updated;
   }
-
-  static async bulkGetUserInfo(userIds: string[]) {
+  static async bulkGetUserInfo(userIds: string[]): Promise<UserInfoMap> {
     if (userIds.length === 0) return new Map();
 
     const uniqueIds = [...new Set(userIds)];
 
-    // const user = await db
-    //   .select({ id: userTable.id, name: userTable.name, email: userTable.email })
-    //   .from(userTable)
-    //   .where(
-    //     sql`${userTable.id} IN (${sql.join(
-    //       uniqueIds.map((id) => sql`${id}`),
-    //       ",",
-    //     )})`,
-    //   );
-
-    const user = await db
+    const users = await db
       .select({ id: userTable.id, name: userTable.name, email: userTable.email })
       .from(userTable)
-      .where(inArray(userTable.id, uniqueIds)); // <-- التغيير هنا
+      .where(inArray(userTable.id, uniqueIds));
 
-    return new Map(user.map((user) => [user.id, user]));
+    // ✅ هذا هو السطر الحاسم: تحويل المصفوفة إلى Map
+    return new Map(users.map((user) => [user.id, user]));
   }
-
   static async validateUserExists(userId: string) {
     const [user] = await db
       .select({ id: userTable.id })
@@ -166,7 +155,6 @@ class TagService {
 
     return ids;
   }
-
   static async setComplaintTags(complaintId: string, tagNames: string[]) {
     const tagIds = await TagService.ensureTagsGetIds(tagNames);
 
@@ -183,7 +171,6 @@ class TagService {
       }
     });
   }
-
   static async getTagsForComplaint(complaintId: string): Promise<string[]> {
     const rows = await db
       .select({ name: tagsTable.name })
@@ -218,7 +205,6 @@ class AttachmentService {
 
     await db.insert(attachmentsTable).values(rows);
   }
-
   static async getAttachmentsForComplaint(complaintId: string) {
     return await db
       .select()
@@ -353,6 +339,11 @@ export class ComplaintService {
       await ComplaintRepository.validateUserExists(validated.assignedTo);
     }
 
+    // تحديد الحالة الابتدائية
+    const initialStatus = validated.assignedTo
+      ? ComplaintStatus.IN_PROGRESS // إذا تم التعيين
+      : ComplaintStatus.OPEN;
+
     const [created] = await db
       .insert(complaintsTable)
       .values({
@@ -363,8 +354,8 @@ export class ComplaintService {
         priority: validated.priority,
         source: validated.source ?? COMPLAINT_CONFIG.DEFAULT_SOURCE,
         submittedBy: actorId,
-        assignedTo: validated.assignedTo, // ✅ مطلوب
-        status: ComplaintStatus.OPEN, // ✅ الحالة الافتراضية
+        assignedTo: validated.assignedTo,
+        status: initialStatus,
         createdAt: now,
         updatedAt: now,
         lastActivityAt: now,
@@ -382,9 +373,9 @@ export class ComplaintService {
       validated.tags?.length ? TagService.setComplaintTags(complaintId, validated.tags) : Promise.resolve(),
       validated.attachments?.length
         ? AttachmentService.addAttachments(
-            complaintId,
-            validated.attachments.map((url) => ({ url })),
-          )
+          complaintId,
+          validated.attachments.map((url) => ({ url })),
+        )
         : Promise.resolve(),
       ActivityService.logComplaintCreated(complaintId, actorId, {
         title: validated.title,
@@ -396,55 +387,77 @@ export class ComplaintService {
   }
 
   static async updateComplaint(actorId: string, input: UpdateComplaintInput) {
-    const validated = updateComplaintSchema.parse(input);
+    // ⚡ استخراج البيانات بشكل فوري
+    const { id, ...updateData } = input;
+
+    // ⚡ تحقق فائق السرعة من التغييرات
+    let hasChanges = false;
+    for (const key in updateData) {
+      if (updateData[key as keyof typeof updateData] !== undefined) {
+        hasChanges = true;
+        break;
+      }
+    }
+
+    if (!hasChanges) {
+      throw Errors.badRequest("لا توجد تغييرات لحفظها");
+    }
+
+    // ⚡ تحقق متوازي من الصلاحيات والبيانات
+    const [validationResult, currentComplaint] = await Promise.all([
+      updateComplaintSchema.parseAsync(input).catch(() => null),
+      ComplaintRepository.findByIdOrThrow(id)
+    ]);
+
+    if (!validationResult) {
+      throw Errors.badRequest("بيانات غير صالحة");
+    }
 
     authorizeComplaints(actorId, AUDIT_LOG_ACTIONS.COMPLAINT.UPDATE, "تحديث الشكاوى");
 
-    const current = await ComplaintRepository.findByIdOrThrow(validated.id);
-
-    // Validate state transition
-    if (validated.status && !canTransition(current.status as ComplaintStatusType, validated.status)) {
-      throw Errors.badRequest("الانتقال بين الحالات غير مسموح");
+    // ⚡ تحقق سريع من انتقال الحالة
+    if (updateData.status && updateData.status !== currentComplaint.status) {
+      if (!canTransition(currentComplaint.status as ComplaintStatusType, updateData.status)) {
+        throw Errors.badRequest("الانتقال بين الحالات غير مسموح");
+      }
     }
 
-    // Validate resolution notes
-    if (validated.status === ComplaintStatus.RESOLVED && !validated.resolutionNotes?.trim()) {
-      throw Errors.badRequest("مطلوب ملاحظات الحل عند الانتقال إلى resolved");
-    }
-
-    // Validate reopen reason
-    if (validated.status === ComplaintStatus.REOPENED && !validated.reopenReason?.trim()) {
-      throw Errors.badRequest("مطلوب سبب إعادة الفتح عند الانتقال إلى reopened");
-    }
-
-    const { id, ...updateData } = validated;
-
+    // ⚡ تحديث فوري في قاعدة البيانات
+    const now = new Date();
     const [updated] = await db
       .update(complaintsTable)
       .set({
         ...updateData,
-        updatedAt: new Date(),
-        lastActivityAt: new Date(),
+        updatedAt: now,
+        lastActivityAt: now,
       })
       .where(eq(complaintsTable.id, id))
       .returning();
 
     if (!updated) throw Errors.notFound("الشكوى");
 
-    // Parallelize dependent operations
-    await Promise.all([
-      updateData.tags ? TagService.setComplaintTags(id, updateData.tags) : Promise.resolve(),
-      ActivityService.logComplaintUpdated(id, actorId, Object.keys(updateData)),
-    ]);
+    // ⚡ عمليات خلفية فورية بدون انتظار
+    ComplaintService._fireAndForgetBackgroundTasks(id, updateData, actorId);
 
     return updated;
   }
+
+
 
   static async deleteComplaint(actorId: string, complaintId: string) {
     authorizeComplaints(actorId, AUDIT_LOG_ACTIONS.COMPLAINT.DELETE, "حذف الشكاوى");
     await ComplaintRepository.findByIdOrThrow(complaintId);
 
     await db.delete(complaintsTable).where(eq(complaintsTable.id, complaintId));
+    // ✅ التصحيح (حذف منطقي):
+    // await db.update(complaintsTable)
+    //   .set({
+    //     isActive: false,
+    //     deletedAt: new Date(),
+    //     deletedBy: actorId,
+    //     updatedAt: new Date()
+    //   })
+    //   .where(eq(complaintsTable.id, complaintId));
     await ActivityService.logComplaintDeleted(complaintId, actorId);
   }
 
@@ -477,9 +490,11 @@ export class ComplaintService {
     }
 
     const complaint = await ComplaintRepository.findByIdOrThrow(complaintId);
-
     if (!canTransition(complaint.status as ComplaintStatusType, ComplaintStatus.RESOLVED)) {
-      throw Errors.badRequest("لا يمكن الانتقال إلى resolved من الحالة الحالية");
+      throw Errors.badRequest(
+        `لا يمكن حل الشكوى من الحالة الحالية (${complaint.status}). ` +
+        `يجب ان تكون الشكوى في حالة ${ComplaintStatus.IN_PROGRESS}`,
+      );
     }
 
     const now = new Date();
@@ -496,11 +511,13 @@ export class ComplaintService {
         resolvedAt: now,
         resolutionNotes,
         actualResolutionTime: Math.round(resolutionTime),
-        updatedAt: new Date(),
-        lastActivityAt: new Date(),
+        updatedAt: now,
+        lastActivityAt: now,
       })
       .where(eq(complaintsTable.id, complaintId))
       .returning();
+
+    if (!updated) throw Errors.notFound("الشكوى");
 
     await ActivityService.logComplaintResolved(complaintId, actorId, resolutionNotes);
 
@@ -509,31 +526,33 @@ export class ComplaintService {
 
   static async closeComplaint(actorId: string, complaintId: string) {
     authorizeComplaints(actorId, AUDIT_LOG_ACTIONS.COMPLAINT.CLOSE, "إغلاق الشكاوى");
-
     const complaint = await ComplaintRepository.findByIdOrThrow(complaintId);
 
-    // إذا كانت الحالة الحالية هي "resolved"، نحتفظ بها
-    // إذا كانت غير محلولة، نحولها إلى "unresolved"
-    const finalStatus =
-      complaint.status === ComplaintStatus.RESOLVED ? ComplaintStatus.CLOSED : ComplaintStatus.UNRESOLVED;
-
-    if (!canTransition(complaint.status as ComplaintStatusType, finalStatus)) {
-      throw Errors.badRequest(`لا يمكن الانتقال إلى ${finalStatus} من الحالة الحالية`);
+    if (isFinalStatus(complaint.status as ComplaintStatusType)) {
+      throw Errors.badRequest("لا يمكن إغلاق الشكوى من الحالة الحالية. الشكوى محلولة أو مغلقة بالفعل");
     }
+
+    const now = new Date();
+    const finalStatus = isResolved(complaint.status as ComplaintStatusType)
+      ? ComplaintStatus.RESOLVED
+      : ComplaintStatus.UNRESOLVED;
 
     const [updated] = await db
       .update(complaintsTable)
       .set({
         status: finalStatus,
         closedBy: actorId,
-        closedAt: new Date(),
-        updatedAt: new Date(),
-        lastActivityAt: new Date(),
+        closedAt: now,
+        updatedAt: now,
+        lastActivityAt: now,
       })
       .where(eq(complaintsTable.id, complaintId))
       .returning();
 
+    if (!updated) throw Errors.notFound("الشكوى");
+
     await ActivityService.logComplaintClosed(complaintId, actorId);
+
     return updated;
   }
 
@@ -564,7 +583,7 @@ export class ComplaintService {
     return updated;
   }
 
-  static async escalateComplaint(actorId: string, complaintId: string, level: ComplaintEscalationLevel) {
+  static async escalateComplaint(actorId: string, complaintId: string, level: ComplaintEscalationLevelType) {
     // <-- ✅ تحديد نوع المعامل
     authorizeComplaints(actorId, AUDIT_LOG_ACTIONS.COMPLAINT.UPDATE, "تصعيد الشكاوى");
 
@@ -575,10 +594,10 @@ export class ComplaintService {
     }
 
     // ✅ تعريف مصفوفة من النوع الصحيح
-    const escalationLevels: ComplaintEscalationLevel[] = ["none", "level_1", "level_2", "level_3"];
+    const escalationLevels: ComplaintEscalationLevelType[] = ["none", "level_1", "level_2", "level_3"];
 
     // ✅ التحقق من أن القيمة من قاعدة البيانات صالحة
-    const currentLevel = complaint.escalationLevel as ComplaintEscalationLevel;
+    const currentLevel = complaint.escalationLevel as ComplaintEscalationLevelType;
     if (!escalationLevels.includes(currentLevel)) {
       throw new Error(`بيانات غير صالحة في قاعدة البيانات: مستوى تصعيد غير معروف (${currentLevel})`);
     }
@@ -612,7 +631,11 @@ export class ComplaintService {
     return updated;
   }
 
-  static async updateEscalationLevel(actorId: string, complaintId: string, level: ComplaintEscalationLevel) {
+  static async updateEscalationLevel(
+    actorId: string,
+    complaintId: string,
+    level: ComplaintEscalationLevelType,
+  ) {
     authorizeComplaints(actorId, AUDIT_LOG_ACTIONS.COMPLAINT.UPDATE, "تعديل مستوى التصعيد");
 
     const [updated] = await db
@@ -632,12 +655,24 @@ export class ComplaintService {
     return updated;
   }
 
+  static async getAssignableUsers() {
+    return await db
+      .select({
+        id: userTable.id,
+        name: userTable.name,
+        email: userTable.email,
+      })
+      .from(userTable)
+      .orderBy(asc(userTable.name));
+  }
+
   /* ----- Query Operations ----- */
   static async getComplaintById(complaintId: string): Promise<ComplaintWithUserDetails | null> {
     const complaint = await ComplaintRepository.findById(complaintId);
     if (!complaint) return null;
 
-    const [attachments, tags, usersMap] = await Promise.all([
+    // ✅ جلب جميع البيانات بشكل صحيح
+    const [attachments, tags, comments, activity, usersMap] = await Promise.all([
       AttachmentService.getAttachmentsForComplaint(complaintId),
       TagService.getTagsForComplaint(complaintId),
       CommentService.listComments(complaintId),
@@ -645,7 +680,15 @@ export class ComplaintService {
       ComplaintService._getComplaintUserMap(complaint),
     ]);
 
-    return ComplaintService._buildComplaintWithDetails(complaint, attachments, tags, usersMap);
+    // ✅ الآن قم بتمرير جميع البيانات إلى دالة البناء
+    return ComplaintService._buildComplaintWithDetails(
+      complaint,
+      attachments,
+      tags,
+      usersMap,
+      comments,
+      activity,
+    );
   }
 
   static async listComplaints(
@@ -656,7 +699,7 @@ export class ComplaintService {
     tags?: string[],
     pageSize: number = COMPLAINT_CONFIG.PAGE_SIZE,
     cursor?: string,
-    // includeArchived = false,
+    includeArchived = false,
   ): Promise<PaginatedResult<ComplaintSummary>> {
     // ✅ استخدام Repository Layer من ملفك
     const result = await ComplaintsRepo.listAdvanced({
@@ -667,6 +710,7 @@ export class ComplaintService {
       tagNames: tags,
       pageSize,
       cursor,
+      includeArchived,
     });
 
     // Bulk user lookup for all items
@@ -681,9 +725,9 @@ export class ComplaintService {
       assignedUserName: c.assignedTo ? usersMap.get(c.assignedTo)?.name || "" : "",
       submittedByUserName: usersMap.get(c.submittedBy)?.name || "",
       // ✅ إضافة الحقول المفقودة وتصحيح الأنواع
-      // isUrgent: false,
-      // hasAttachments: false,
-      // commentCount: 0,
+      isUrgent: false,
+      hasAttachments: false,
+      commentCount: 0,
     }));
 
     return {
@@ -799,34 +843,41 @@ export class ComplaintService {
 
     if (!complaint) return null;
 
-    // ✅ حساب وقت الاستجابة
+    // ✅ تحسين حساب وقت الاستجابة: الوقت حتى أول تعيين أو أول تعليق من فريق الدعم
     let responseTime = 0; // hours
-    if (complaint.resolvedAt) {
+    const firstAssignmentActivity = activity.find((a) => a.action === "complaint.assigned");
+    const firstSupportComment = comments.find((c) => c.authorId !== complaint.submittedBy);
+
+    if (firstAssignmentActivity) {
       responseTime = Math.max(
         0,
-        (new Date(complaint.resolvedAt).getTime() - new Date(complaint.createdAt).getTime()) /
-          (1000 * 60 * 60),
+        (new Date(firstAssignmentActivity.createdAt).getTime() - new Date(complaint.createdAt).getTime()) /
+        (1000 * 60 * 60),
       );
-    } else {
-      responseTime = Math.max(0, (Date.now() - new Date(complaint.createdAt).getTime()) / (1000 * 60 * 60));
+    } else if (firstSupportComment) {
+      responseTime = Math.max(
+        0,
+        (new Date(firstSupportComment.createdAt).getTime() - new Date(complaint.createdAt).getTime()) /
+        (1000 * 60 * 60),
+      );
     }
 
-    // ✅ حساب وقت الحل
+    // ✅ حساب وقت الحل: من الإنشاء إلى الحل الفعلي
     const resolutionTime = complaint.resolvedAt
       ? Math.max(
-          0,
-          (new Date(complaint.resolvedAt).getTime() - new Date(complaint.createdAt).getTime()) /
-            (1000 * 60 * 60),
-        )
+        0,
+        (new Date(complaint.resolvedAt).getTime() - new Date(complaint.createdAt).getTime()) /
+        (1000 * 60 * 60),
+      )
       : 0;
 
-    // ✅ حساب الوقت الكلي
+    // ✅ حساب الوقت الكلي: من الإنشاء إلى الإغلاق أو الوقت الحالي
     const totalTime = complaint.closedAt
       ? Math.max(
-          0,
-          (new Date(complaint.closedAt).getTime() - new Date(complaint.createdAt).getTime()) /
-            (1000 * 60 * 60),
-        )
+        0,
+        (new Date(complaint.closedAt).getTime() - new Date(complaint.createdAt).getTime()) /
+        (1000 * 60 * 60),
+      )
       : Math.max(0, (Date.now() - new Date(complaint.createdAt).getTime()) / (1000 * 60 * 60));
 
     // ✅ حساب متوسط التقييم
@@ -851,53 +902,26 @@ export class ComplaintService {
       satisfactionScore,
     };
 
-    // ✅ بناء الجدول الزمني
-    const timeline = [
-      {
-        status: complaint.status as ComplaintStatusType,
-        timestamp: complaint.createdAt,
-        notes: "تم إنشاء الشكوى",
-        actor: complaint.submittedBy,
-      },
-      ...(complaint.assignedTo
-        ? [
-            {
-              status: "in_progress" as ComplaintStatusType,
-              timestamp: complaint.lastActivityAt,
-              notes: "تم التعيين",
-              actor: complaint.assignedTo,
-            },
-          ]
-        : []),
-      ...(complaint.resolvedAt
-        ? [
-            {
-              status: "resolved" as ComplaintStatusType,
-              timestamp: complaint.resolvedAt,
-              notes: "تم الحل",
-              actor: complaint.resolvedBy,
-            },
-          ]
-        : []),
-      ...(complaint.closedAt
-        ? [
-            {
-              status: "closed" as ComplaintStatusType,
-              timestamp: complaint.closedAt,
-              notes: "تم الإغلاق",
-              actor: complaint.closedBy,
-            },
-          ]
-        : []),
-    ];
+    // ✅ جلب جميع المستخدمين من الشكوى والنشاط
+    const allUserIds = [
+      complaint.submittedBy,
+      complaint.assignedTo,
+      complaint.resolvedBy,
+      complaint.closedBy,
+      complaint.archivedBy,
+      // ✅ إضافة جميع المستخدمين من سجل النشاط أيضاً
+      ...(activity.map((a) => a.actorId).filter(Boolean) as string[]),
+      ...(comments.map((c) => c.authorId).filter(Boolean) as string[]), // أضفنا معرفات كتّاب التعليقات
+    ] as string[];
 
-    // ✅ إنشاء خريطة المستخدمين محليًا
-    const usersMap = await ComplaintService._getComplaintUserMap(complaint);
+    const usersMap = await ComplaintRepository.bulkGetUserInfo(allUserIds);
 
-    return {
-      complaint,
-      statistics,
-      activity: activity.map((a) => ({
+    // ✅ بناء الخط الزمني بالطريقة الجديدة
+    const timeline = ComplaintService._buildTimelineFromActivity(activity, usersMap, complaint.submittedBy);
+
+    // ✅ تحسين بيانات الأنشطة لتشمل التعليقات
+    const enhancedActivity = [
+      ...activity.map((a) => ({
         id: a.id,
         action: a.action,
         description: ActivityService.formatActivityDescription(a.action, a.meta as ActivityMeta),
@@ -912,49 +936,98 @@ export class ComplaintService {
                 ? "reassign"
                 : a.action.includes("escalated")
                   ? "escalate"
-                  : "update") as
-          | "update"
-          | "assign"
-          | "resolve"
-          | "close"
-          | "comment"
-          | "reassign"
-          | "escalate",
+                  : "update") as ComplaintActivityType,
         actorName: a.actorId ? usersMap.get(a.actorId)?.name || null : null,
       })),
+      // ✅ إضافة التعليقات كأنشطة
+      ...comments.map((c) => ({
+        id: c.id,
+        action: "comment.added",
+        description: c.body,
+        timestamp: c.createdAt,
+        type: "comment" as ComplaintActivityType,
+        actorName: c.authorId ? usersMap.get(c.authorId)?.name || null : null,
+      })),
+    ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()); // ترتيب من الأحدث إلى الأقدم
+
+    return {
+      complaint,
+      statistics,
+      activity: enhancedActivity, // استخدام الأنشطة المحسّنة
       timeline,
     };
   }
 
   /* ----- Private Helpers ----- */
+  private static _fireAndForgetBackgroundTasks(
+    complaintId: string,
+    updateData: Partial<UpdateComplaintInput>,
+    actorId: string
+  ): void {
+    // ⚡ تشغيل في الخلفية بدون انتظار
+    setImmediate(async () => {
+      try {
+        const tasks: Promise<unknown>[] = [];
+
+        // تحديث الـ tags إذا كانت متغيرة
+        if (updateData.tags !== undefined) {
+          tasks.push(TagService.setComplaintTags(complaintId, updateData.tags));
+        }
+
+        // تسجيل النشاط
+        const changedFields = Object.keys(updateData).filter(key =>
+          updateData[key as keyof typeof updateData] !== undefined
+        );
+
+        if (changedFields.length > 0) {
+          tasks.push(ActivityService.logComplaintUpdated(complaintId, actorId, changedFields));
+        }
+
+        // تنفيذ المهام بشكل متوازي مع timeout
+        if (tasks.length > 0) {
+          await Promise.race([
+            Promise.allSettled(tasks),
+            new Promise(resolve => setTimeout(resolve, 5000)) // timeout 5 ثواني
+          ]);
+        }
+      } catch {
+        // تجاهل كافة الأخطاء في العمليات الثانوية
+      }
+    });
+  }
   private static async _getComplaintUserMap(
     complaint: typeof complaintsTable.$inferSelect,
   ): Promise<UserInfoMap> {
     const userIds = [
       complaint.submittedBy,
+      complaint.closedBy,
       complaint.assignedTo,
       complaint.resolvedBy,
-      complaint.closedBy,
       complaint.archivedBy,
     ].filter((x): x is string => !!x);
 
-    return ComplaintRepository.bulkGetUserInfo(userIds);
-  }
+    // استدعاء الدالة التي تُرجع Map
+    const usersMap = await ComplaintRepository.bulkGetUserInfo(userIds);
 
+    // ✅ التأكد من إرجاع Map
+    return usersMap;
+  }
   private static _buildComplaintWithDetails(
     complaint: typeof complaintsTable.$inferSelect,
     attachments: (typeof attachmentsTable.$inferSelect)[],
     tags: string[],
     usersMap: UserInfoMap,
+    comments: (typeof commentsTable.$inferSelect)[], // ✅ إضافة
+    activity: (typeof activityTable.$inferSelect)[], // ✅ إضافة
   ): ComplaintWithUserDetails {
     return {
       id: complaint.id,
       title: complaint.title,
       description: complaint.description,
-      status: complaint.status as ComplaintStatusType, // ✅ محسّن
-      priority: complaint.priority as "low" | "medium" | "high" | "critical",
+      status: complaint.status as ComplaintStatusType,
+      priority: complaint.priority as ComplaintPriorityType,
       category: complaint.category,
-      assignedTo: complaint.assignedTo, // ✅ لا يمكن أن يكون null
+      assignedTo: complaint.assignedTo,
       submittedBy: complaint.submittedBy,
       attachments: attachments.map((a) => a.url),
       resolutionNotes: complaint.resolutionNotes ?? null,
@@ -963,16 +1036,10 @@ export class ComplaintService {
       closedAt: complaint.closedAt ?? null,
       closedBy: complaint.closedBy ?? null,
       lastActivityAt: complaint.lastActivityAt,
-      source: complaint.source as "web_form" | "email" | "phone" | "mobile_app" | "api",
       tags,
-      escalationLevel: complaint.escalationLevel as "none" | "level_1" | "level_2" | "level_3",
-      satisfactionRating: complaint.satisfactionRating as
-        | "very_dissatisfied"
-        | "dissatisfied"
-        | "neutral"
-        | "satisfied"
-        | "very_satisfied"
-        | null,
+      source: complaint.source as ComplaintSourceType,
+      escalationLevel: complaint.escalationLevel as ComplaintEscalationLevelType,
+      satisfactionRating: complaint.satisfactionRating as ComplaintSatisfactionRatingType,
       responseDueAt: complaint.responseDueAt ?? null,
       createdAt: complaint.createdAt,
       updatedAt: complaint.updatedAt,
@@ -980,8 +1047,8 @@ export class ComplaintService {
       isArchived: complaint.isArchived,
       archivedAt: complaint.archivedAt ?? null,
       archivedBy: complaint.archivedBy ?? null,
-      assignedUserName: usersMap.get(complaint.assignedTo)?.name || "", // ✅ لا يمكن أن يكون null
-      assignedUserEmail: usersMap.get(complaint.assignedTo)?.email || "", // ✅ لا يمكن أن يكون null
+      assignedUserName: complaint.assignedTo ? usersMap.get(complaint.assignedTo)?.name || "" : "",
+      assignedUserEmail: complaint.assignedTo ? usersMap.get(complaint.assignedTo)?.email || "" : "",
       submittedByUserName: usersMap.get(complaint.submittedBy)?.name || "",
       submittedByUserEmail: usersMap.get(complaint.submittedBy)?.email || "",
       // ✅ إضافات جديدة
@@ -991,13 +1058,14 @@ export class ComplaintService {
       isReopened: complaint.isReopened,
       reopenCount: complaint.reopenCount ?? 0,
       reopenReason: complaint.reopenReason ?? null,
+      // comments,
+      // activity,
     };
   }
-
-  // ✅ دالة جديدة مساعدة لبناء الخط الزمني
   private static _buildTimelineFromActivity(
     activity: (typeof activityTable.$inferSelect)[],
     usersMap: UserInfoMap,
+    submittedById: string, // ✅ تمرير معرف مقدم الشكوى
   ): Array<{
     status: ComplaintStatusType;
     timestamp: Date;
@@ -1011,6 +1079,20 @@ export class ComplaintService {
       actor: string | null;
     }> = [];
 
+    // 1. إضافة حدث الإنشاء الأولي دائمًا
+    const submitterName = usersMap.get(submittedById)?.name || "غير معروف";
+
+    // البحث عن نشاط الإنشاء
+    const createdActivity = activity.find((a) => a.action === "complaint.created");
+    const createdAt = createdActivity ? createdActivity.createdAt : new Date();
+
+    timeline.push({
+      status: "open",
+      timestamp: createdAt,
+      notes: "تم إنشاء الشكوى",
+      actor: submitterName,
+    });
+
     // ترتيب النشاط حسب الوقت
     const sortedActivity = activity.sort(
       (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
@@ -1020,7 +1102,7 @@ export class ComplaintService {
       let status: ComplaintStatusType | null = null;
       let notes = "";
       const actor = act.actorId ? usersMap.get(act.actorId)?.name || "غير معروف" : null;
-      const meta = act.meta as any;
+      const meta = act.meta as ActivityMeta;
 
       switch (act.action) {
         case "complaint.assigned":
@@ -1041,7 +1123,7 @@ export class ComplaintService {
           break;
         case "complaint.escalated": {
           status = "escalated";
-          const level = meta.level as string;
+          const level = meta?.level as string;
           const levelLabels: Record<string, string> = {
             level_1: "الأول",
             level_2: "الثاني",
@@ -1055,7 +1137,6 @@ export class ComplaintService {
       if (status) {
         timeline.push({
           status,
-          // ✅ استخدم createdAt بدلاً من timestamp
           timestamp: act.createdAt,
           notes,
           actor,
@@ -1086,16 +1167,13 @@ export const {
 export async function addComment(complaintId: string, authorId: string, body: string) {
   return await CommentService.addComment(complaintId, authorId, body);
 }
-
-// ✅ إضافات جديدة
 export async function reopenComplaint(actorId: string, complaintId: string, reason: string) {
   return await ComplaintService.reopenComplaint(actorId, complaintId, reason);
 }
-
 export async function escalateComplaint(
   actorId: string,
   complaintId: string,
-  level: ComplaintEscalationLevel,
+  level: ComplaintEscalationLevelType,
 ) {
   return await ComplaintService.escalateComplaint(actorId, complaintId, level);
 }

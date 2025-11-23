@@ -10,7 +10,7 @@ export const complaints = pgTable("complaints", {
   status: text("status").notNull().default("open"), // ✅ الافتراضي open
   priority: text("priority").notNull().default("medium"),
   category: text("category").notNull(),
-  assignedTo: text("assigned_to").notNull(), // ✅ مطلوب - لا يمكن أن يكون null
+  assignedTo: text("assigned_to"),
   submittedBy: text("submitted_by").notNull(),
   resolutionNotes: text("resolution_notes"),
   resolvedAt: timestamp("resolved_at", { withTimezone: true }), // ✅ بدون افتراضي
@@ -71,7 +71,7 @@ export const tags = pgTable("tags", {
 
 export const complaintTags = pgTable("complaint_tags", {
   complaintId: uuid("complaint_id")
-    .references(() => complaints.id)
+    .references(() => complaints.id, { onDelete: "cascade" })
     .notNull(),
   tagId: uuid("tag_id")
     .references(() => tags.id)

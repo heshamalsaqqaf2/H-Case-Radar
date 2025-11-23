@@ -40,28 +40,6 @@ import type { CreateComplaintInput } from "@/lib/complaints/types/type-complaint
 import { createComplaintSchema } from "@/lib/complaints/validators/complaint-validator";
 import { cn } from "@/lib/utils";
 
-// const localFormSchema = z.object({
-//   title: z.string().min(5, "يجب أن يحتوي العنوان على 5 أحرف على الأقل").max(255),
-//   description: z.string().min(10, "يجب أن تحتوي الوصف على 10 أحرف على الأقل"),
-//   category: z.string().min(1, "التصنيف مطلوب"),
-//   priority: z.enum(["low", "medium", "high", "critical"]).default("medium"),
-//   source: z.enum(["web_form", "email", "phone", "mobile_app", "api"]).default("web_form"),
-//   tags: z.array(z.string()).default([]),
-//   attachments: z.array(z.string()).default([]),
-//   assignedTo: z.string().min(1, "يجب تعيين مستخدم للشكوى"),
-//   escalationLevel: z.enum(["none", "level_1", "level_2", "level_3"]).default("none"),
-//   responseDueAt: z.date().optional(), // استخدام z.date بدلاً من z.coerce.date
-//   expectedResolutionDate: z.date().optional(), // استخدام z.date بدلاً من z.coerce.date
-//   isUrgent: z.boolean().default(false),
-// });
-
-// type FormDataType = Omit<CreateComplaintInput, "responseDueAt" | "expectedResolutionDate"> & {
-//   responseDueAt?: Date;
-//   expectedResolutionDate?: Date;
-// };
-
-// تعريف الخيارات
-
 const mockCategories = [
   { id: "technical", name: "فنية" },
   { id: "administrative", name: "إدارية" },
@@ -76,7 +54,6 @@ const priorityOptions = [
   { value: "high", label: "عالية" },
   { value: "critical", label: "حرجة" },
 ];
-
 const sourceOptions = [
   { value: "web_form", label: "نموذج الويب" },
   { value: "email", label: "البريد الإلكتروني" },
@@ -84,7 +61,6 @@ const sourceOptions = [
   { value: "mobile_app", label: "تطبيق الجوال" },
   { value: "api", label: "API" },
 ];
-
 const escalationOptions = [
   { value: "none", label: "بدون تصعيد" },
   { value: "level_1", label: "تصعيد إلى المستوى الأول" },
@@ -111,11 +87,11 @@ export function CreateComplaintDialog({ open, onOpenChange }: CreateComplaintDia
       category: "",
       priority: "low",
       source: "web_form",
-      tags: [],
-      attachments: [],
-      assignedTo: "",
-      escalationLevel: "none",
+      assignedTo: "", // optional
       isUrgent: false,
+      escalationLevel: "none",
+      tags: [],
+      attachments: [], // optional
     },
   });
 
@@ -150,11 +126,11 @@ export function CreateComplaintDialog({ open, onOpenChange }: CreateComplaintDia
   };
 
   const onSubmit = (values: z.infer<typeof createComplaintSchema>) => {
-    // تحويل البيانات إلى النوع المتوقع من الـ API (CreateComplaintInput)
+    // تحويل البيانات إلى النوع المتوقع من الـ (CreateComplaintInput)
     const submissionData: CreateComplaintInput = {
       ...values,
       tags: values.tags,
-      attachments: values.attachments,
+      attachments: values.attachments || [],
       responseDueAt: values.responseDueAt,
       expectedResolutionDate: values.expectedResolutionDate,
     };

@@ -1,5 +1,4 @@
 // components/complaints/complaint-detail.tsx
-/** biome-ignore-all lint/suspicious/noArrayIndexKey: <explanation> */
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
@@ -10,17 +9,40 @@ import {
   Calendar,
   Clock,
   Edit,
+  Edit2,
   FileText,
   MessageSquare,
   Paperclip,
+  PlusIcon,
+  SlashIcon,
   User,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { HeaderDashboardPage } from "@/components/admin/header-dashboard-page";
+import { DashboardError } from "@/components/dashboard/errors/error-state";
+import { EmotionalLoading } from "@/components/shared/loading-state";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,6 +51,9 @@ import {
   useComplaintDetail,
   useComplaintProfile,
 } from "@/lib/complaints/hooks/use-complaints";
+import { ComplaintStatus } from "@/lib/complaints/state/complaint-status";
+import { AppError } from "@/lib/errors/error-types";
+import { AssignComplaintDialog } from "./assign-complaint-dialog";
 import { ComplaintActions } from "./complaint-actions";
 import { ComplaintCommentForm } from "./complaint-comment-form";
 import { ComplaintTimeline } from "./complaint-timeline";
@@ -38,6 +63,7 @@ interface ComplaintDetailProps {
 }
 
 export function ComplaintDetail({ complaintId }: ComplaintDetailProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("details");
 
   const { data: complaintResult, isLoading, error } = useComplaintDetail(complaintId);
@@ -47,64 +73,164 @@ export function ComplaintDetail({ complaintId }: ComplaintDetailProps) {
   const complaint = complaintResult?.success ? complaintResult.data : null;
   const profile = profileResult?.success ? profileResult.data : null;
 
+  if (isLoading) return <EmotionalLoading />;
+
+  if (error)
+    return (
+      <DashboardError
+        title="تعذر تحميل بيانات الشكوى"
+        description="حدث خطأ في جلب بيانات الشكوى, يرجى المحاولة مرة اخرى"
+        error={
+          new AppError({
+            message: "حدث خطاء في جلب بيانات",
+            userMessage: "حدث خطاء في جلب بيانات الشكوى, يرجى المحاولة مرة اخرى",
+            code: "BAD_REQUEST",
+            originalError: error,
+            timestamp: Date.now(),
+          })
+        }
+        onAction={() => router.refresh()}
+      />
+    );
+
+  if (!complaint)
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <div className="text-2xl font-bold mb-4">لا يوجد بلاغ بهذا الرقم: {complaintId}</div>
+        <Link href="/admin/complaints">
+          <Button variant="outline">عودة للبلاغات</Button>
+        </Link>
+      </div>
+    );
+
   const handleAddComment = (body: string) => {
     addCommentMutation.mutate({ complaintId, body });
   };
 
-  if (isLoading) return <div>جاري التحميل...</div>;
-  if (error) return <div>حدث خطأ: {error instanceof Error ? error.message : "خطأ غير معروف"}</div>;
-  if (!complaint) return <div>الشكوى غير موجودة</div>;
-
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      open: { label: "مفتوحة", variant: "default" as const },
-      in_progress: { label: "قيد التنفيذ", variant: "secondary" as const },
-      resolved: { label: "تم الحل", variant: "default" as const },
-      closed: { label: "مغلقة", variant: "outline" as const },
-      unresolved: { label: "لم تحل", variant: "destructive" as const },
-      escalated: { label: "مُصعّدة", variant: "secondary" as const },
-      on_hold: { label: "معلقة", variant: "outline" as const },
-      reopened: { label: "أُعيد فتحها", variant: "secondary" as const },
+      open: { label: "مفتوحة", className: "bg-blue-500" as const },
+      in_progress: { label: "قيد التنفيذ", className: "bg-yellow-500" as const },
+      resolved: { label: "تم الحل", className: "bg-green-400" as const },
+      closed: { label: "مغلقة", className: "bg-rose-400" as const },
+      unresolved: { label: "لم تحل", className: "bg-red-400" as const },
+      escalated: { label: "مُصعّدة", className: "bg-violet-600" as const },
+      on_hold: { label: "معلقة", className: "bg-amber-600" as const },
+      reopened: { label: "أُعيد فتحها", className: "bg-emerald-500" as const },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig];
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    return <Badge className={config.className}>{config.label}</Badge>;
   };
 
   const getPriorityBadge = (priority: string) => {
     const priorityConfig = {
-      low: { label: "منخفضة", variant: "outline" as const },
-      medium: { label: "متوسطة", variant: "secondary" as const },
-      high: { label: "عالية", variant: "default" as const },
-      critical: { label: "حرجة", variant: "destructive" as const },
+      low: { label: "Low", className: "bg-blue-500" as const },
+      medium: { label: "Medium", className: "bg-yellow-500" as const },
+      high: { label: "High", className: "bg-rose-500" as const },
+      critical: { label: "Critical", className: "bg-red-600" as const },
     };
 
     const config = priorityConfig[priority as keyof typeof priorityConfig];
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    return <Badge className={config.className}>{config.label}</Badge>;
+  };
+
+  // ✅ دالة مساعدة لتنسيق الوقت مع التعامل مع القيم الفارغة
+  const formatHours = (hours: number | null | undefined): string => {
+    if (hours === null || hours === undefined) {
+      return "غير مطبق"; // أو "في انتظار الإجراء"
+    }
+    if (hours < 1) {
+      const minutes = Math.round(hours * 60);
+      return `${minutes} دقيقة`;
+    }
+    const h = Math.floor(hours);
+    const m = Math.round((hours - h) * 60);
+    return m > 0 ? `${h} ساعة و ${m} دقيقة` : `${h} ساعة`;
+  };
+
+  // ✅ دالة مساعدة لتنسيق التواريخ (الماضي والمستقبل) بشكل صحيح
+  const formatDateDistance = (date: string | Date | null | undefined): string => {
+    if (!date) return "غير محدد";
+    const dateObj = new Date(date);
+    const now = new Date();
+    const isFuture = dateObj > now;
+
+    const distance = formatDistanceToNow(dateObj, { locale: ar });
+
+    // إذا كان التاريخ في المستقبل، نستبدل "منذ" بكلمة مناسبة
+    if (isFuture) {
+      return distance.replace("منذ", "خلال");
+    }
+
+    // إذا كان التاريخ في الماضي، "منذ" صحيحة
+    return distance;
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/admin/complaints">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            العودة إلى القائمة
-          </Button>
-        </Link>
+    <div className="space-y-6 px-6">
+      {/* Headers page informations */}
+      <HeaderDashboardPage
+        title="تفاصيل معلومات البلاغ"
+        description="صفحة معلومات البلاغ, يمكنك من تعديل بيانات البلاغ هنا"
+        actions={
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/admin/dashboard" className="text-blue-500">
+                  الرئيسيــة
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator>
+                <SlashIcon />
+              </BreadcrumbSeparator>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/admin/complaints" className="text-blue-500">
+                  إدارة البلاغـــات
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{complaint.title}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        }
+      />
 
-        <div className="flex items-center gap-2">
+      {/* Status */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/complaints">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              العودة إلى القائمة
+            </Button>
+          </Link>
+
+          <div className="flex items-center gap-2">
+            {complaint.isUrgent && (
+              <Badge className="bg-red-500 text-white flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                عاجلة
+              </Badge>
+            )}
+            {getStatusBadge(complaint.status)}
+            {getPriorityBadge(complaint.priority)}
+          </div>
+        </div>
+
+        <div className="flex items-center">
           {complaint.isUrgent && (
-            <Badge variant="destructive" className="flex items-center gap-1">
-              <AlertTriangle className="h-3 w-3" />
-              عاجلة
-            </Badge>
+            <p className="text-red-500 bg-red-500/10 py-1 px-4 rounded text-sm flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              هذه الشكوى عاجلة, يرجى إبلاغ ضابط الإتصال المختص بها فورا.
+            </p>
           )}
-          {getStatusBadge(complaint.status)}
-          {getPriorityBadge(complaint.priority)}
         </div>
       </div>
 
+      {/* Information Content */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           <Card>
@@ -118,12 +244,19 @@ export function ComplaintDetail({ complaintId }: ComplaintDetailProps) {
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Link href={`/admin/complaints/${complaint.id}/edit`}>
-                    <Button variant="outline" size="sm">
-                      <Edit className="mr-2 h-4 w-4" />
-                      تعديل
+                  {complaint.status !== ComplaintStatus.CLOSED ? (
+                    <Link href={`/admin/complaints/${complaint.id}/edit`}>
+                      <Button variant="outline" size="sm">
+                        <Edit2 className="text-green-500 h-4 w-4" />
+                        تعديل البلاغ
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Button variant="outline" size="sm" disabled>
+                      <Edit2 className="text-green-500 h-4 w-4" />
+                      لا يمكن تعديل البلاغ المغلق
                     </Button>
-                  </Link>
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -140,7 +273,7 @@ export function ComplaintDetail({ complaintId }: ComplaintDetailProps) {
                   </h4>
                   <div className="space-y-2">
                     {complaint.attachments.map((attachment, index) => (
-                      <div key={index} className="flex items-center gap-2 p-2 border rounded">
+                      <div key={index.toString()} className="flex items-center gap-2 p-2 border rounded">
                         <FileText className="h-4 w-4" />
                         <span className="text-sm">{attachment}</span>
                       </div>
@@ -154,7 +287,7 @@ export function ComplaintDetail({ complaintId }: ComplaintDetailProps) {
                   <h4 className="text-sm font-medium mb-2">الوسوم</h4>
                   <div className="flex flex-wrap gap-2">
                     {complaint.tags.map((tag, index) => (
-                      <Badge key={index} variant="secondary">
+                      <Badge key={index.toString()} variant="secondary">
                         {tag}
                       </Badge>
                     ))}
@@ -210,25 +343,11 @@ export function ComplaintDetail({ complaintId }: ComplaintDetailProps) {
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">موعد الاستجابة</h4>
-                      <p>
-                        {complaint.responseDueAt
-                          ? formatDistanceToNow(new Date(complaint.responseDueAt), {
-                              addSuffix: true,
-                              locale: ar,
-                            })
-                          : "غير محدد"}
-                      </p>
+                      <p>{formatDateDistance(complaint.responseDueAt)}</p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">تاريخ الحل المتوقع</h4>
-                      <p>
-                        {complaint.expectedResolutionDate
-                          ? formatDistanceToNow(new Date(complaint.expectedResolutionDate), {
-                              addSuffix: true,
-                              locale: ar,
-                            })
-                          : "غير محدد"}
-                      </p>
+                      <p>{formatDateDistance(complaint.expectedResolutionDate)}</p>
                     </div>
                   </div>
 
@@ -242,6 +361,31 @@ export function ComplaintDetail({ complaintId }: ComplaintDetailProps) {
               </Card>
 
               {profile && (
+                // <Card>
+                //   <CardHeader>
+                //     <CardTitle>الإحصائيات</CardTitle>
+                //   </CardHeader>
+                //   <CardContent>
+                //     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                //       <div>
+                //         <h4 className="text-sm font-medium text-gray-500">وقت الاستجابة</h4>
+                //         <p>{profile.statistics.responseTime} ساعة</p>
+                //       </div>
+                //       <div>
+                //         <h4 className="text-sm font-medium text-gray-500">وقت الحل</h4>
+                //         <p>{profile.statistics.resolutionTime} ساعة</p>
+                //       </div>
+                //       <div>
+                //         <h4 className="text-sm font-medium text-gray-500">الوقت الكلي</h4>
+                //         <p>{profile.statistics.totalTime} ساعة</p>
+                //       </div>
+                //       <div>
+                //         <h4 className="text-sm font-medium text-gray-500">عدد مرات إعادة الفتح</h4>
+                //         <p>{profile.statistics.reopenCount}</p>
+                //       </div>
+                //     </div>
+                //   </CardContent>
+                // </Card>
                 <Card>
                   <CardHeader>
                     <CardTitle>الإحصائيات</CardTitle>
@@ -250,15 +394,15 @@ export function ComplaintDetail({ complaintId }: ComplaintDetailProps) {
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div>
                         <h4 className="text-sm font-medium text-gray-500">وقت الاستجابة</h4>
-                        <p>{profile.statistics.responseTime} ساعة</p>
+                        <p>{formatHours(profile.statistics.responseTime)}</p>
                       </div>
                       <div>
                         <h4 className="text-sm font-medium text-gray-500">وقت الحل</h4>
-                        <p>{profile.statistics.resolutionTime} ساعة</p>
+                        <p>{formatHours(profile.statistics.resolutionTime)}</p>
                       </div>
                       <div>
                         <h4 className="text-sm font-medium text-gray-500">الوقت الكلي</h4>
-                        <p>{profile.statistics.totalTime} ساعة</p>
+                        <p>{formatHours(profile.statistics.totalTime)}</p>
                       </div>
                       <div>
                         <h4 className="text-sm font-medium text-gray-500">عدد مرات إعادة الفتح</h4>
@@ -276,7 +420,7 @@ export function ComplaintDetail({ complaintId }: ComplaintDetailProps) {
                   <CardTitle>التعليقات</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className="h-[400px] pr-4">
+                  <ScrollArea className="h-[150px] pr-4">
                     {profile?.activity.filter((a) => a.type === "comment").length === 0 ? (
                       <p className="text-center text-gray-500 py-8">لا توجد تعليقات</p>
                     ) : (
@@ -304,7 +448,7 @@ export function ComplaintDetail({ complaintId }: ComplaintDetailProps) {
                                     })}
                                   </p>
                                 </div>
-                                <p className="text-sm">{comment.description}</p>
+                                <p className="text-sm whitespace-pre-wrap">{comment.description}</p>
                               </div>
                             </div>
                           ))}
@@ -337,7 +481,7 @@ export function ComplaintDetail({ complaintId }: ComplaintDetailProps) {
         </div>
 
         <div className="space-y-6">
-          <Card>
+          <Card className="w-full">
             <CardHeader>
               <CardTitle className="text-lg">المعلومات الأساسية</CardTitle>
             </CardHeader>
@@ -369,27 +513,49 @@ export function ComplaintDetail({ complaintId }: ComplaintDetailProps) {
               <div>
                 <h4 className="text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  المُعيّن إليه
+                  المعين إليه
                 </h4>
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src="" alt={complaint.assignedUserName} />
-                    <AvatarFallback>
-                      {complaint.assignedUserName
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{complaint.assignedUserName}</p>
-                    <p className="text-sm text-gray-500">{complaint.assignedUserEmail}</p>
+                {complaint.assignedTo ? (
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 ring-1 bg-emerald-500 ring-emerald-500">
+                      <AvatarImage src="" alt={complaint.assignedUserName} />
+                      <AvatarFallback>
+                        {complaint.assignedUserName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{complaint.assignedUserName}</p>
+                      <p className="text-sm text-gray-500">{complaint.assignedUserEmail}</p>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <Empty className="w-full">
+                    <EmptyHeader>
+                      <EmptyMedia>
+                        <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:size-12 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
+                          <Avatar>
+                            <AvatarImage src="https://github.com/evilrabbit.png" alt="@evilrabbit" />
+                            <AvatarFallback>ER</AvatarFallback>
+                          </Avatar>
+                        </div>
+                      </EmptyMedia>
+                      <EmptyTitle>لم يتم التعيين للبلاغ بعد</EmptyTitle>
+                      <EmptyDescription>
+                        يمكنك تعيين هذه الشكوى إلى أحد الموظفين من خلال النقر على زر "تعيين".
+                      </EmptyDescription>
+                    </EmptyHeader>
+                    <EmptyContent>
+                      <AssignComplaintDialog complaint={complaint} />
+                    </EmptyContent>
+                  </Empty>
+                )}
+
               </div>
 
               <Separator />
-
               <div>
                 <h4 className="text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
                   <Calendar className="h-4 w-4" />

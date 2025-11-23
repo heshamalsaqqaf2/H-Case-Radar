@@ -21,7 +21,7 @@ export type ComplaintActivityType =
   | "escalate";
 
 // Satisfaction Management
-export type ComplaintSatisfactionRating =
+export type ComplaintSatisfactionRatingType =
   | "very_dissatisfied"
   | "dissatisfied"
   | "neutral"
@@ -30,21 +30,23 @@ export type ComplaintSatisfactionRating =
   | null;
 
 // Priority Management
-export type ComplaintPriority = "low" | "medium" | "high" | "critical";
+export type ComplaintPriorityType = "low" | "medium" | "high" | "critical";
 // Source Management
-export type ComplaintSource = "web_form" | "email" | "phone" | "mobile_app" | "api";
+export type ComplaintSourceType = "web_form" | "email" | "phone" | "mobile_app" | "api";
 // Escalation Management
-export type ComplaintEscalationLevel = "none" | "level_1" | "level_2" | "level_3";
+export type ComplaintEscalationLevelType = "none" | "level_1" | "level_2" | "level_3";
 
-// TODO: Start OF Complaint Types
+// export type complaintComments;
+
+// Start OF Complaint Types
 export type ComplaintWithUserDetails = {
   id: string;
   title: string;
   description: string;
   status: ComplaintStatus;
-  priority: ComplaintPriority;
+  priority: ComplaintPriorityType;
   category: string;
-  assignedTo: string;
+  assignedTo: string | null;
   submittedBy: string;
   attachments: string[] | null;
   resolutionNotes: string | null;
@@ -53,10 +55,10 @@ export type ComplaintWithUserDetails = {
   closedAt: Date | null;
   closedBy: string | null;
   lastActivityAt: Date;
-  source: ComplaintSource;
+  source: ComplaintSourceType;
   tags: string[] | null;
-  escalationLevel: ComplaintEscalationLevel;
-  satisfactionRating: ComplaintSatisfactionRating;
+  escalationLevel: ComplaintEscalationLevelType;
+  satisfactionRating: ComplaintSatisfactionRatingType;
   responseDueAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -74,15 +76,17 @@ export type ComplaintWithUserDetails = {
   isReopened: boolean; // هل تمت إعادة فتحها؟
   reopenCount: number; // عدد مرات إعادة الفتح
   reopenReason: string | null; // سبب الإعادة الفتح
+  // comments: (typeof complaintsTable.$inferSelect)[];
+  // activity: (typeof activityTable.$inferSelect)[];
 };
 
 export type ComplaintSummary = {
   id: string;
   title: string;
   status: ComplaintStatus;
-  priority: ComplaintPriority;
+  priority: ComplaintPriorityType;
   category: string;
-  assignedTo: string;
+  assignedTo: string | null;
   submittedBy: string;
   createdAt: Date;
   lastActivityAt: Date;
@@ -145,9 +149,9 @@ export type CreateComplaintInput = {
   title: string;
   description: string;
   assignedTo: string;
-  priority: ComplaintPriority;
-  source?: ComplaintSource;
-  escalationLevel?: ComplaintEscalationLevel;
+  priority: ComplaintPriorityType;
+  source?: ComplaintSourceType;
+  escalationLevel?: ComplaintEscalationLevelType;
   category: string;
   isUrgent?: boolean;
   tags?: string[];
@@ -161,19 +165,23 @@ export type UpdateComplaintInput = {
   title?: string;
   description?: string;
   status?: ComplaintStatus;
-  priority?: ComplaintPriority;
+  priority?: ComplaintPriorityType;
   category?: string;
-  assignedTo?: string;
+  assignedTo?: string | null;
   resolutionNotes?: string;
   tags?: string[];
-  escalationLevel?: ComplaintEscalationLevel;
-  satisfactionRating?: ComplaintSatisfactionRating;
-  responseDueAt?: Date;
-  expectedResolutionDate?: Date;
+  escalationLevel?: ComplaintEscalationLevelType;
+  satisfactionRating?: ComplaintSatisfactionRatingType;
+  responseDueAt?: Date | null;
+  expectedResolutionDate?: Date | null;
   isUrgent?: boolean;
   reopenReason?: string;
   reopenCount?: number;
   isReopened?: boolean;
   resolvedAt?: Date | null;
   resolvedBy?: string | null;
+  closedAt?: Date | null;
+  closedBy?: string | null;
+  source?: ComplaintSourceType;
+  attachments?: string[];
 };

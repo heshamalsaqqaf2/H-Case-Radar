@@ -78,7 +78,7 @@ export function ComplaintsTable({ complaints, isLoading, error }: ComplaintsTabl
       resolved: { label: "تم الحل", variant: "default" as const },
       closed: { label: "مغلقة", variant: "outline" as const },
       unresolved: { label: "لم تحل", variant: "destructive" as const },
-      escalated: { label: "مُصعّدة", variant: "secondary" as const },
+      escalated: { label: "مصعدة", variant: "secondary" as const },
       on_hold: { label: "معلقة", variant: "outline" as const },
       reopened: { label: "أُعيد فتحها", variant: "secondary" as const },
     };
@@ -118,10 +118,10 @@ export function ComplaintsTable({ complaints, isLoading, error }: ComplaintsTabl
               </Button>
             </TableHead>
             <TableHead>الحالة</TableHead>
+            <TableHead>التصنيف</TableHead>
             <TableHead>الأولوية</TableHead>
-            <TableHead>الفئة</TableHead>
-            <TableHead>المُعيّن إليه</TableHead>
-            <TableHead>المُقدم</TableHead>
+            <TableHead>ضابط الاتصال</TableHead>
+            <TableHead>منشئ البلاغ</TableHead>
             <TableHead>
               <Button
                 variant="ghost"
@@ -133,7 +133,7 @@ export function ComplaintsTable({ complaints, isLoading, error }: ComplaintsTabl
               </Button>
             </TableHead>
             <TableHead>آخر نشاط</TableHead>
-            <TableHead className="text-left">الإجراءات</TableHead>
+            <TableHead>الإجراءات</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -160,14 +160,14 @@ export function ComplaintsTable({ complaints, isLoading, error }: ComplaintsTabl
                         className="h-4 w-4 rounded bg-blue-100 text-blue-600 text-xs flex items-center justify-center"
                         title="يوجد مرفقات"
                       >
-                        📎
+
                       </div>
                     )}
                   </div>
                 </TableCell>
                 <TableCell>{getStatusBadge(complaint.status)}</TableCell>
-                <TableCell>{getPriorityBadge(complaint.priority)}</TableCell>
                 <TableCell>{complaint.category}</TableCell>
+                <TableCell>{getPriorityBadge(complaint.priority)}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-6 w-6">

@@ -6,7 +6,7 @@ import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actio
 import { createAuditLog } from "@/lib/authorization/services/admin/audit-log-service";
 import { authorizationService } from "@/lib/authorization/services/core/authorization-service";
 import { addComment, ComplaintService } from "@/lib/complaints/services/complaints-service";
-import type { ComplaintEscalationLevel } from "@/lib/complaints/types/type-complaints";
+import type { ComplaintEscalationLevelType } from "@/lib/complaints/types/type-complaints";
 import {
   createComplaintSchema,
   updateComplaintSchema,
@@ -69,8 +69,14 @@ export async function updateComplaintAction(input: UpdateComplaintInput) {
     );
     if (!permissionCheck.allowed) throw Errors.forbidden("تحديث الشكاوى");
 
-    const updated = await ComplaintService.updateComplaint(userId, validated);
+    // get complaint before update
+    const complaintBeforeUpdate = await ComplaintService.getComplaintById(validated.id);
+    if (complaintBeforeUpdate?.status === "closed") throw Errors.badRequest("الشكاوى مغلقة");
 
+
+    // Update complaint
+    const updated = await ComplaintService.updateComplaint(userId, validated);
+    // Create audit log
     await createAuditLog(AUDIT_LOG_ACTIONS.COMPLAINT.UPDATE, "complaint", updated.id, {
       changedFields: Object.keys(validated).filter((k) => k !== "id"),
       id: updated.id,
@@ -131,7 +137,7 @@ export async function resolveComplaintAction(input: { complaintId: string; resol
     const updated = await ComplaintService.resolveComplaint(
       userId,
       input.complaintId,
-      input.resolutionNotes || "",
+      input.resolutionNotes || "تم حل البلاغ بنجاح.",
     );
 
     await createAuditLog(AUDIT_LOG_ACTIONS.COMPLAINT.RESOLVE, "complaint", input.complaintId, {
@@ -144,6 +150,15 @@ export async function resolveComplaintAction(input: { complaintId: string; resol
     revalidatePath(`/admin/complaints/${input.complaintId}`);
     return handleSuccess({ message: "تم حل الشكوى بنجاح", data: updated });
   } catch (error) {
+    // === DEBUGGING CODE - أضف هذا الجزء ===
+    console.error("=== RAW ERROR IN resolveComplaintAction ===");
+    console.error(error);
+    if (error instanceof Error) {
+      console.error("Error Message:", error.message);
+      console.error("Error Stack:", error.stack);
+    }
+    console.error("=== END RAW ERROR ===");
+    // === END DEBUGGING CODE ===
     return handleFailure(error);
   }
 }
@@ -172,7 +187,7 @@ export async function closeComplaintAction(input: { complaintId: string }) {
     return handleSuccess({ message: "تم إغلاق الشكوى بنجاح", data: updated });
   } catch (error) {
     // === DEBUGGING CODE - أضف هذا الجزء ===
-    console.error("=== RAW ERROR IN reopenComplaintAction ===");
+    console.error("=== RAW ERROR IN closeComplaintAction ===");
     console.error(error);
     if (error instanceof Error) {
       console.error("Error Message:", error.message);
@@ -225,7 +240,7 @@ export async function reopenComplaintAction(input: { complaintId: string; reason
 // ─── Escalate ───
 export async function escalateComplaintAction(input: {
   complaintId: string;
-  level: ComplaintEscalationLevel;
+  level: ComplaintEscalationLevelType;
 }) {
   try {
     const userId = await getCurrentUserId();
@@ -263,7 +278,7 @@ export async function escalateComplaintAction(input: {
 // ─── Update Escalation Level ───
 export async function updateEscalationLevelComplaintAction(input: {
   complaintId: string;
-  level: ComplaintEscalationLevel;
+  level: ComplaintEscalationLevelType;
 }) {
   try {
     const userId = await getCurrentUserId();
@@ -310,6 +325,15 @@ export async function deleteComplaintAction(input: { id: string }) {
     revalidatePath("/admin/complaints");
     return handleSuccess({ message: "تم حذف الشكوى بنجاح" });
   } catch (error) {
+    // === DEBUGGING CODE - أضف هذا الجزء ===
+    console.error("=== RAW ERROR IN deleteComplaintAction ===");
+    console.error(error);
+    if (error instanceof Error) {
+      console.error("Error Message:", error.message);
+      console.error("Error Stack:", error.stack);
+    }
+    console.error("=== END RAW ERROR ===");
+    // === END DEBUGGING CODE ===
     return handleFailure(error);
   }
 }
@@ -338,13 +362,11 @@ export async function getAllComplaintsAction(
       priority,
       category,
       tags,
-      true,
       pageSize,
       cursor,
     );
     return handleSuccess(result);
   } catch (error) {
-    // === DEBUGGING CODE - أضف هذا الجزء ===
     console.error("=== RAW ERROR IN getAllComplaintsAction ===");
     console.error(error);
     if (error instanceof Error) {
@@ -352,7 +374,6 @@ export async function getAllComplaintsAction(
       console.error("Error Stack:", error.stack);
     }
     console.error("=== END RAW ERROR ===");
-    // === END DEBUGGING CODE ===
     return handleFailure(error);
   }
 }
@@ -432,3 +453,26 @@ export async function addCommentAction(input: { complaintId: string; body: strin
     return handleFailure(error);
   }
 }
+
+// ─── Get Assignable Users ───
+export async function getAssignableUsersAction() {
+  try {
+    const userId = await getCurrentUserId();
+
+    // Check permission: either ASSIGN or USER.VIEW
+    const [assignCheck, viewCheck] = await Promise.all([
+      authorizationService.checkPermission({ userId }, AUDIT_LOG_ACTIONS.COMPLAINT.ASSIGN),
+      authorizationService.checkPermission({ userId }, AUDIT_LOG_ACTIONS.USER.VIEW),
+    ]);
+
+    if (!assignCheck.allowed && !viewCheck.allowed) {
+      throw Errors.forbidden("عرض المستخدمين");
+    }
+
+    const users = await ComplaintService.getAssignableUsers();
+    return handleSuccess(users);
+  } catch (error) {
+    return handleFailure(error);
+  }
+}
+

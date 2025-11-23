@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { LoadingState, PageHeader } from "@/components/shared/loading-state";
+import { HeaderDashboardPage } from "@/components/admin/header-dashboard-page";
+import { LoadingState } from "@/components/shared/loading-state";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getCurrentUserId } from "@/lib/authentication/session";
 import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actions";
@@ -44,13 +45,16 @@ export default async function ComplaintsPage() {
   const statsResult = await getComplaintStatsAction();
 
   return (
-    <div className="space-y-6 p-6">
-      <PageHeader title="إدارة الشكاوى" description="عرض وإدارة جميع الشكاوى في النظام" />
+    <div className="space-y-6 px-5">
+      <HeaderDashboardPage
+        title="إدارة الشكاوى"
+        description="عرض وإدارة جميع الشكاوى في النظام للمستفيدين"
+      />
 
       <Tabs defaultValue="dashboard" className="space-y-4">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="dashboard">لوحة التحكم</TabsTrigger>
-          <TabsTrigger value="list">قائمة الشكاوى</TabsTrigger>
+          <TabsTrigger value="dashboard">لوحة إحصائيات البلاغات</TabsTrigger>
+          <TabsTrigger value="list">قائمة البلاغات</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-4">

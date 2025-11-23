@@ -169,11 +169,47 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* @apply direction: rtl, */
   }
 }
-/* TODO: ********** Start Library CSS ********** */
-/* Animate Switch Toggle Theme */
+
+html[dir="rtl"] * {
+  direction: rtl;
+}
+
+@layer utilities {
+  .animate-scale {
+    animation: scale 1.5s ease-in-out infinite;
+  }
+  
+  .animate-slide {
+    animation: slide 2s ease-in-out infinite;
+  }
+}
+
+@keyframes scale {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes slide {
+  0% {
+    transform: translateX(-100%);
+    width: 0%;
+  }
+  50% {
+    transform: translateX(0%);
+    width: 100%;
+  }
+  100% {
+    transform: translateX(100%);
+    width: 0%;
+  }
+}
+/* ********** Start Library CSS ********** */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;

@@ -1,4 +1,4 @@
-import { CreateComplaintForm } from "../components/forms/create-complaint-form";
+import { CreateComplaintDialog } from "../components/create-complaint-dialog";
 
 export default function NewComplaintPage() {
   return (
@@ -10,7 +10,12 @@ export default function NewComplaintPage() {
         </div>
       </div>
 
-      <CreateComplaintForm />
+      <CreateComplaintDialog
+        open={false}
+        onOpenChange={(): void => {
+          throw new Error("Function not implemented.");
+        }}
+      />
     </div>
   );
 }

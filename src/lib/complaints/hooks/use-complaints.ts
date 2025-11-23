@@ -10,6 +10,7 @@ import {
   deleteComplaintAction,
   escalateComplaintAction,
   getAllComplaintsAction,
+  getAssignableUsersAction,
   getComplaintByIdAction,
   getComplaintProfileDataAction,
   getComplaintStatsAction,
@@ -19,7 +20,7 @@ import {
   updateEscalationLevelComplaintAction,
 } from "@/lib/complaints/actions/complaints-actions";
 import type {
-  ComplaintEscalationLevel,
+  ComplaintEscalationLevelType,
   CreateComplaintInput,
   UpdateComplaintInput,
 } from "@/lib/complaints/types/type-complaints";
@@ -75,6 +76,14 @@ const complaintDetailOptions = (complaintId: string) =>
     retry: 1,
   });
 
+const assignableUsersOptions = queryOptions({
+  queryKey: ["complaints", "assignable-users"],
+  queryFn: () => getAssignableUsersAction(),
+  staleTime: 5 * 60 * 1000,
+  gcTime: 10 * 60 * 1000,
+  refetchOnWindowFocus: false,
+});
+
 // Hooks: Queries
 export function useComplaintsList(
   search?: string,
@@ -98,6 +107,10 @@ export function useComplaintProfile(complaintId: string) {
 
 export function useComplaintDetail(complaintId: string) {
   return useQuery(complaintDetailOptions(complaintId));
+}
+
+export function useAssignableUsers() {
+  return useQuery(assignableUsersOptions);
 }
 
 // Hooks: Mutations — using your useAdminMutation wrapper that integrates server Actions
@@ -195,7 +208,7 @@ export function useReopenComplaint() {
 }
 
 export function useEscalateComplaint() {
-  return useAdminMutation<{ complaintId: string; level: ComplaintEscalationLevel }>({
+  return useAdminMutation<{ complaintId: string; level: ComplaintEscalationLevelType }>({
     mutationFn: escalateComplaintAction,
     invalidateKeys: [
       ["complaints", "list"],
@@ -207,8 +220,9 @@ export function useEscalateComplaint() {
     errorMessage: "خطأ في تصعيد الشكوى",
   });
 }
+
 export function useupdateEscalationComplaintLevel() {
-  return useAdminMutation<{ complaintId: string; level: ComplaintEscalationLevel }>({
+  return useAdminMutation<{ complaintId: string; level: ComplaintEscalationLevelType }>({
     mutationFn: updateEscalationLevelComplaintAction,
     invalidateKeys: [
       ["complaints", "list"],

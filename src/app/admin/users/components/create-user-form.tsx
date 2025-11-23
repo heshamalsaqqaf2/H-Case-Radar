@@ -2,7 +2,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AtSign, Loader2, Lock, Mail, Shield, UserPlus } from "lucide-react";
+import { AtSign, Info, Loader2, Lock, Mail, Shield, ShieldUserIcon, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import { useRolesList } from "@/lib/authorization/hooks/admin/use-roles";
 import { useCreateUser } from "@/lib/authorization/hooks/admin/use-users";
 import type { Role } from "@/lib/authorization/types/roles";
@@ -137,14 +138,16 @@ export function CreateUserForm() {
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* الاسم الكامل */}
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>الاسم الكامل *</FormLabel>
+                  <FormLabel className="text-sm font-medium">
+                    الاسم الكامل <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -163,7 +166,9 @@ export function CreateUserForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>البريد الإلكتروني النظامي *</FormLabel>
+                  <FormLabel className="text-sm font-medium">
+                    البريد الإلكتروني النظامي <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <div className="flex gap-2">
                       <div className="relative flex-1">
@@ -186,7 +191,12 @@ export function CreateUserForm() {
                       </Button>
                     </div>
                   </FormControl>
-                  <FormDescription>بريد إلكتروني خاص بالنظام للتسجيل والدخول</FormDescription>
+                  <FormDescription>
+                    <p className="flex items-center justify-end text-xs text-muted-foreground">
+                      بريد إلكتروني خاص بالنظام للتسجيل والدخول
+                      <Info className="text-red-500 ml-2 mr-2 h-4 w-4" />
+                    </p>
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -198,7 +208,9 @@ export function CreateUserForm() {
               name="personalEmail"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>البريد الإلكتروني الشخصي *</FormLabel>
+                  <FormLabel className="text-sm font-medium">
+                    البريد الإلكتروني الشخصي <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Mail className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -211,7 +223,12 @@ export function CreateUserForm() {
                       />
                     </div>
                   </FormControl>
-                  <FormDescription>سيتم إرسال بيانات الحساب ومعلومات التسجيل إلى هذا البريد</FormDescription>
+                  <FormDescription>
+                    <p className="flex items-center justify-end text-xs text-muted-foreground">
+                      سيتم إرسال بيانات الحساب ومعلومات التسجيل إلى هذا البريد
+                      <Info className="text-red-500 ml-2 mr-2 h-4 w-4" />
+                    </p>
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -223,7 +240,9 @@ export function CreateUserForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>كلمة المرور *</FormLabel>
+                  <FormLabel className="text-sm font-medium">
+                    كلمة المرور <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <div className="flex gap-2">
                       <div className="relative flex-1">
@@ -247,99 +266,114 @@ export function CreateUserForm() {
                     </div>
                   </FormControl>
                   <FormDescription>
-                    استخدم كلمة مرور قوية أو اضغط على توليد لإنشاء واحدة تلقائياً
+                    <p className="flex items-center justify-end text-xs text-muted-foreground">
+                      استخدم كلمة مرور قوية أو اضغط على توليد لإنشاء واحدة تلقائياً
+                      <Info className="text-red-500 ml-2 mr-2 h-4 w-4" />
+                    </p>
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* الأدوار */}
-            <FormField
-              control={form.control}
-              name="roleIds"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
-                    الأدوار *
-                  </FormLabel>
-                  <Select
-                    onValueChange={addRole}
-                    value=""
-                    disabled={createUserMutation.isPending || isLoadingRoles}
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={isLoadingRoles ? "جاري تحميل الأدوار..." : "اختر أدوار للمستخدم"}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {roles.map((role: Role) => (
-                        <SelectItem key={role.id} value={role.id}>
-                          <div className="flex flex-col">
-                            <span>{role.name}</span>
-                            {role.description && (
-                              <span className="text-xs text-muted-foreground">{role.description}</span>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            <div className="flex justify-between items-center gap-5 mt-9">
+              <div className="w-1/2">
+                {/* الأدوار */}
+                <FormField
+                  control={form.control}
+                  name="roleIds"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium flex items-center gap-2">
+                        <Shield className="h-4 w-4" />
+                        الأدوار <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <Select
+                        onValueChange={addRole}
+                        value=""
+                        disabled={createUserMutation.isPending || isLoadingRoles}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue
+                            placeholder={isLoadingRoles ? "جاري تحميل الأدوار..." : "اختر أدوار للمستخدم"}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {roles.map((role: Role) => (
+                            <SelectItem key={role.id} value={role.id}>
+                              <div className="flex flex-col">
+                                <span>{role.name}</span>
+                                {role.description && (
+                                  <span className="text-xs text-muted-foreground">{role.description}</span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                  {/* عرض الأدوار المختارة */}
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {field.value.map((roleId: string) => {
-                      const role = roles.find((r: Role) => r.id === roleId);
-                      return role ? (
-                        <Badge key={roleId} variant="secondary" className="flex items-center gap-1">
-                          {role.name}
-                          <button
-                            type="button"
-                            onClick={() => removeRole(roleId)}
-                            className="hover:text-destructive text-xs"
-                            disabled={createUserMutation.isPending}
-                          >
-                            ×
-                          </button>
-                        </Badge>
-                      ) : null;
-                    })}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* حالة الحساب */}
-            <FormField
-              control={form.control}
-              name="accountStatus"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>حالة الحساب</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="حالة الحساب" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">قيد التحقق</SelectItem>
-                      <SelectItem value="active">مقبول</SelectItem>
-                      <SelectItem value="rejected">مرفوض</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      {/* عرض الأدوار المختارة */}
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {field.value.map((roleId: string) => {
+                          const role = roles.find((r: Role) => r.id === roleId);
+                          return role ? (
+                            <Badge key={roleId} variant="secondary" className="flex items-center gap-1">
+                              {role.name}
+                              <button
+                                type="button"
+                                onClick={() => removeRole(roleId)}
+                                className="hover:text-destructive text-xs"
+                                disabled={createUserMutation.isPending}
+                              >
+                                ×
+                              </button>
+                            </Badge>
+                          ) : null;
+                        })}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="w-1/2">
+                {/* حالة الحساب */}
+                <FormField
+                  control={form.control}
+                  name="accountStatus"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium flex items-center gap-2">
+                        <ShieldUserIcon className="h-4 w-4" />
+                        حالة الحساب
+                      </FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="حالة الحساب" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">قيد التحقق</SelectItem>
+                          <SelectItem value="active">مقبول</SelectItem>
+                          <SelectItem value="rejected">مرفوض</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {/* get accountStatus */}
+                        {field.value && <Badge variant="secondary">{field.value}</Badge>}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
             {/* إرسال بريد الترحيب */}
             <FormField
               control={form.control}
               name="sendCredentialsEmail"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-emerald-500 border-dashed p-4">
                   <FormControl>
                     <Checkbox
                       checked={field.value}
@@ -347,10 +381,11 @@ export function CreateUserForm() {
                       disabled={createUserMutation.isPending}
                     />
                   </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>إرسال بريد ترحيب</FormLabel>
+                  <div className="space-y-1 flex flex-col gap-2 leading-none">
+                    <FormLabel>إرسال بيانات الإعتماد</FormLabel>
                     <FormDescription>
-                      إرسال كلمة المرور ومعلومات الحساب عبر البريد الإلكتروني الشخصي للمستخدم الجديد
+                      هل تريد إرسال معلومات الإعتماد: إيميل المستخدم وكلمة المرور عبر البريد الإلكتروني الشخصي
+                      لهذا المستخدم الذي تقوم بإنشائه؟
                     </FormDescription>
                   </div>
                 </FormItem>
@@ -360,22 +395,14 @@ export function CreateUserForm() {
             {/* أزرار الإجراء */}
             <div className="flex justify-end gap-2 pt-4 border-t">
               <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-                disabled={createUserMutation.isPending}
-              >
-                إلغاء
-              </Button>
-              <Button
                 type="submit"
                 disabled={createUserMutation.isPending || !form.formState.isValid}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 bg-primary"
               >
                 {createUserMutation.isPending ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    جاري الإنشاء...
+                    <Spinner className="h-4 w-4" />
+                    جاري إنشاء الحساب
                   </>
                 ) : (
                   <>
@@ -383,6 +410,14 @@ export function CreateUserForm() {
                     إنشاء المستخدم
                   </>
                 )}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+                disabled={createUserMutation.isPending}
+              >
+                إلغاء
               </Button>
             </div>
           </form>

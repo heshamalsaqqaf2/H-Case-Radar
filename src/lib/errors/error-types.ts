@@ -16,14 +16,14 @@ export interface AppErrorMetadata {
   code: ErrorCode;
   message: string;
   userMessage: string;
-  originalError?: unknown;
+  originalError?: unknown | string;
   timestamp: number;
 }
 
 export class AppError extends Error {
   public readonly code: ErrorCode;
   public readonly userMessage: string;
-  public readonly originalError?: unknown;
+  public readonly originalError?: unknown | string;
   public readonly timestamp: number;
 
   constructor(metadata: AppErrorMetadata) {

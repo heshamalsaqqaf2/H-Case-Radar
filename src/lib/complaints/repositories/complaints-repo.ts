@@ -129,9 +129,10 @@ export const ComplaintsRepo = {
       tagNames?: string[]; // filter by tag names (AND)
       pageSize?: number;
       cursor?: string; // keyset cursor
+      includeArchived?: boolean;
     } = {},
   ) {
-    const { search, status, priority, category, tagNames, pageSize = 20, cursor } = params;
+    const { search, status, priority, category, tagNames, pageSize = 10, cursor, includeArchived } = params;
 
     const decoded = decodeCursor(cursor);
     const conditions: SQL[] = [];
@@ -162,6 +163,11 @@ export const ComplaintsRepo = {
     // Category filter
     if (category) {
       conditions.push(eq(complaints.category, category));
+    }
+
+    // Archived filter
+    if (!includeArchived) {
+      conditions.push(eq(complaints.isArchived, false)); // أو isNull(complaints.archivedAt) حسب بنية جدولك
     }
 
     // Cursor pagination filter
@@ -291,134 +297,3 @@ export type ComplaintCreateInput = typeof complaints.$inferInsert;
 export type ComplaintUpdateInput = Partial<typeof complaints.$inferInsert>;
 export type ComplaintListParams = Parameters<typeof ComplaintsRepo.listAdvanced>[0];
 export type ComplaintListResult = Awaited<ReturnType<typeof ComplaintsRepo.listAdvanced>>;
-
-// export const ComplaintsRepo = {
-//   async create(values: any) {
-//     const now = new Date();
-//     const [row] = await db
-//       .insert(complaints)
-//       .values({ ...values, createdAt: now, updatedAt: now, lastActivityAt: now })
-//       .returning();
-//     return row;
-//   },
-
-//   async update(id: string, patch: any) {
-//     const now = new Date();
-//     const [row] = await db
-//       .update(complaints)
-//       .set({ ...patch, updatedAt: now, lastActivityAt: now })
-//       .where(eq(complaints.id, id))
-//       .returning();
-//     return row;
-//   },
-
-//   async delete(id: string) {
-//     const [row] = await db.delete(complaints).where(eq(complaints.id, id)).returning();
-//     return row;
-//   },
-
-//   async findById(id: string) {
-//     const rows = await db.select().from(complaints).where(eq(complaints.id, id)).limit(1);
-//     return rows[0] ?? null;
-//   },
-
-//   async listAdvanced(
-//     params: {
-//       search?: string;
-//       status?: string;
-//       priority?: string;
-//       category?: string;
-//       tagNames?: string[]; // filter by tag names (AND)
-//       pageSize?: number;
-//       cursor?: string; // keyset cursor
-//     } = {},
-//   ) {
-//     const { search, status, priority, category, tagNames, pageSize = 20, cursor } = params;
-//     const decoded = decodeCursor(cursor);
-
-//     // Base filters
-//     const conditions: any[] = [];
-
-//     if (search) {
-//       const like = `%${search}%`;
-//       conditions.push(or(ilike(complaints.title, like), ilike(complaints.description, like)));
-//     }
-//     if (status) conditions.push(eq(complaints.status, status));
-//     if (priority) conditions.push(eq(complaints.priority, priority));
-//     if (category) conditions.push(eq(complaints.category, category));
-
-//     // Keyset: createdAt < cursor.createdAt OR (createdAt = cursor.createdAt AND id < cursor.id)
-//     if (decoded) {
-//       const cursorDate = new Date(decoded.createdAt);
-//       conditions.push(
-//         or(
-//           sql`${complaints.createdAt} < ${cursorDate}`,
-//           and(sql`${complaints.createdAt} = ${cursorDate}`, sql`${complaints.id} < ${decoded.id}`),
-//         ),
-//       );
-//     }
-
-//     // Build main query selecting complaint fields
-//     let q = db
-//       .select({
-//         id: complaints.id,
-//         title: complaints.title,
-//         status: complaints.status,
-//         priority: complaints.priority,
-//         category: complaints.category,
-//         assignedTo: complaints.assignedTo,
-//         submittedBy: complaints.submittedBy,
-//         createdAt: complaints.createdAt,
-//         lastActivityAt: complaints.lastActivityAt,
-//       })
-//       .from(complaints)
-//       .orderBy(desc(complaints.createdAt), desc(complaints.id))
-//       .limit(pageSize + 1); // fetch one more to determine hasNext
-
-//     if (conditions.length > 0) {
-//       q = q.where(and(...conditions));
-//     }
-
-//     // If tagNames filter present, join with tags via complaint_tags and filter complaints that have ALL tagNames
-//     // Simpler approach: filter complaints that have at least these tags (AND can be implemented with groupBy/having)
-//     if (tagNames && tagNames.length > 0) {
-//       // Subquery: complaints that have all tag ids
-//       // We'll select complaint ids that have count of matching distinct tag names == tagNames.length
-//       const tagList = tagNames.map((t) => t.toLowerCase());
-//       const sub = db
-//         .select({ complaintId: sql`ct.complaint_id` })
-//         .from(sql`complaint_tags ct JOIN tags t ON t.id = ct.tag_id`)
-//         .where(
-//           sql`lower(t.name) IN (${sql.join(
-//             tagList.map((_) => sql`?`),
-//             ",",
-//           )})`,
-//           ...tagList,
-//         )
-//         .groupBy(sql`ct.complaint_id`)
-//         .having(sql`count(distinct t.name) = ${tagList.length}`);
-
-//       // Now filter main query by complaint ids in subquery
-//       q = q.where(sql`${complaints.id} IN (${sub})`);
-//     }
-
-//     const rows = await q;
-//     const hasNext = rows.length > pageSize;
-//     const pageRows = rows.slice(0, pageSize);
-
-//     const nextCursor = hasNext
-//       ? encodeCursor(pageRows[pageRows.length - 1].createdAt, pageRows[pageRows.length - 1].id)
-//       : null;
-
-//     return {
-//       items: pageRows,
-//       nextCursor,
-//       hasNext,
-//     };
-//   },
-
-//   async countAll() {
-//     const [r] = await db.select({ count: sql<number>`count(*)` }).from(complaints);
-//     return r.count;
-//   },
-// };

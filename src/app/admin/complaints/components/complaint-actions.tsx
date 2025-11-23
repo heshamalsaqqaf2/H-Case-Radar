@@ -1,4 +1,4 @@
-// components/complaints/complaint-actions.tsx
+// components/complaints/complaint-button-actions.tsx
 "use client";
 
 import { CheckCircle, Edit, RotateCcw, Trash2, TrendingUp, XCircle } from "lucide-react";
@@ -23,8 +23,9 @@ import {
   useResolveComplaint,
   useupdateEscalationComplaintLevel,
 } from "@/lib/complaints/hooks/use-complaints";
+import { ComplaintStatus } from "@/lib/complaints/state/complaint-status";
 import type {
-  ComplaintEscalationLevel,
+  ComplaintEscalationLevelType,
   ComplaintWithUserDetails,
 } from "@/lib/complaints/types/type-complaints";
 import { cn } from "@/lib/utils";
@@ -43,7 +44,9 @@ export function ComplaintActions({ complaint }: ComplaintActionsProps) {
   // Dialog Inputs
   const [resolutionNotes, setResolutionNotes] = useState("");
   const [reopenReason, setReopenReason] = useState("");
-  const [escalationLevel, setEscalationLevel] = useState<ComplaintEscalationLevel>(complaint.escalationLevel);
+  const [escalationLevel, setEscalationLevel] = useState<ComplaintEscalationLevelType>(
+    complaint.escalationLevel,
+  );
 
   // Complaint Mutations Hooks
   const resolveComplaintMutation = useResolveComplaint();
@@ -84,12 +87,6 @@ export function ComplaintActions({ complaint }: ComplaintActionsProps) {
     setDeleteDialogOpen(false);
   };
 
-  useEffect(() => {
-    if (escalateDialogOpen) {
-      setEscalationLevel(complaint.escalationLevel);
-    }
-  }, [escalateDialogOpen, complaint.escalationLevel]);
-
   const handleEscalate = () => {
     escalateComplaintMutation.mutate({
       complaintId: complaint.id,
@@ -107,7 +104,13 @@ export function ComplaintActions({ complaint }: ComplaintActionsProps) {
     setEscalationUpdateLevelDialogOpen(false);
   };
 
-  const escalationOptions: { value: ComplaintEscalationLevel; label: string }[] = [
+  useEffect(() => {
+    if (escalateDialogOpen) {
+      setEscalationLevel(complaint.escalationLevel);
+    }
+  }, [escalateDialogOpen, complaint.escalationLevel]);
+
+  const escalationOptions: { value: ComplaintEscalationLevelType; label: string }[] = [
     { value: "level_1", label: "المستوى الأول" },
     { value: "level_2", label: "المستوى الثاني" },
     { value: "level_3", label: "المستوى الثالث" },
@@ -117,12 +120,15 @@ export function ComplaintActions({ complaint }: ComplaintActionsProps) {
 
   return (
     <div className="space-y-2">
+
+
       {complaint.status !== "resolved" && complaint.status !== "closed" && (
         <Dialog open={resolveDialogOpen} onOpenChange={setResolveDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" className="w-full justify-start">
               <CheckCircle className="mr-2 h-4 w-4" />
               حل الشكوى
+              {/*  userMessage: 'حدث خطأ غير متوقع، يرجى المحاولة لاحقًا', */}
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -153,14 +159,14 @@ export function ComplaintActions({ complaint }: ComplaintActionsProps) {
         </Dialog>
       )}
 
-      {complaint.status !== "closed" && (
+      {complaint.status !== ComplaintStatus.CLOSED && complaint.status !== ComplaintStatus.RESOLVED && (
         <Button variant="outline" className="w-full justify-start" onClick={handleClose}>
           <XCircle className="mr-2 h-4 w-4" />
           إغلاق الشكوى
         </Button>
       )}
 
-      {(complaint.status === "closed" || complaint.status === "resolved") && (
+      {(complaint.status === ComplaintStatus.CLOSED || complaint.status === ComplaintStatus.RESOLVED) && (
         <Dialog open={reopenDialogOpen} onOpenChange={setReopenDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" className="w-full justify-start">
@@ -196,133 +202,131 @@ export function ComplaintActions({ complaint }: ComplaintActionsProps) {
         </Dialog>
       )}
 
-      <Dialog open={escalateDialogOpen} onOpenChange={setEscalateDialogOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="w-full justify-start">
-            <TrendingUp className="mr-2 h-4 w-4" />
-            تصعيد الشكوى
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>تصعيد الشكوى</DialogTitle>
-            {/* ✅ تحسين الوصف ليكون أوضح للمستخدم */}
-            <DialogDescription>
-              اختر مستوى تصعيد أعلى من المستوى الحالي. المستوى الحالي:{" "}
-              <strong>
-                {escalationOptions.find((opt) => opt.value === complaint.escalationLevel)?.label}
-              </strong>
-              .
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>مستوى التصعيد</Label>
-              <div className="space-y-2">
-                {escalationOptions.map((option, index) => {
-                  // ✅ تعطيل الخيارات التي هي بنفس المستوى أو أقل من المستوى الحالي
-                  const isDisabled = index <= currentLevelIndex;
+      {(complaint.status !== ComplaintStatus.CLOSED && complaint.status !== ComplaintStatus.RESOLVED) && (
+        <>
+          <Dialog open={escalateDialogOpen} onOpenChange={setEscalateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full justify-start">
+                <TrendingUp className="mr-2 h-4 w-4" />
+                تصعيد الشكوى
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>تصعيد الشكوى</DialogTitle>
+                {/* ✅ تحسين الوصف ليكون أوضح للمستخدم */}
+                <DialogDescription>
+                  اختر مستوى تصعيد أعلى من المستوى الحالي. المستوى الحالي:{" "}
+                  <strong>
+                    {escalationOptions.find((opt) => opt.value === complaint.escalationLevel)?.label}
+                  </strong>
+                  .
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>مستوى التصعيد</Label>
+                  <div className="space-y-2">
+                    {escalationOptions.map((option, index) => {
+                      // ✅ تعطيل الخيارات التي هي بنفس المستوى أو أقل من المستوى الحالي
+                      const isDisabled = index <= currentLevelIndex;
 
-                  return (
-                    <div key={option.value} className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id={option.value}
-                        name="escalation-level"
-                        value={option.value}
-                        // ✅ تعطيل الإدخال إذا كان الخيار غير صالح
-                        disabled={isDisabled}
-                        checked={escalationLevel === option.value}
-                        onChange={(e) => setEscalationLevel(e.target.value as ComplaintEscalationLevel)}
-                      />
-                      <Label
-                        htmlFor={option.value}
-                        // ✅ إضافة أنماط بصرية للإشارة إلى أن الخيار معطل
-                        className={cn(
-                          "cursor-pointer",
-                          isDisabled && "text-muted-foreground cursor-not-allowed",
-                        )}
-                      >
-                        {option.label}
-                        {isDisabled && index === currentLevelIndex && " (الحالي)"}
-                      </Label>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setEscalateDialogOpen(false)}>
-              إلغاء
-            </Button>
-            <Button
-              type="button"
-              onClick={handleEscalate}
-              // ✅ تعطيل الزر إذا كان المستوى المختار هو نفسه الحالي أو أقل
-              disabled={
-                escalationOptions.findIndex((opt) => opt.value === escalationLevel) <= currentLevelIndex
-              }
-            >
-              تصعيد
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ✅ زر جديد لتعديل مستوى التصعيد */}
-      <Dialog open={escalationUpdateLevelDialogOpen} onOpenChange={setEscalationUpdateLevelDialogOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="w-full justify-start">
-            <Edit className="mr-2 h-4 w-4" />
-            تعديل مستوى التصعيد
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>تعديل مستوى التصعيد</DialogTitle>
-            <DialogDescription>
-              يمكنك تعديل مستوى التصعيد لأي مستوى متاح. المستوى الحالي:{" "}
-              <strong>
-                {escalationOptions.find((opt) => opt.value === complaint.escalationLevel)?.label}
-              </strong>
-              .
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>مستوى التصعيد الجديد</Label>
-              <div className="space-y-2">
-                {escalationOptions.map((option) => (
-                  <div key={option.value} className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id={`update-${option.value}`}
-                      name="update-escalation-level"
-                      value={option.value}
-                      checked={escalationLevel === option.value}
-                      onChange={(e) => setEscalationLevel(e.target.value as ComplaintEscalationLevel)}
-                    />
-                    <Label htmlFor={`update-${option.value}`}>{option.label}</Label>
+                      return (
+                        <div key={option.value} className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            id={option.value}
+                            name="escalation-level"
+                            value={option.value}
+                            // ✅ تعطيل الإدخال إذا كان الخيار غير صالح
+                            disabled={isDisabled}
+                            checked={escalationLevel === option.value}
+                            onChange={(e) => setEscalationLevel(e.target.value as ComplaintEscalationLevelType)} />
+                          <Label
+                            htmlFor={option.value}
+                            // ✅ إضافة أنماط بصرية للإشارة إلى أن الخيار معطل
+                            className={cn(
+                              "cursor-pointer",
+                              isDisabled && "text-muted-foreground cursor-not-allowed"
+                            )}
+                          >
+                            {option.label}
+                            {isDisabled && index === currentLevelIndex && " (الحالي)"}
+                          </Label>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
+                </div>
               </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setEscalationUpdateLevelDialogOpen(false)}>
-              إلغاء
-            </Button>
-            <Button
-              type="button"
-              onClick={handleUpdateLevel}
-              disabled={escalationLevel === complaint.escalationLevel}
-            >
-              حفظ التعديل
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEscalateDialogOpen(false)}>
+                  إلغاء
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleEscalate}
+                  // ✅ تعطيل الزر إذا كان المستوى المختار هو نفسه الحالي أو أقل
+                  disabled={escalationOptions.findIndex((opt) => opt.value === escalationLevel) <= currentLevelIndex}
+                >
+                  تصعيد
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={escalationUpdateLevelDialogOpen} onOpenChange={setEscalationUpdateLevelDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full justify-start">
+                <Edit className="mr-2 h-4 w-4" />
+                تعديل مستوى التصعيد
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>تعديل مستوى التصعيد</DialogTitle>
+                <DialogDescription>
+                  يمكنك تعديل مستوى التصعيد لأي مستوى متاح. المستوى الحالي:{" "}
+                  <strong>
+                    {escalationOptions.find((opt) => opt.value === complaint.escalationLevel)?.label}
+                  </strong>
+                  .
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>مستوى التصعيد الجديد</Label>
+                  <div className="space-y-2">
+                    {escalationOptions.map((option) => (
+                      <div key={option.value} className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id={`update-${option.value}`}
+                          name="update-escalation-level"
+                          value={option.value}
+                          checked={escalationLevel === option.value}
+                          onChange={(e) => setEscalationLevel(e.target.value as ComplaintEscalationLevelType)} />
+                        <Label htmlFor={`update-${option.value}`}>{option.label}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEscalationUpdateLevelDialogOpen(false)}>
+                  إلغاء
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleUpdateLevel}
+                  disabled={escalationLevel === complaint.escalationLevel}
+                >
+                  حفظ التعديل
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogTrigger asChild>
@@ -348,6 +352,6 @@ export function ComplaintActions({ complaint }: ComplaintActionsProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 }

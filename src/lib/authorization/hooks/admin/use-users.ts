@@ -8,7 +8,6 @@ import {
   getCurrentUserAction,
   getUserStatisticsAction,
   getUsersWithRolesAction,
-  getUsersWithRolesAndPermissionsAction,
   removeRoleFromUserAction,
   toggleUserBanAction,
   updateUserProfileAction,

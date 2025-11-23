@@ -22,7 +22,8 @@ export function handleFailure(error: unknown) {
       success: false as const,
       error: {
         code: error.code,
-        message: error.userMessage,
+        userMessage: error.userMessage,
+        message: error.message,
       },
     };
   }
@@ -41,7 +42,8 @@ export function handleFailure(error: unknown) {
       success: false as const,
       error: {
         code: appError.code,
-        message: appError.userMessage,
+        message: appError.message,
+        userMessage: appError.userMessage,
       },
     };
   }
