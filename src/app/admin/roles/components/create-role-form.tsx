@@ -7,8 +7,15 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -54,31 +61,27 @@ export function CreateRoleForm({ onSuccess }: { onSuccess?: () => void }) {
           form.reset();
           setIsOpen(false);
           onSuccess?.();
-          // إعادة تحميل الصفحة لتحديث البيانات
           window.location.reload();
         }
       },
     });
   };
 
-  if (!isOpen) {
-    return (
-      <div className="flex flex-row-reverse">
-        <Button onClick={() => setIsOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          إنشاء دور جديد
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>إنشاء دور جديد</CardTitle>
-        <CardDescription>إضافة دور جديد إلى النظام, وتعيين صلاحيات لهذا الدور.</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <div className="flex flex-row-reverse">
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            إنشاء دور جديد
+          </Button>
+        </div>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>إنشاء دور جديد</DialogTitle>
+          <DialogDescription>إضافة دور جديد إلى النظام, وتعيين صلاحيات لهذا الدور.</DialogDescription>
+        </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -144,7 +147,7 @@ export function CreateRoleForm({ onSuccess }: { onSuccess?: () => void }) {
             </div>
           </form>
         </Form>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 }

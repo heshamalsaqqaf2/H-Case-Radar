@@ -1,6 +1,14 @@
 import { redirect } from "next/navigation";
-import { CreatePermissionForm } from "@/components/admin/permissions/create-permission-form";
-import { PermissionsTable } from "@/components/admin/permissions/permissions-table";
+import { PermissionsTable } from "@/app/admin/permissions/_components/permissions-table";
+import { HeaderDashboardPage } from "@/components/admin/header-dashboard-page";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { getCurrentUser } from "@/lib/authentication/session";
 
 export default async function PermissionsPage() {
@@ -8,17 +16,28 @@ export default async function PermissionsPage() {
   if (!user) redirect("/sign-in");
 
   return (
-    <div className="container mx-auto p-0 space-y-6">
-      <div className="flex justify-between items-center gap-4">
-        <div className="">
-          <h1 className="text-3xl">الصلاحيات والأذونات</h1>
-          <p className="">إدارة صلاحيات النظام وضوابط الوصول للمستخدمين</p>
-        </div>
-        <div className="">
-          <CreatePermissionForm />
-        </div>
-      </div>
-      <div className="pt-5 pb-5 pe-3 pr-3">{/* <PermissionsTable /> */}</div>
+    <div className="space-y-6 px-6">
+      <HeaderDashboardPage
+        title="إدارة الصلاحيات"
+        description="إدارة صلاحيات النظام وضوابط الوصول للمستخدمين"
+        actions={
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/admin/dashboard" className="text-blue-500">
+                  الرئيسيــة
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator>
+              </BreadcrumbSeparator>
+              <BreadcrumbItem>
+                <BreadcrumbPage>إدارة الصلاحيات</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        }
+      />
+      <PermissionsTable />
     </div>
   );
 }

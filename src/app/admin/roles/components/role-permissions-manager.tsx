@@ -11,19 +11,12 @@ import { usePermissions } from "@/lib/authorization/hooks/admin/use-permissions"
 import { useAssignPermissionsToRole } from "@/lib/authorization/hooks/admin/use-roles";
 import type { Permission } from "@/lib/authorization/types/permission";
 
-interface RolePermission {
-  permissionId: string;
-  permissionName: string;
-  resource: string;
-  action: string;
-}
-
 interface RolePermissionsManagerProps {
   role: {
     id: string;
     name: string;
   };
-  initialPermissions?: RolePermission[];
+  initialPermissions?: Permission[];
 }
 
 export function RolePermissionsManager({ role, initialPermissions }: RolePermissionsManagerProps) {
@@ -41,7 +34,7 @@ export function RolePermissionsManager({ role, initialPermissions }: RolePermiss
 
   // تحويل الصلاحيات المعيّنة إلى مصفوفة من IDs
   const initialSelected = useMemo(() => {
-    return initialPermissions?.map((p) => p.permissionId) || [];
+    return initialPermissions?.map((p) => p.id) || [];
   }, [initialPermissions]);
 
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>(initialSelected);
@@ -149,7 +142,7 @@ export function RolePermissionsManager({ role, initialPermissions }: RolePermiss
         <CardTitle className="flex items-center gap-2">
           <Key className="h-4 w-4" />
           إدارة الصلاحيات
-          <Badge variant="secondary" className="bg-gradient-to-l from-purple-500 to-fuchsia-500">
+          <Badge variant="secondary" className="bg-linear-to-l from-purple-500 to-fuchsia-500">
             {selectedPermissions.length} صلاحية محددة
           </Badge>
         </CardTitle>
@@ -181,7 +174,7 @@ export function RolePermissionsManager({ role, initialPermissions }: RolePermiss
             onClick={handleSavePermissions}
             disabled={assignPermissionsMutation.isPending || !hasChanges}
             size="sm"
-            className="gap-2 bg-gradient-to-l from-emerald-500 to-teal-500 border-none text-white"
+            className="gap-2 bg-linear-to-l from-emerald-500 to-teal-500 border-none text-white"
           >
             {assignPermissionsMutation.isPending ? (
               <Loader2 className="h-3 w-3 animate-spin" />

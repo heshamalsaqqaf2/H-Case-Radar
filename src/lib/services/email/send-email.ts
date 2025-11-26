@@ -9,13 +9,13 @@ const EmailDataSchema = z.object({
 });
 
 export async function sendEmail(data: z.infer<typeof EmailDataSchema>) {
-  console.log("DEBUG: sendEmail called with data:", data); // ← أضف هذا
+  console.log("DEBUG: sendEmail called with data:", data);
   try {
     const validated = EmailDataSchema.parse(data);
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT || "465"),
-      secure: true, // true for 465, false for other ports
+      secure: true,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -27,6 +27,6 @@ export async function sendEmail(data: z.infer<typeof EmailDataSchema>) {
     });
     console.log("✅ Email Sent Successfully", transporter);
   } catch (error) {
-    console.error("❌ Error sending email:", error);
+    console.error("❌ Error Sending Email:", error);
   }
 }

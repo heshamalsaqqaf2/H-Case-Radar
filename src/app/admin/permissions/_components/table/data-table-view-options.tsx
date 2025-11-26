@@ -50,7 +50,7 @@ export function DataTableViewOptions<TData>({
         <Button
           variant="outline"
           size="sm"
-          className="ml-auto h-8 lg:flex rounded-full"
+          className="ml-auto h-8 lg:flex rounded-md"
         >
           <MixerHorizontalIcon className="mr-2 h-4 w-4" />
           View
@@ -103,8 +103,8 @@ export function DataTableViewOptions<TData>({
                     : column.id === "actions"
                       ? "Actions"
                       : column.id
-                          .replace(/([A-Z])/g, " $1")
-                          .replace(/^./, (str) => str.toUpperCase())}
+                        .replace(/([A-Z])/g, " $1")
+                        .replace(/^./, (str) => str.toUpperCase())}
                 </span>
                 {column.id.includes("system_") && (
                   <span className="text-xs text-muted-foreground ml-2">

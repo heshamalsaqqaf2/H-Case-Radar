@@ -129,7 +129,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                     <div className="flex items-center flex-1 min-w-0">
                       <div
                         className={cn(
-                          "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary flex-shrink-0",
+                          "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary shrink-0",
                           isSelected
                             ? "bg-primary text-primary-foreground"
                             : "opacity-50 [&_svg]:invisible",
@@ -138,13 +138,13 @@ export function DataTableFacetedFilter<TData, TValue>({
                         <CheckIcon className={cn("h-4 w-4")} />
                       </div>
                       {option.icon && (
-                        <option.icon className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <option.icon className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
                       )}
                       <span className="truncate flex-1" title={option.label}>
                         {option.label}
                       </span>
                     </div>
-                    <span className="ml-2 flex h-4 w-4 items-center justify-center font-mono text-xs text-muted-foreground flex-shrink-0">
+                    <span className="ml-2 flex h-4 w-4 items-center justify-center font-mono text-xs text-muted-foreground shrink-0">
                       {option.count}
                     </span>
                   </CommandItem>

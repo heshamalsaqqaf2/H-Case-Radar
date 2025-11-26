@@ -168,7 +168,7 @@ export function ComplaintDetail({ complaintId }: ComplaintDetailProps) {
   };
 
   return (
-    <div className="space-y-6 px-6">
+    <div className="space-y-6 px-4">
       {/* Headers page informations */}
       <HeaderDashboardPage
         title="تفاصيل معلومات البلاغ"
@@ -354,7 +354,7 @@ export function ComplaintDetail({ complaintId }: ComplaintDetailProps) {
                   {complaint.resolutionNotes && (
                     <div>
                       <h4 className="text-sm font-medium text-gray-500 mb-1">ملاحظات الحل</h4>
-                      <p className="p-3 bg-gray-50 rounded">{complaint.resolutionNotes}</p>
+                      <p className="p-3 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-2xl">{complaint.resolutionNotes}</p>
                     </div>
                   )}
                 </CardContent>

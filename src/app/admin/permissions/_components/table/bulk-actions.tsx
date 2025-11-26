@@ -3,7 +3,7 @@
 import type { Table } from "@tanstack/react-table";
 import { Copy, Download, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { ProtectedComponent } from "@/components/auth/protected-component";
+// import { ProtectedComponent } from "@/components/auth/protected-component";
 import { AlertDialogDelete } from "@/components/shared/alert-dialog-delete";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,13 +33,12 @@ export function BulkActions({ table, onBulkDelete }: BulkActionsProps) {
 
   const handleBulkExport = () => {
     const selectedData = selectedRows.map((row) => row.original);
-    exportToCSV(selectedData, `selected-permissions-${new Date().getTime()}`);
+    exportToCSV(selectedData, `selected-permissions-${Date.now()}`);
   };
 
   const handleCopyIds = async () => {
     const ids = selectedRows.map((row) => row.original.id).join(", ");
     await navigator.clipboard.writeText(ids);
-    // toast.success('Copied IDs to clipboard');
   };
 
   const handleBulkDelete = async () => {
@@ -59,7 +58,7 @@ export function BulkActions({ table, onBulkDelete }: BulkActionsProps) {
 
   return (
     <div className="flex items-center gap-2 animate-in fade-in duration-300">
-      <Badge variant="default" className="px-3 py-1.5 bg-blue-600">
+      <Badge variant="default" className="px-3 py-1.5 bg-green-600">
         {selectedCount} selected
       </Badge>
 
@@ -83,23 +82,21 @@ export function BulkActions({ table, onBulkDelete }: BulkActionsProps) {
 
           <DropdownMenuSeparator />
 
-          <ProtectedComponent permission="permission.delete">
-            <AlertDialogDelete
-              itemName={`${selectedCount} permissions`}
-              itemType="الصلاحيات المحددة"
-              onConfirm={handleBulkDelete}
-              isLoading={isDeleting}
-              trigger={
-                <DropdownMenuItem
-                  className="flex items-center text-red-600 focus:text-red-600"
-                  onSelect={(e) => e.preventDefault()}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Selected
-                </DropdownMenuItem>
-              }
-            />
-          </ProtectedComponent>
+          <AlertDialogDelete
+            itemName={`${selectedCount} permissions`}
+            itemType="الصلاحيات المحددة"
+            onConfirm={handleBulkDelete}
+            isLoading={isDeleting}
+            trigger={
+              <DropdownMenuItem
+                className="flex items-center text-red-600 focus:text-red-600"
+                onSelect={(e) => e.preventDefault()}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Selected
+              </DropdownMenuItem>
+            }
+          />
         </DropdownMenuContent>
       </DropdownMenu>
 

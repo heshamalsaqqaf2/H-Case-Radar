@@ -54,10 +54,7 @@ export function NavMain({ items }: AdminSidebarProps) {
                 asChild
                 tooltip={item.title}
                 isActive={pathname === item.href}
-              >
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
-              </SidebarMenuButton>
+              ></SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>

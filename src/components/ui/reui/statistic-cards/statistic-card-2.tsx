@@ -36,7 +36,7 @@ const stats = [
     suffix: "M",
     format: (v: number) => `$${(v / 1_000_000).toFixed(1)}M`,
     lastFormat: (v: number) => `$${(v / 1_000_000).toFixed(1)}M`,
-    bg: "bg-black",
+    bg: "bg-chart-5",
     svg: (
       <svg
         className="absolute right-0 top-0 h-full w-2/3 pointer-events-none"
@@ -60,7 +60,7 @@ const stats = [
     positive: true,
     prefix: "",
     suffix: "",
-    bg: "bg-purple-600",
+    bg: "bg-chart-2",
     svg: (
       <svg
         className="absolute right-0 top-0 w-48 h-48 pointer-events-none"
@@ -105,7 +105,7 @@ const stats = [
     positive: false,
     prefix: "",
     suffix: "",
-    bg: "bg-blue-600",
+    bg: "bg-chart-3",
     svg: (
       <svg
         className="absolute right-0 top-0 w-48 h-48 pointer-events-none"
@@ -150,7 +150,7 @@ const stats = [
     positive: false,
     prefix: "",
     suffix: "%",
-    bg: "bg-green-600",
+    bg: "bg-chart-1",
     svg: (
       <svg
         className="absolute right-0 top-0 w-48 h-48 pointer-events-none"
@@ -206,16 +206,15 @@ function formatNumber(n: number) {
 
 export default function StatisticCard2() {
   return (
-    <div className="flex items-center justify-center p-6 lg:p-8">
+    <div className="flex items-center justify-center">
       <div className="grow grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
           <Card
-            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-            key={index}
-            className={`relative overflow-hidden ${stat.bg} text-white`}
+            key={index.toString()}
+            className={`relative overflow-hidden ${stat.bg} text-card-foreground`}
           >
             <CardHeader className="border-0 z-10 relative">
-              <CardTitle className="text-white/90 text-sm font-medium">
+              <CardTitle className="text-sm font-medium">
                 {stat.title}
               </CardTitle>
               <CardAction>
@@ -224,7 +223,7 @@ export default function StatisticCard2() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="-me-1.5 text-white/80 hover:text-white hover:bg-white/10"
+                      className="-me-1.5 hover:bg-white/10"
                     >
                       <MoreHorizontal />
                     </Button>
@@ -257,14 +256,14 @@ export default function StatisticCard2() {
                     ? stat.format(stat.value)
                     : stat.prefix + formatNumber(stat.value) + stat.suffix}
                 </span>
-                <Badge className="bg-white/20 font-semibold">
+                <Badge className="bg-white/20 text-card-foreground font-semibold">
                   {stat.delta > 0 ? <ArrowUp /> : <ArrowDown />}
                   {stat.delta}%
                 </Badge>
               </div>
-              <div className="text-xs text-white/80 mt-2 border-t border-white/20 pt-2.5">
+              <div className="text-xs mt-2 border-t border-white/20 pt-2.5">
                 Vs last month:{" "}
-                <span className="font-medium text-white">
+                <span className="font-medium">
                   {stat.lastFormat
                     ? stat.lastFormat(stat.lastMonth)
                     : stat.prefix + formatNumber(stat.lastMonth) + stat.suffix}

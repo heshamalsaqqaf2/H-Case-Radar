@@ -24,21 +24,6 @@ export interface PermissionFromAPI {
   createdBy?: string;
   systemManaged?: boolean;
 }
-export function transformPermissionFromAPI(apiPermission: PermissionFromAPI): Permission {
-  return {
-    ...apiPermission,
-    createdAt:
-      typeof apiPermission.createdAt === "string"
-        ? apiPermission.createdAt
-        : apiPermission.createdAt.toISOString(),
-    updatedAt:
-      typeof apiPermission.updatedAt === "string"
-        ? apiPermission.updatedAt
-        : apiPermission.updatedAt.toISOString(),
-    createdBy: apiPermission.createdBy,
-    systemManaged: apiPermission.systemManaged,
-  };
-}
 export interface PermissionStatistics {
   total: number;
   static: number;
@@ -54,6 +39,23 @@ export interface TableState {
   columnVisibility: VisibilityState;
   rowSelection: RowSelectionState;
 }
+
+export function transformPermissionFromAPI(apiPermission: PermissionFromAPI): Permission {
+  return {
+    ...apiPermission,
+    createdAt:
+      typeof apiPermission.createdAt === "string"
+        ? apiPermission.createdAt
+        : apiPermission.createdAt.toISOString(),
+    updatedAt:
+      typeof apiPermission.updatedAt === "string"
+        ? apiPermission.updatedAt
+        : apiPermission.updatedAt.toISOString(),
+    createdBy: apiPermission.createdBy,
+    systemManaged: apiPermission.systemManaged,
+  };
+}
+
 export type SortingState = any[];
 export type ColumnFiltersState = any[];
 export type VisibilityState = any;

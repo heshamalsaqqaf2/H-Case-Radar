@@ -8,5 +8,5 @@ export function generateSystemEmail(name: string): string {
     .replace(/\.+/g, ".");
 
   const timestamp = Date.now().toString().slice(-4);
-  return `${cleanName}.${timestamp}@system.h-case-radar.com`;
+  return `${cleanName}.${timestamp}@h-case-radar.com`;
 }

@@ -1,9 +1,9 @@
 // src/components/admin/roles/roles-table.tsx
 "use client";
 
-import { Edit, MoreHorizontal, Shield, Trash2, User, Users } from "lucide-react";
+import { Edit, Edit2Icon, MoreHorizontal, Shield, Trash2, Trash2Icon, User, Users } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,14 +26,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useDeleteRole } from "@/lib/authorization/hooks/admin/use-roles";
 
 interface Role {
@@ -48,9 +42,10 @@ interface Role {
 
 interface RolesTableProps {
   initialRoles: Role[];
+  children?: ReactNode;
 }
 
-export function RolesTable({ initialRoles }: RolesTableProps) {
+export function RolesTable({ initialRoles, children }: RolesTableProps) {
   const [roles, setRoles] = useState<Role[]>(initialRoles);
 
   const [roleToDelete, setRoleToDelete] = useState<string | null>(null);
@@ -83,11 +78,14 @@ export function RolesTable({ initialRoles }: RolesTableProps) {
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            أدوار النظام
-          </CardTitle>
-          <CardDescription>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-[#b4552d]" />
+              بيانات الأدوار وتفاضيلها
+            </CardTitle>
+            {children}
+          </div>
+          <CardDescription className="text-muted-foreground">
             إدارة الأدوار والصلاحيات. تحدد الأدوار ما يمكن للمستخدمين فعله في النظام.
           </CardDescription>
         </CardHeader>
@@ -109,68 +107,89 @@ export function RolesTable({ initialRoles }: RolesTableProps) {
                     <TableRow key={role.id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <Shield className="h-4 w-4 text-blue-500" />
+                          <Shield className="h-4 w-4 text-[#00a63e]" />
                           <span className="font-mono text-sm">{role.name}</span>
                         </div>
                       </TableCell>
                       <TableCell className="max-w-md">
-                        <p className="text-sm text-gray-600 line-clamp-2">
+                        <p className="text-sm text-muted-foreground line-clamp-2">
                           {role.description || "لا يوجد وصف"}
                         </p>
                       </TableCell>
                       <TableCell>
                         {role.isDefault ? (
-                          <Badge variant="secondary" className="text-xs">
-                            افتراضي
-                          </Badge>
+                          // TODO: add tooltip
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge className="text-xs bg-[#b4552d]">افتراضي</Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>هذا الدور افتراضي يتم التعامل معه بشكل افتراضي في جميع وحدات النظام</p>
+                            </TooltipContent>
+                          </Tooltip>
                         ) : (
-                          <Badge variant="outline" className="text-xs">
-                            مخصص
-                          </Badge>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge className="text-xs bg-[#9810fa]">مخصص</Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>هذا الدور مخصص يتم إنشاؤه بشكل بحسب طبيعة الأدوار المطلوبة في وحدة النظام</p>
+                            </TooltipContent>
+                          </Tooltip>
                         )}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1 text-sm text-gray-500">
-                          <Users className="h-4 w-4" />
-                          <span>{role.userCount}</span>
-                        </div>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge className="text-xs bg-[#1a1915]">
+                              <span>{role.userCount}</span>
+                              <Users className="h-4 w-4 text-[#b4552d] dark:text-primary" />
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>عدد المستخدمين في هذا الدور</p>
+                          </TooltipContent>
+                        </Tooltip>
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">فتح القائمة</span>
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="text-right">
+
+                          <DropdownMenuContent align="end">
                             <DropdownMenuLabel>الإجراءات</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+
                             <DropdownMenuItem asChild>
                               <Link
                                 href={`/admin/roles/${role.id}`}
-                                className="flex items-center justify-end gap-2 rtl:flex-row-reverse"
+                                className="flex items-center"
                               >
-                                <Edit className="h-4 w-4" />
+                                <Edit2Icon className="h-4 w-4" />
                                 <span>تعديل الدور</span>
                               </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-red-600 flex items-center justify-end gap-2 rtl:flex-row-reverse"
-                              onClick={() => setRoleToDelete(role.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              <span>حذف الدور</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                               <Link
                                 href={`/admin/roles/${role.id}/profile`}
-                                className="flex items-center justify-end gap-2 rtl:flex-row-reverse"
+                                className="flex items-center"
                               >
                                 <User className="h-4 w-4" />
                                 <span>عرض الملف</span>
                               </Link>
                             </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="bg-destructive flex items-center"
+                              onClick={() => setRoleToDelete(role.id)}
+                            >
+                              <Trash2Icon className="h-4 w-4" />
+                              <span>حذف الدور</span>
+                            </DropdownMenuItem>
+
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -188,7 +207,6 @@ export function RolesTable({ initialRoles }: RolesTableProps) {
           )}
         </CardContent>
       </Card>
-
       <AlertDialog open={!!roleToDelete} onOpenChange={() => setRoleToDelete(null)}>
         <AlertDialogContent className="text-right">
           <AlertDialogHeader>

@@ -1,6 +1,7 @@
-/** biome-ignore-all lint/suspicious/noArrayIndexKey: <explanation> */
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: <> */
 "use client";
 
+import { IconDotsVertical } from "@tabler/icons-react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -16,7 +17,20 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table";
-import { BarChart3, Download, Edit, Key, MoreHorizontal, Shield, Trash2, Zap } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronFirst,
+  ChevronLast,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  Edit,
+  Key,
+  Shield,
+  Trash2,
+  Zap,
+} from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -29,26 +43,17 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { usePerformance } from "@/hooks/data-table/use-performance";
-import {
-  useDeletePermission,
-  usePermissions,
-} from "@/lib/authorization/hooks/admin/use-permissions";
+import { useDeletePermission, usePermissions } from "@/lib/authorization/hooks/admin/use-permissions";
 import { cn } from "@/lib/utils";
 import type { Permission } from "@/types/tanstack-table-types/permission";
 import { transformPermissionFromAPI } from "@/types/tanstack-table-types/permission";
+import { CreatePermissionForm } from "./create-permission-form";
 import { PermissionsTableToolbar } from "./table/permissions-table-toolbar";
 import { StatisticsPanel } from "./table/statistics-panel2";
 
@@ -79,30 +84,30 @@ const getActionBadgeVariant = (action: string) => {
 };
 
 // Skeleton Component
-const TableSkeleton = ({ pageSize = 15 }: { pageSize?: number }) => (
+const TableSkeleton = ({ pageSize = 10 }: { pageSize?: number }) => (
   <>
     {Array.from({ length: pageSize }).map((_, index) => (
       <TableRow key={`skeleton-${index}`} className="border-b border-border/50 animate-pulse">
-        <TableCell className="py-4">
-          <div className="flex items-center space-x-3">
-            <div className="h-4 bg-muted rounded w-4 border border-primary/20" />
+        <TableCell className="py-3">
+          <div className="flex items-center space-x-reverse space-x-3">
+            <div className="h-4 bg-muted rounded w-4 border border-border" />
             <div className="space-y-2 flex-1">
               <div className="h-4 bg-muted rounded w-3/4" />
               <div className="h-3 bg-muted rounded w-1/2" />
             </div>
           </div>
         </TableCell>
-        <TableCell className="py-4">
-          <div className="h-6 bg-muted rounded w-20" />
+        <TableCell className="py-3">
+          <div className="h-6 bg-muted rounded w-38" />
         </TableCell>
-        <TableCell className="py-4">
-          <div className="h-6 bg-muted rounded w-16" />
+        <TableCell className="py-3">
+          <div className="h-6 bg-muted rounded w-32" />
         </TableCell>
-        <TableCell className="py-4">
+        <TableCell className="py-3">
           <div className="h-6 bg-muted rounded w-24" />
         </TableCell>
-        <TableCell className="py-4">
-          <div className="h-8 bg-muted rounded w-8 ml-auto" />
+        <TableCell className="py-3">
+          <div className="h-8 bg-muted rounded w-16 ms-auto" /> {/* استخدم ms-auto لدفع العنصر لليسار */}
         </TableCell>
       </TableRow>
     ))}
@@ -112,19 +117,21 @@ const TableSkeleton = ({ pageSize = 15 }: { pageSize?: number }) => (
 export function PermissionsTable() {
   usePerformance("PermissionsTable");
 
-  const { data: permissionsData = [], isLoading, error, refetch } = usePermissions();
+  const { data: permissionsData, isLoading, error, refetch } = usePermissions();
 
   const deletePermissionMutation = useDeletePermission();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isResetting, setIsResetting] = useState(false);
-  const [showStatistics, setShowStatistics] = useState(false);
 
   // تحويل البيانات من API إلى النوع المحلي
   const permissions = useMemo(() => {
-    return permissionsData.map(transformPermissionFromAPI);
+    if (permissionsData?.success && permissionsData.data) {
+      return permissionsData.data.map(transformPermissionFromAPI);
+    }
+    return [];
   }, [permissionsData]);
 
-  // تهيئة الحالة من localStorage - بدون استخدام useLocalStorage المخصص
+  // تهيئة الحالة من localStorage
   const [sorting, setSorting] = useState<SortingState>(() => {
     try {
       const saved = localStorage.getItem(TABLE_STATE_KEY);
@@ -170,7 +177,7 @@ export function PermissionsTable() {
     }
   });
 
-  // حفظ الحالة في localStorage - مرة واحدة فقط
+  // حفظ الحالة في localStorage
   useEffect(() => {
     const stateToSave = {
       sorting,
@@ -188,17 +195,17 @@ export function PermissionsTable() {
 
     return {
       total: permissions.length,
-      static: permissions.filter((p: { conditions: any }) => !p.conditions).length,
-      dynamic: permissions.filter((p: { conditions: any }) => p.conditions).length,
+      static: permissions.filter((p) => !p.conditions).length,
+      dynamic: permissions.filter((p) => p.conditions).length,
       byResource: permissions.reduce(
-        (acc, p) => {
+        (acc: { [x: string]: number }, p) => {
           acc[p.resource] = (acc[p.resource] || 0) + 1;
           return acc;
         },
         {} as Record<string, number>,
       ),
       byAction: permissions.reduce(
-        (acc, p) => {
+        (acc: { [x: string]: number }, p) => {
           acc[p.action] = (acc[p.action] || 0) + 1;
           return acc;
         },
@@ -227,15 +234,15 @@ export function PermissionsTable() {
   }, [permissions]);
 
   const handleDelete = useCallback(
-    async (permissionId: string, permissionName: string) => {
+    async (permissionId: string) => {
       setDeletingId(permissionId);
       try {
         const result = await deletePermissionMutation.mutateAsync(permissionId);
         if (result.success) {
-          toast.success(result.message);
+          toast.success(result.data?.message || "تم حذف الصلاحية بنجاح");
           refetch();
         } else {
-          toast.error("خطأ", { description: result.message });
+          toast.error("خطأ", { description: result.error?.message });
         }
       } catch (error) {
         console.error("Delete error:", error);
@@ -287,21 +294,22 @@ export function PermissionsTable() {
         header: ({ table }) => (
           <Checkbox
             checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
+              table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")
             }
             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Select all"
-            className="translate-y-[2px] border-primary"
+            className="translate-y-[2px] border-primary mr-4"
           />
         ),
         cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-            className="translate-y-[2px] border-primary"
-          />
+          <div className="flex items-center">
+            <Checkbox
+              checked={row.getIsSelected()}
+              onCheckedChange={(value) => row.toggleSelected(!!value)}
+              aria-label="Select row"
+              className="translate-y-[2px] border-primary mr-4"
+            />
+          </div>
         ),
         enableSorting: false,
         enableHiding: false,
@@ -314,10 +322,16 @@ export function PermissionsTable() {
             variant="ghost"
             size="sm"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-accent/50 transition-colors"
+            className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-accent/50 transition-colors" // استخدام me- بدلا من ml-
           >
-            <span>Name</span>
-            {column.getIsSorted() === "desc" ? " ▼" : column.getIsSorted() === "asc" ? " ▲" : ""}
+            <span>الاسم</span>
+            {column.getIsSorted() === "desc" ? (
+              <ArrowDown className="h-4 w-4" />
+            ) : column.getIsSorted() === "asc" ? (
+              <ArrowUp className="h-4 w-4" />
+            ) : (
+              ""
+            )}
           </Button>
         ),
         cell: ({ row }) => {
@@ -327,10 +341,7 @@ export function PermissionsTable() {
               <div className="flex flex-col space-y-1">
                 <span className="font-semibold">{row.getValue("name")}</span>
                 {description && (
-                  <span
-                    className="text-xs text-muted-foreground truncate max-w-[200px]"
-                    title={description}
-                  >
+                  <span className="text-xs text-muted-foreground truncate max-w-[180px]" title={description}>
                     {description}
                   </span>
                 )}
@@ -349,8 +360,14 @@ export function PermissionsTable() {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-accent/50 transition-colors"
           >
-            <span>Resource</span>
-            {column.getIsSorted() === "desc" ? " ▼" : column.getIsSorted() === "asc" ? " ▲" : ""}
+            <span>المصدر</span>
+            {column.getIsSorted() === "desc" ? (
+              <ArrowDown className="h-4 w-4" />
+            ) : column.getIsSorted() === "asc" ? (
+              <ArrowUp className="h-4 w-4" />
+            ) : (
+              ""
+            )}
           </Button>
         ),
         cell: ({ row }) => (
@@ -373,13 +390,19 @@ export function PermissionsTable() {
         accessorKey: "action",
         header: ({ column }) => (
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-accent/50 transition-colors"
+            className="-me-3 h-8 data-[state=open]:bg-accent hover:bg-accent/50 transition-colors"
           >
-            <span>Action</span>
-            {column.getIsSorted() === "desc" ? " ▼" : column.getIsSorted() === "asc" ? " ▲" : ""}
+            <span>الإجراء</span>
+            {column.getIsSorted() === "desc" ? (
+              <ArrowDown className="h-2 w-2" />
+            ) : column.getIsSorted() === "asc" ? (
+              <ArrowUp className="h-2 w-2" />
+            ) : (
+              ""
+            )}
           </Button>
         ),
         cell: ({ row }) => {
@@ -399,7 +422,7 @@ export function PermissionsTable() {
       },
       {
         accessorKey: "conditions",
-        header: "Type",
+        header: "النوع",
         cell: ({ row }) => {
           const isDynamic = !!row.original.conditions;
           return (
@@ -410,10 +433,14 @@ export function PermissionsTable() {
                 <Shield className="h-4 w-4 text-muted-foreground" />
               )}
               <Badge
-                variant={isDynamic ? "default" : "secondary"}
-                className={cn(isDynamic && "bg-cyan-600 hover:bg-cyan-700 text-white")}
+                title={isDynamic ? "صلاحية ديناميكية" : "صلاحية ثابتة"}
+                className={cn(
+                  isDynamic
+                    ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                    : "bg-orange-600 hover:bg-orange-700 text-white pointer-events-none",
+                )}
               >
-                {isDynamic ? "Dynamic" : "Static"}
+                {isDynamic ? "ديناميكي" : "ثابت"}
               </Badge>
             </div>
           );
@@ -427,6 +454,7 @@ export function PermissionsTable() {
       },
       {
         id: "actions",
+        header: "الإجراءت",
         enableHiding: false,
         cell: ({ row }) => {
           const permission = row.original;
@@ -435,47 +463,44 @@ export function PermissionsTable() {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="h-8 w-8 p-0 data-[state=open]:bg-muted hover:bg-muted/50 transition-colors"
+                  className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+                  size="icon"
                   aria-label={`Open actions menu for ${permission.name}`}
                 >
+                  <IconDotsVertical />
                   <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[160px]">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-36">
+                {/* <DropdownMenuLabel>الإجراءات</DropdownMenuLabel> */}
                 <DropdownMenuItem
                   onClick={() => {
                     navigator.clipboard.writeText(permission.id);
-                    // toast.success('Copied permission ID');
                   }}
-                  className="flex items-center"
                 >
-                  <Download className="mr-2 h-4 w-4" />
-                  Copy ID
+                  <Copy className="ml-1 h-4 w-4" />
+                  نسخ المعرف
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link
-                    href={`/admin/permissions/${permission.id}/edit`}
-                    className="flex items-center"
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
+                  <Link href={`/admin/permissions/${permission.id}/edit`}>
+                    <Edit className="ml-1 h-4 w-4" />
+                    تعديل
                   </Link>
                 </DropdownMenuItem>
                 <AlertDialogDelete
                   itemName={permission.name}
                   itemType="الصلاحية"
-                  onConfirm={() => handleDelete(permission.id, permission.name)}
+                  onConfirm={() => handleDelete(permission.id)}
                   isLoading={deletingId === permission.id}
                   trigger={
                     <DropdownMenuItem
-                      className="text-red-600 focus:text-red-600 flex items-center"
+                      variant="destructive"
+                      className="flex items-center"
                       onSelect={(e) => e.preventDefault()}
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      <Trash2 className="ml-1 h-4 w-4" />
+                      حذف
                     </DropdownMenuItem>
                   }
                 />
@@ -510,18 +535,16 @@ export function PermissionsTable() {
     getPaginationRowModel: getPaginationRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-    initialState: { pagination: { pageSize: 15 } },
+    initialState: { pagination: { pageSize: 10 } },
   });
 
   if (error) {
     return (
       <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20">
-        <CardContent className="p-8">
+        <CardContent className="">
           <div className="flex flex-col items-center justify-center text-center text-red-600 dark:text-red-400">
             <div className="text-lg font-semibold mb-2">خطأ في تحميل الصلاحيات</div>
-            <div className="text-sm text-muted-foreground dark:text-muted-foreground">
-              {error.message}
-            </div>
+            <div className="text-sm text-muted-foreground dark:text-muted-foreground">{error.message}</div>
             <Button onClick={() => refetch()} variant="outline" className="mt-4">
               إعادة المحاولة
             </Button>
@@ -533,51 +556,33 @@ export function PermissionsTable() {
 
   return (
     <div className="space-y-6">
-      {/* Statistics Panel */}
       {statistics && (
         <StatisticsPanel
           statistics={statistics}
-          isOpen={showStatistics}
-          onToggle={() => setShowStatistics(!showStatistics)}
+        // isOpen={showStatistics}
+        // onToggle={() => setShowStatistics(!showStatistics)}
         />
       )}
 
-      <Card className="overflow-hidden shadow-2xl border-0 dark:bg-card">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-800 dark:to-cyan-800">
-          <div className="space-y-1">
-            <CardTitle className="flex items-center gap-2 text-2xl text-white">
-              <Key className="h-7 w-7" />
-              Permissions List
-              {statistics && (
-                <Badge
-                  variant="secondary"
-                  className="ml-2 bg-white/20 text-white hover:bg-white/30"
-                >
-                  {statistics.total} Total
-                </Badge>
-              )}
-            </CardTitle>
-            <CardDescription className="text-blue-100 dark:text-blue-200">
-              Manage and configure system permissions
-            </CardDescription>
-          </div>
-          <div className="flex items-center gap-2">
-            {statistics && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowStatistics(!showStatistics)}
-                className="text-white hover:bg-white/20"
-              >
-                <BarChart3 className="h-4 w-4 mr-2" />
-                {showStatistics ? "Hide Stats" : "Show Stats"}
-              </Button>
-            )}
-            <div className="rounded-full bg-white/20 p-2">
-              <Key className="h-8 w-8 text-white" />
+      <Card className="overflow-hidden">
+        <CardHeader>
+          <div className="flex flex-row items-center justify-between">
+            <div className="">
+              <CardTitle className="flex items-center gap-3 text-2xl">
+                <Key className="h-6 w-6" />
+                الصلاحيات
+                {statistics && (
+                  <Badge variant="secondary" className="mr-2">
+                    {statistics.total} إجمالي
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription>إدارة صلاحيات النظام والتحكم بالوصول بشكل احترافي ومنظم.</CardDescription>
             </div>
+            <div className="flex items-center gap-3">{statistics && <CreatePermissionForm />}</div>
           </div>
         </CardHeader>
+
         <CardContent className="p-6">
           <PermissionsTableToolbar
             table={table}
@@ -591,18 +596,15 @@ export function PermissionsTable() {
             onBulkDelete={handleBulkDelete}
           />
 
-          <div className="rounded-lg border bg-gradient-to-br from-background to-muted/20 dark:to-muted/10 mt-4">
+          <div className="overflow-hidden rounded-lg border">
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-muted sticky top-0 z-10">
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow
-                    key={headerGroup.id}
-                    className="border-b-0 hover:bg-transparent bg-muted/50 dark:bg-muted/20"
-                  >
+                  <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
                       <TableHead
                         key={header.id}
-                        className="h-12 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider last:pr-6"
+                        className="px-4 text-right"
                         style={{
                           width: header.getSize() !== 150 ? header.getSize() : undefined,
                         }}
@@ -623,15 +625,14 @@ export function PermissionsTable() {
                     <TableRow
                       key={row.id}
                       data-state={row.getIsSelected() && "selected"}
-                      className="border-b border-border/50 transition-all duration-200 hover:bg-muted/50 hover:shadow-sm dark:hover:bg-muted/20"
+                      className="border-b transition-colors hover:bg-muted/50"
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell
                           key={cell.id}
-                          className="py-4"
+                          className="px-4 text-right"
                           style={{
-                            width:
-                              cell.column.getSize() !== 150 ? cell.column.getSize() : undefined,
+                            width: cell.column.getSize() !== 150 ? cell.column.getSize() : undefined,
                           }}
                         >
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -641,19 +642,8 @@ export function PermissionsTable() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center text-muted-foreground"
-                    >
-                      <div className="flex flex-col items-center justify-center py-8">
-                        <Key className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                        <div className="text-lg font-semibold mb-2">No permissions found</div>
-                        <div className="text-sm text-muted-foreground">
-                          {globalFilter || columnFilters.length > 0
-                            ? "Try adjusting your search or filters"
-                            : "No permissions have been created yet"}
-                        </div>
-                      </div>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      لا توجد صلاحيات.
                     </TableCell>
                   </TableRow>
                 )}
@@ -661,79 +651,80 @@ export function PermissionsTable() {
             </Table>
           </div>
 
-          {/* Pagination and Summary */}
-          <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 py-4">
-            <div className="flex-1 text-sm text-muted-foreground">
-              <div className="flex flex-wrap items-center gap-4">
-                <span>
-                  Showing {table.getFilteredRowModel().rows.length} of {permissions.length} total
-                  permissions
-                </span>
-                {table.getFilteredSelectedRowModel().rows.length > 0 && (
-                  <Badge variant="secondary">
-                    {table.getFilteredSelectedRowModel().rows.length} selected
-                  </Badge>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center space-x-6 lg:space-x-8">
-              <div className="flex items-center space-x-2">
-                <p className="text-sm font-medium">Rows per page</p>
-                <select
-                  value={table.getState().pagination.pageSize}
-                  onChange={(e) => {
-                    table.setPageSize(Number(e.target.value));
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
+
+            <div className="flex w-full items-center gap-8 lg:w-fit">
+              <div className="hidden items-center gap-2 lg:flex">
+                <p className="text-sm font-medium">صفوف لكل صفحة</p>
+                <Select
+                  value={`${table.getState().pagination.pageSize}`}
+                  onValueChange={(value) => {
+                    table.setPageSize(Number(value));
                   }}
-                  className="h-9 w-[70px] rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
                 >
-                  {[10, 15, 20, 30, 50].map((pageSize) => (
-                    <option key={pageSize} value={pageSize}>
-                      {pageSize}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-8">
+                    <SelectValue placeholder={table.getState().pagination.pageSize} />
+                  </SelectTrigger>
+                  <SelectContent side="top">
+                    {[5, 10, 15, 20, 25, 30, 50].map((pageSize) => (
+                      <SelectItem key={pageSize} value={`${pageSize}`}>
+                        {pageSize}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+              <div className="flex-1 w-fit items-center justify-center text-sm font-medium">
+                صفحة {table.getState().pagination.pageIndex + 1} من {table.getPageCount()}
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   className="hidden h-8 w-8 p-0 lg:flex"
                   onClick={() => table.setPageIndex(0)}
                   disabled={!table.getCanPreviousPage()}
-                  aria-label="Go to first page"
                 >
-                  {"<<"}
+                  <ChevronFirst className="h-4 w-4" />
+                  <span className="sr-only">الذهاب إلى الصفحة الأولى</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-8 w-8 p-0"
+                  className="size-8"
+                  size="icon"
                   onClick={() => table.previousPage()}
                   disabled={!table.getCanPreviousPage()}
-                  aria-label="Go to previous page"
                 >
-                  {"<"}
+                  <ChevronRight className="h-4 w-4" />
+                  <span className="sr-only">الصفحة السابقة</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-8 w-8 p-0"
+                  className="size-8"
+                  size="icon"
                   onClick={() => table.nextPage()}
                   disabled={!table.getCanNextPage()}
-                  aria-label="Go to next page"
                 >
-                  {">"}
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="sr-only">الصفحة التالية</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="hidden h-8 w-8 p-0 lg:flex"
+                  className="hidden size-8 lg:flex"
+                  size="icon"
                   onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                   disabled={!table.getCanNextPage()}
-                  aria-label="Go to last page"
                 >
-                  {">>"}
+                  <ChevronLast className="h-4 w-4" />
+                  <span className="sr-only">الذهاب إلى الصفحة الأخيرة</span>
                 </Button>
               </div>
+            </div>
+
+            <div className="text-muted-foreground hidden text-sm lg:flex">
+              عرض {table.getFilteredRowModel().rows.length} من {permissions.length} صلاحية
+              {table.getFilteredSelectedRowModel().rows.length > 0 && (
+                <span className="mr-2">({table.getFilteredSelectedRowModel().rows.length} محدد)</span>
+              )}
             </div>
           </div>
         </CardContent>

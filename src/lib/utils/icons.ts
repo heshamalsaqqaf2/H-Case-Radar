@@ -14,7 +14,6 @@ import {
   Users,
 } from "lucide-react";
 
-// تعريف خريطة الأيقونات
 export const ICON_MAP = {
   LayoutDashboard,
   Users,
@@ -29,10 +28,7 @@ export const ICON_MAP = {
   Settings,
 } as const;
 
-// نوع لأسماء الأيقونات
 export type IconName = keyof typeof ICON_MAP;
-
-// دالة مساعدة للحصول على الأيقونة
 export function getIconComponent(iconName: string): LucideIcon {
   return ICON_MAP[iconName as IconName] || LayoutDashboard;
 }

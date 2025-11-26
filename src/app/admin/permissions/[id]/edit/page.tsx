@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { EditPermissionForm } from "@/components/admin/permissions/edit-permission-form";
+import { EditPermissionForm } from "@/app/admin/permissions/_components/edit-permission-form";
 import { getPermissionById } from "@/lib/authorization/services/admin/permission-service";
 
 interface PageProps {

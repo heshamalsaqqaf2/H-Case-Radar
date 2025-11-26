@@ -73,16 +73,15 @@ export function PermissionsTableToolbar({
       setIsExporting(true);
       try {
         const filteredData = table.getFilteredRowModel().rows.map((row) => row.original);
-
         switch (format) {
           case "csv":
-            exportToCSV(filteredData, `permissions-${new Date().getTime()}`);
+            exportToCSV(filteredData, `permissions-${Date.now()}`);
             break;
           case "json":
-            exportToJSON(filteredData, `permissions-${new Date().getTime()}`);
+            exportToJSON(filteredData, `permissions-${Date.now()}`);
             break;
           case "excel":
-            await exportToExcel(filteredData, `permissions-${new Date().getTime()}`);
+            await exportToExcel(filteredData, `permissions-${Date.now()}`);
             break;
         }
       } catch (error) {
@@ -105,7 +104,7 @@ export function PermissionsTableToolbar({
   }, [data]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col mb-5">
       {/* Search and Filters Row */}
       <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
         <div className="flex flex-1 flex-col sm:flex-row gap-3">
@@ -128,8 +127,7 @@ export function PermissionsTableToolbar({
             {/* Search Stats */}
             {debouncedSearch && (
               <Badge
-                variant="secondary"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-yellow-400 text-neutral-900 text-xs"
               >
                 {totalCount} found
               </Badge>

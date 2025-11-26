@@ -142,13 +142,13 @@ export class SidebarService {
    */
   private async trackSidebarUsage(userId: string, itemCount: number): Promise<void> {
     try {
-      console.log(`📊 Sidebar Usage - User: ${userId}, Items: ${itemCount}`);
+      console.log(`✅ Sidebar Usage - User: ${userId}, Items: ${itemCount}`);
       // يمكنك هنا:
       // 1. إرسال بيانات لخدمة تحليلات (Google Analytics, etc.)
       // 2. حفظ في قاعدة البيانات
       // 3. إرسال لإحصائيات داخلية
     } catch (error) {
-      console.error("Failed to track sidebar usage:", error);
+      console.error("❌ Failed to Track Sidebar Usage:", error);
       // لا نرمي خطأ هنا حتى لا نؤثر على تجربة المستخدم
     }
   }

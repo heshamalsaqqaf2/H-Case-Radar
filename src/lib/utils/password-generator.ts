@@ -1,5 +1,5 @@
 // src/lib/utils/password-generator.ts
-export function generateStrongPassword(length: number = 12): string {
+export function generateStrongPassword(length: number = 15): string {
   const lowercase = "abcdefghijklmnopqrstuvwxyz";
   const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const numbers = "0123456789";

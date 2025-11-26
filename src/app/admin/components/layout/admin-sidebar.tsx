@@ -1,7 +1,7 @@
 "use client";
 
 import { IconInnerShadowTop, IconLockAccessOff } from "@tabler/icons-react";
-import { Database, LayoutDashboard, SettingsIcon } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -48,8 +48,8 @@ export function AdminSidebar({ items, user }: AdminSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:p-1.5!">
-              <Link href="#">
-                <IconInnerShadowTop className="size-5!" />
+              <Link href="/admin">
+                <IconInnerShadowTop className="size-5! text-sidebar-primary" />
                 <span className="text-base font-semibold">H-Case Radar</span>
               </Link>
             </SidebarMenuButton>
@@ -64,8 +64,12 @@ export function AdminSidebar({ items, user }: AdminSidebarProps) {
               const IconComponent = ICON_MAP[item.icon as keyof typeof ICON_MAP] || LayoutDashboard;
               return (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.title}>
-                    <Link href={item.href} className="">
+                  <SidebarMenuButton
+                    asChild
+                    tooltip={item.title}
+                    isActive={pathname === item.href}
+                  >
+                    <Link href={item.href}>
                       <IconComponent />
                       <span>{item.title}</span>
                     </Link>

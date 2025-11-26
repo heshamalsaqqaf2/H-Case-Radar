@@ -1,5 +1,4 @@
 // app/admin/complaints/components/complaints-dashboard.tsx
-
 import type { ComplaintStats } from "@/lib/complaints/types/type-complaints";
 import { ComplaintsByCategoryChart } from "./components/chart/complaints-by-category-chart";
 import { ComplaintsByStatusChart } from "./components/chart/complaints-by-status-chart";

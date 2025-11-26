@@ -1,10 +1,12 @@
 import { AppSidebar } from "@/components/dashboard/layout/app-sidebar";
+import { ChartAreaInteractive } from "@/components/dashboard/layout/chart-area-interactive";
+import { DataTable } from "@/components/dashboard/layout/data-table";
 import { SectionCards } from "@/components/dashboard/layout/section-cards";
 import { SiteHeader } from "@/components/dashboard/layout/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actions";
 import { requireMultiplePermissions } from "@/utils/has-authorization";
-
+import data from "./data.json";
 export default async function DashboardPage() {
   // استخدام واحد
   // const hasAuthorizationAccessDashboard = await requireAuthorization(
@@ -44,9 +46,8 @@ export default async function DashboardPage() {
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <SectionCards />
-              {/* <AreaChart1 /> */}
-              {/* <LineChart8 /> */}
-              {/* <DataTable data={data} /> */}
+              <ChartAreaInteractive />
+              <DataTable data={data} />
             </div>
           </div>
         </div>

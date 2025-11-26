@@ -35,7 +35,7 @@ const sourceOptions = [
     { value: "api", label: "API", icon: "🔌" },
 ];
 const escalationOptions = [
-    { value: "none", label: "بدون تصعيد", color: "bg-gray-100 text-gray-800" },
+    { value: "none", label: "بدون تصعيد", color: "bg-green-100 text-green-800" },
     { value: "level_1", label: "المستوى الأول", color: "bg-blue-100 text-blue-800" },
     { value: "level_2", label: "المستوى الثاني", color: "bg-orange-100 text-orange-800" },
     { value: "level_3", label: "المستوى الثالث", color: "bg-red-100 text-red-800" },
@@ -94,7 +94,7 @@ export const ComplaintInfoCard = ({ complaint }: ComplaintInfoCardProps) => {
     };
 
     return (
-        <Card className="sticky top-6 h-fit border-l-4 border-l-primary">
+        <Card className="sticky top-6 h-fit border-2 border-primary">
             <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2 text-lg">
                     <Sparkles className="h-5 w-5 text-primary" />
@@ -107,8 +107,8 @@ export const ComplaintInfoCard = ({ complaint }: ComplaintInfoCardProps) => {
                 {/* رقم الشكوى */}
                 <div className="flex items-center justify-between p-3 bg-linear-to-r from-primary/5 to-primary/10 rounded-lg">
                     <span className="text-sm font-medium text-muted-foreground">رقم الشكوى</span>
-                    <Badge variant="secondary" className="font-mono">
-                        #{complaint.id.slice(0, 8)}...
+                    <Badge variant="default" className="font-mono bg-primary text-primary-foreground">
+                        #{complaint.id.slice(0, 10)}...
                     </Badge>
                 </div>
 
@@ -116,7 +116,7 @@ export const ComplaintInfoCard = ({ complaint }: ComplaintInfoCardProps) => {
                 <div className="space-y-3">
                     <div className="flex items-center gap-2">
                         <Flag className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">الحالة الحالية</span>
+                        <span className="text-sm font-semibold">الحالة الحالية</span>
                     </div>
                     <div
                         className={cn(
@@ -135,7 +135,7 @@ export const ComplaintInfoCard = ({ complaint }: ComplaintInfoCardProps) => {
                 <div className="space-y-3">
                     <div className="flex items-center gap-2">
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">مستوى الأولوية</span>
+                        <span className="text-sm font-semibold">مستوى الأولوية</span>
                     </div>
                     <Badge className={cn("w-full justify-center py-2 border-2", getPriorityColor(complaint.priority))}>
                         {priorityOptions.find((opt) => opt.value === complaint.priority)?.label}
@@ -146,20 +146,20 @@ export const ComplaintInfoCard = ({ complaint }: ComplaintInfoCardProps) => {
                 <div className="space-y-4">
                     <div className="flex items-center gap-2">
                         <FolderOpen className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">المعلومات الأساسية</span>
+                        <span className="text-sm font-semibold">المعلومات الأساسية</span>
                     </div>
 
                     <div className="grid gap-3 text-sm">
                         {/* الفئة */}
                         <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
                             <span className="text-muted-foreground">الفئة:</span>
-                            <span className="font-medium">{complaint.category}</span>
+                            <span className="font-semibold">{complaint.category}</span>
                         </div>
 
                         {/* المصدر */}
                         <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
                             <span className="text-muted-foreground">المصدر:</span>
-                            <span className="font-medium">
+                            <span className="font-semibold">
                                 {sourceOptions.find((opt) => opt.value === complaint.source)?.label}
                             </span>
                         </div>
@@ -168,7 +168,7 @@ export const ComplaintInfoCard = ({ complaint }: ComplaintInfoCardProps) => {
                         <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
                             <span className="text-muted-foreground">مستوى التصعيد:</span>
                             <Badge
-                                variant="outline"
+                                variant="default"
                                 className={escalationOptions.find((opt) => opt.value === complaint.escalationLevel)?.color}
                             >
                                 {escalationOptions.find((opt) => opt.value === complaint.escalationLevel)?.label}
@@ -178,8 +178,8 @@ export const ComplaintInfoCard = ({ complaint }: ComplaintInfoCardProps) => {
                         {/* عاجلة */}
                         <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
                             <span className="text-muted-foreground">عاجلة:</span>
-                            <Badge variant={complaint.isUrgent ? "destructive" : "outline"}>
-                                {complaint.isUrgent ? "نعم" : "لا"}
+                            <Badge variant={complaint.isUrgent ? "destructive" : "default"}>
+                                {complaint.isUrgent ? "عاجلة" : "ليس عاجلة"}
                             </Badge>
                         </div>
                     </div>
@@ -189,13 +189,13 @@ export const ComplaintInfoCard = ({ complaint }: ComplaintInfoCardProps) => {
                 <div className="space-y-4">
                     <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">التواريخ</span>
+                        <span className="text-sm font-semibold">التواريخ</span>
                     </div>
 
                     <div className="grid gap-2 text-sm">
                         <div className="flex justify-between items-center">
                             <span className="text-muted-foreground">تاريخ الإنشاء:</span>
-                            <span className="font-medium">
+                            <span className="font-semibold">
                                 {format(new Date(complaint.createdAt), "dd/MM/yyyy", { locale: ar })}
                             </span>
                         </div>
@@ -203,7 +203,7 @@ export const ComplaintInfoCard = ({ complaint }: ComplaintInfoCardProps) => {
                         {complaint.responseDueAt && (
                             <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground">موعد الاستجابة:</span>
-                                <span className="font-medium">
+                                <span className="font-semibold">
                                     {format(new Date(complaint.responseDueAt), "dd/MM/yyyy", { locale: ar })}
                                 </span>
                             </div>
@@ -212,7 +212,7 @@ export const ComplaintInfoCard = ({ complaint }: ComplaintInfoCardProps) => {
                         {complaint.expectedResolutionDate && (
                             <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground">الحل المتوقع:</span>
-                                <span className="font-medium">
+                                <span className="font-semibold">
                                     {format(new Date(complaint.expectedResolutionDate), "dd/MM/yyyy", { locale: ar })}
                                 </span>
                             </div>
@@ -221,7 +221,7 @@ export const ComplaintInfoCard = ({ complaint }: ComplaintInfoCardProps) => {
                         {complaint.resolvedAt && (
                             <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground">تم الحل في:</span>
-                                <span className="font-medium text-green-600">
+                                <span className="font-semibold text-green-600">
                                     {format(new Date(complaint.resolvedAt), "dd/MM/yyyy", { locale: ar })}
                                 </span>
                             </div>
@@ -242,7 +242,7 @@ export const ComplaintInfoCard = ({ complaint }: ComplaintInfoCardProps) => {
                             <span className="text-muted-foreground block">مقدم الشكوى:</span>
                             <div className="flex items-center gap-2 p-2 bg-muted/30 rounded">
                                 <User className="h-3 w-3" />
-                                <span className="font-medium">{complaint.submittedByUserName}</span>
+                                <span className="font-semibold">{complaint.submittedByUserName}</span>
                             </div>
                         </div>
 
@@ -252,7 +252,7 @@ export const ComplaintInfoCard = ({ complaint }: ComplaintInfoCardProps) => {
                                 <span className="text-muted-foreground block">المُعيّن إليه:</span>
                                 <div className="flex items-center gap-2 p-2 bg-primary/10 rounded border border-primary/20">
                                     <Mail className="h-3 w-3 text-primary" />
-                                    <span className="font-medium text-primary">{complaint.assignedUserName}</span>
+                                    <span className="font-semibold text-primary">{complaint.assignedUserName}</span>
                                 </div>
                             </div>
                         )}
@@ -263,7 +263,7 @@ export const ComplaintInfoCard = ({ complaint }: ComplaintInfoCardProps) => {
                                 <span className="text-muted-foreground block">تم الحل بواسطة:</span>
                                 <div className="flex items-center gap-2 p-2 bg-green-50 rounded border border-green-200">
                                     <CheckCircle2 className="h-3 w-3 text-green-600" />
-                                    <span className="font-medium text-green-700">{complaint.resolvedBy}</span>
+                                    <span className="font-semibold text-green-700">{complaint.resolvedBy}</span>
                                 </div>
                             </div>
                         )}
@@ -295,7 +295,7 @@ export const ComplaintInfoCard = ({ complaint }: ComplaintInfoCardProps) => {
 
                         <div className="text-center p-3 bg-purple-50 rounded-lg border border-purple-200">
                             <div className="text-2xl font-bold text-purple-600">
-                                {complaint.actualResolutionTime ? `${complaint.actualResolutionTime}س` : "-"}
+                                {complaint.actualResolutionTime ? `${complaint.actualResolutionTime} H` : "-"}
                             </div>
                             <div className="text-xs text-purple-500">وقت الحل</div>
                         </div>
