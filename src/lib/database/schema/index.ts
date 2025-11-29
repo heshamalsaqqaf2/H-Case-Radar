@@ -3,19 +3,24 @@ export * from "./audit-schema";
 export * from "./auth-schema";
 export * from "./authorization-schema";
 export * from "./complaints-schema";
+export * from "./email-schema";
+
 
 // تصدير كائن شامل لجميع الجداول
 import * as audit from "./audit-schema";
 import * as authentication from "./auth-schema";
 import * as authorization from "./authorization-schema";
 import * as complaints from "./complaints-schema";
+import * as email from "./email-schema";
 
 export const schema = {
   ...authentication,
   ...authorization,
   ...audit,
   ...complaints,
+  ...email,
 };
+
 
 // نوع شامل لجميع الجداول
 export type DatabaseSchema = typeof schema;

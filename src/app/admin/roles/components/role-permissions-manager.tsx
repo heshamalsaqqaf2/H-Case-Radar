@@ -137,12 +137,12 @@ export function RolePermissionsManager({ role, initialPermissions }: RolePermiss
   }
 
   return (
-    <Card>
+    <Card className="custom-direction-left">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Key className="h-4 w-4" />
-          إدارة الصلاحيات
-          <Badge variant="secondary" className="bg-linear-to-l from-purple-500 to-fuchsia-500">
+          إدارة صلاحيات هذا الدور
+          <Badge className="text-xs border-none bg-linear-to-r from-green-600 to-lime-400">
             {selectedPermissions.length} صلاحية محددة
           </Badge>
         </CardTitle>
@@ -150,24 +150,24 @@ export function RolePermissionsManager({ role, initialPermissions }: RolePermiss
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex justify-between items-center">
-          <div className="space-x-2">
+          <div className="space-x-2 flex gap-4">
             <Button
-              // className="bg-gradient-to-l from-rose-400 to-red-400 border-none text-white"
+              className="bg-linear-to-l from-orange-500 to-red-500 border-none text-white"
               variant="outline"
               size="sm"
               onClick={handleClearAll}
               disabled={selectedPermissions.length === 0}
             >
-              إلغاء الكل
+              إلغاء الصلاحيات بالكامل
             </Button>
             <Button
-              // className="bg-gradient-to-l from-purple-500 to-fuchsia-500 border-none text-white"
+              className="bg-linear-to-l from-emerald-500 to-blue-500 border-none text-white"
               variant="outline"
               size="sm"
               onClick={handleSelectAll}
               disabled={selectedPermissions.length === allPermissions.length}
             >
-              تحديد الكل
+              تحديد جميع الصلاحيات
             </Button>
           </div>
           <Button
@@ -185,13 +185,13 @@ export function RolePermissionsManager({ role, initialPermissions }: RolePermiss
           </Button>
         </div>
 
-        <div className="space-y-4 max-h-96 overflow-y-auto">
+        <div className="space-y-4 max-h-96 overflow-y-auto text-left custom-direction-left">
           {Object.entries(permissionsByResource).map(([resource, perms]) => (
-            <div key={resource} className="space-y-2">
-              <h4 className="font-medium text-sm capitalize">{resource.replace(/_/g, " ")}</h4>
-              <div dir="ltr" className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-4">
+            <div key={resource} className="space-y-1">
+              <h4 className="font-medium capitalize underline text-sm">{resource.replace(/_/g, " ")}</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {perms?.map((perm: Permission) => (
-                  <div key={perm.id} className="flex items-center space-x-2">
+                  <div key={perm.id} className="flex items-center space-x-2 custom-direction-left">
                     <Checkbox
                       id={`perm-${perm.id}`}
                       checked={selectedPermissions.includes(perm.id)}
@@ -199,10 +199,10 @@ export function RolePermissionsManager({ role, initialPermissions }: RolePermiss
                     />
                     <label
                       htmlFor={`perm-${perm.id}`}
-                      className="text-sm cursor-pointer flex items-center ml-2 gap-2"
+                      className="text-sm cursor-pointer flex items-center gap-2"
                     >
-                      <span className="uppercase font-bold dark:text-amber-500">{perm.action}</span>
-                      <Badge variant="outline" className="text-xs font-mono">
+                      <span className="uppercase text-primary">{perm.action}</span>
+                      <Badge variant="outline" className="text-xs">
                         {perm.name}
                       </Badge>
                     </label>
@@ -213,20 +213,20 @@ export function RolePermissionsManager({ role, initialPermissions }: RolePermiss
           ))}
 
           {Object.keys(permissionsByResource).length === 0 && !isLoading && (
-            <div className="text-center py-8 text-gray-500">لا توجد صلاحيات متاحة</div>
+            <div className="text-center py-8 text-white">لا توجد صلاحيات متاحة</div>
           )}
         </div>
 
         {/* معلومات إضافية */}
         <div className="border-t pt-4">
-          <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+          <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="text-center">
-              <div className="font-medium">الصلاحيات المحددة</div>
-              <div className="text-2xl font-bold text-purple-600">{selectedPermissions.length}</div>
+              <div className="font-medium text-foreground">الصلاحيات المحددة</div>
+              <div className="text-3xl font-bold text-emerald-600">{selectedPermissions.length}</div>
             </div>
             <div className="text-center">
-              <div className="font-medium">الإجمالي المتاح</div>
-              <div className="text-2xl font-bold text-rose-600">{allPermissions.length}</div>
+              <div className="font-medium text-foreground">الإجمالي المتاح</div>
+              <div className="text-3xl font-bold text-blue-600">{allPermissions.length}</div>
             </div>
           </div>
         </div>

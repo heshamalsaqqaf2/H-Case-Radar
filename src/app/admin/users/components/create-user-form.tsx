@@ -2,7 +2,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AtSign, Info, Loader2, Lock, Mail, Shield, ShieldUserIcon, UserPlus } from "lucide-react";
+import { AtSign, Info, Lock, Mail, Shield, ShieldUserIcon, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
@@ -27,6 +27,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { InteractiveHoverButton } from "@/components/ui/magic-ui/button/interactive-hover-button";
+import { ShinyButton } from "@/components/ui/magic-ui/button/shiny-button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { useRolesList } from "@/lib/authorization/hooks/admin/use-roles";
@@ -123,10 +125,12 @@ export function CreateUserForm() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="flex items-center gap-2">
+        {/* <ShinyButton>إنشاء مستخدم جديد</ShinyButton> */}
+        <InteractiveHoverButton>إنشاء مستخدم</InteractiveHoverButton>
+        {/* <Button className="flex items-center gap-2">
           <UserPlus className="h-4 w-4" />
           إنشاء مستخدم جديد
-        </Button>
+        </Button> */}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -183,7 +187,7 @@ export function CreateUserForm() {
                       </div>
                       <Button
                         type="button"
-                        variant="outline"
+                        // variant="outline"
                         onClick={generateSystemEmailFromName}
                         disabled={createUserMutation.isPending}
                       >
@@ -257,7 +261,7 @@ export function CreateUserForm() {
                       </div>
                       <Button
                         type="button"
-                        variant="outline"
+                        // variant="outline"
                         onClick={generatePassword}
                         disabled={createUserMutation.isPending}
                       >
@@ -413,7 +417,7 @@ export function CreateUserForm() {
               </Button>
               <Button
                 type="button"
-                variant="outline"
+                // variant="outline"
                 onClick={() => setOpen(false)}
                 disabled={createUserMutation.isPending}
               >

@@ -7,7 +7,6 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { getCurrentUser } from "@/lib/authentication/session";
 
-
 const myFont = localFont({
   src: "../../public/fonts/Almarai-Regular.woff",
   display: "swap",
@@ -27,7 +26,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} dir={locale === "fa" ? "ltr" : "rtl"} suppressHydrationWarning>
       <body className={myFont.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <Providers>{children}</Providers>
           <Toaster richColors theme="system" position="bottom-right" />
         </ThemeProvider>

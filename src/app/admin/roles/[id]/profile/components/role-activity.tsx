@@ -1,5 +1,4 @@
 // src/components/admin/roles/role-profile/role-activity.tsx
-/** biome-ignore-all lint/suspicious/noArrayIndexKey: <> */
 "use client";
 
 import { Activity, Clock, Settings, Shield, User } from "lucide-react";
@@ -10,14 +9,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 interface RoleActivityProps {
   roleId: string;
   initialActivity?:
-    | Array<{
-        id: string;
-        action: string;
-        description: string;
-        timestamp: Date;
-        type: "view" | "create" | "update" | "delete";
-      }>
-    | undefined;
+  | Array<{
+    id: string;
+    action: string;
+    description: string;
+    timestamp: Date;
+    type: "view" | "create" | "update" | "delete";
+  }>
+  | undefined;
 }
 
 export function RoleActivity({ roleId, initialActivity = [] }: RoleActivityProps) {
@@ -65,50 +64,98 @@ export function RoleActivity({ roleId, initialActivity = [] }: RoleActivityProps
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 rtl:flex-row-reverse">
-          <Activity className="h-5 w-5" />
-          النشاط الحديث
-        </CardTitle>
-        <CardDescription>الإجراءات والتغييرات الحديثة المتعلقة بهذا الدور</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {displayActivities.length > 0 ? (
-          <div className="space-y-4">
-            {displayActivities?.map((activity) => (
-              <div
-                key={activity.id}
-                className="flex items-start gap-4 pb-4 border-b last:border-0 last:pb-0 rtl:flex-row-reverse"
-              >
-                <div className={`p-2 rounded-full ${getActivityColor(activity.type)}`}>
-                  {getActivityIcon(activity.type)}
-                </div>
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-2 rtl:flex-row-reverse">
-                    <span className="font-medium text-sm">{activity.action}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {activity.type}
-                    </Badge>
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 ">
+            <Activity className="h-5 w-5" />
+            النشاط الحديث
+          </CardTitle>
+          <CardDescription>الإجراءات والتغييرات الحديثة المتعلقة بهذا الدور</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {displayActivities.length > 0 ? (
+            <div className="space-y-4">
+              {displayActivities?.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-start gap-4 pb-4 border-b last:border-0 last:pb-0"
+                >
+                  <div className={`p-2 rounded-full ${getActivityColor(activity.type)}`}>
+                    {getActivityIcon(activity.type)}
                   </div>
-                  <p className="text-sm text-gray-600">{activity.description}</p>
-                  <div className="flex items-center gap-1 text-xs text-gray-500 rtl:flex-row-reverse">
-                    <Clock className="h-3 w-3" />
-                    {formatTimeAgo(activity.timestamp)}
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">{activity.action}</span>
+                      <Badge variant="outline" className="text-xs">
+                        {activity.type}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600">{activity.description}</p>
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <Clock className="h-3 w-3" />
+                      {formatTimeAgo(activity.timestamp)}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <Activity className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">لا يوجد نشاط حديث</h3>
-            <p className="text-gray-500">سيظهر النشاط هنا عند إجراء تغييرات على هذا الدور.</p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Activity className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">لا يوجد نشاط حديث</h3>
+              <p className="text-gray-500">سيظهر النشاط هنا عند إجراء تغييرات على هذا الدور.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            النشاط الحديث
+          </CardTitle>
+          <CardDescription>الإجراءات والتغييرات الحديثة المتعلقة بهذا الدور</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {displayActivities.length > 0 ? (
+            <div className="space-y-4">
+              {displayActivities?.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-start gap-4 pb-4 border-b last:border-0 last:pb-0"
+                >
+                  <div className={`p-2 rounded-full ${getActivityColor(activity.type)}`}>
+                    {getActivityIcon(activity.type)}
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">{activity.action}</span>
+                      <Badge variant="outline" className="text-xs">
+                        {activity.type}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600">{activity.description}</p>
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <Clock className="h-3 w-3" />
+                      {formatTimeAgo(activity.timestamp)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Activity className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">لا يوجد نشاط حديث</h3>
+              <p className="text-gray-500">سيظهر النشاط هنا عند إجراء تغييرات على هذا الدور.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+
   );
 }
 
@@ -121,8 +168,8 @@ export function RoleActivitySkeleton() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="flex items-start gap-4 rtl:flex-row-reverse">
+          {[...Array(3)].map((_, index) => (
+            <div key={index.toString()} className="flex items-start gap-4 ">
               <Skeleton className="h-8 w-8 rounded-full" />
               <div className="space-y-2 flex-1">
                 <Skeleton className="h-4 w-32" />

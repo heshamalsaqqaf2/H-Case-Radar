@@ -9,7 +9,6 @@ const EmailDataSchema = z.object({
 });
 
 export async function sendEmail(data: z.infer<typeof EmailDataSchema>) {
-  console.log("DEBUG: sendEmail called with data:", data);
   try {
     const validated = EmailDataSchema.parse(data);
     const transporter = nodemailer.createTransport({

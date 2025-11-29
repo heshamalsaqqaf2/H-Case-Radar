@@ -70,7 +70,7 @@ export function SignInPageClient({ initialSession, callbackUrl }: SignInPageClie
         onAction={() => router.push("/")}
         actionText="الانتقال إلى الصفحة الرئيسية"
         showRefreshButton={true}
-        onRefresh={() => {}}
+        onRefresh={() => { }}
       />
     );
   }

@@ -40,9 +40,9 @@ export default async function RoleProfilePage({ params }: PageProps) {
   const { role, permissions, users, statistics, activity } = profileResult.data;
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container p-6">
       {/* رأس الصفحة */}
-      <div className="mb-6 text-right">
+      <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">معلومات الدور</h1>
         <p className="text-foreground">
           واجهة سريعة وفعالة لإدارة الأدوار, وعرض جميع بيانات الدور.
@@ -54,9 +54,9 @@ export default async function RoleProfilePage({ params }: PageProps) {
         {/* رأس الدور */}
         <RoleHeader roleId={id} initialData={{ role, statistics }} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* العمود الأيسر - الصلاحيات والمستخدمين */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
             {/* مدير الصلاحيات */}
             <Suspense fallback={<PermissionsLoading />}>
               <RolePermissionsManager
@@ -75,7 +75,7 @@ export default async function RoleProfilePage({ params }: PageProps) {
           </div>
 
           {/* العمود الأيمن - النشاط */}
-          <div className="space-y-6">
+          <div className="lg:col-span-1 space-y-4">
             <Suspense fallback={<ActivityLoading />}>
               <RoleActivity roleId={id} initialActivity={activity} />
             </Suspense>

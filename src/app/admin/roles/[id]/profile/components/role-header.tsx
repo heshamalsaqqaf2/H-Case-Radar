@@ -1,12 +1,13 @@
 // src/components/admin/roles/role-profile/role-header.tsx
 "use client";
 
-import { ArrowLeft, Calendar, Edit, Key, Shield, Users, Zap } from "lucide-react";
+import { ArrowLeft, Calendar, Edit, Key, Shield, Users } from "lucide-react";
 import Link from "next/link";
 import { QuickLoading } from "@/components/shared/quick-loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { useRoleProfile } from "@/lib/authorization/hooks/admin/use-roles";
 
 interface RoleHeaderProps {
@@ -38,7 +39,7 @@ export function RoleHeader({ roleId, initialData }: RoleHeaderProps) {
     return (
       <Card>
         <CardContent className="p-6">
-          <QuickLoading message="جاري تحميل ملف الدور..." speed="fast" />
+          <QuickLoading message="جاري تحميل ملف الدور" speed="fast" />
         </CardContent>
       </Card>
     );
@@ -48,7 +49,7 @@ export function RoleHeader({ roleId, initialData }: RoleHeaderProps) {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center text-red-600">لم يتم العثور على الدور</div>
+          <div className="text-center text-destructive">لم يتم العثور على الدور</div>
         </CardContent>
       </Card>
     );
@@ -57,11 +58,11 @@ export function RoleHeader({ roleId, initialData }: RoleHeaderProps) {
   const { role, statistics } = data;
 
   return (
-    <Card className="relative overflow-hidden border-2 border-dotted border-emerald-500">
+    <Card className="relative overflow-hidden bg-linear-to-bl from-emerald-500 to-emerald-950">
       {/* مؤشر التحديث الخفي */}
       {isFetching && (
-        <div className="absolute top-2 left-2 rtl:right-2 rtl:left-auto">
-          <div className="h-2 w-2 bg-green-500 rounded-full animate-ping"></div>
+        <div className="absolute top-2 left-2">
+          <div className="h-2 w-2 bg-blue-500 rounded-full animate-ping"></div>
         </div>
       )}
 
@@ -71,42 +72,42 @@ export function RoleHeader({ roleId, initialData }: RoleHeaderProps) {
           {/* معلومات الأساسية */}
           <div className="flex-1 space-y-4">
             <div className="flex items-start gap-4">
-              <div className="p-3 rounded-lg shadow-sm border border-blue-100">
-                <Shield className="h-8 w-8 text-green-600" />
+              <div className="p-3 bg-linear-to-l from-emerald-950 to-emerald-500 rounded-full">
+                <Shield className="h-8 w-8 text-white font-bold" />
               </div>
 
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-2xl lg:text-3xl font-bold uppercase">{role.name} </h1>
+                  <h1 className="text-2xl lg:text-3xl font-bold uppercase text-white">{role.name} </h1>
                   <div className="flex items-center gap-2">
                     {role.isDefault && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs text-white bg-blue-500">
                         افتراضي
                       </Badge>
                     )}
                     {isFetching && (
-                      <Badge className="text-xs bg-green-500 text-white">
-                        <Zap className="h-3 w-3 ml-1 rtl:mr-1 rtl:ml-0 animate-pulse" />
+                      <Badge className="text-xs text-white bg-blue-500">
+                        <Spinner />
                         جاري المزامنة
                       </Badge>
                     )}
                   </div>
                 </div>
 
-                <p className="text-lg mb-4 leading-relaxed text-gray-600">
+                <p className="text-lg mb-4 leading-relaxed text-white/70">
                   {role.description || "لا يوجد وصف لهذا الدور"}
                 </p>
 
                 <div className="flex flex-wrap items-center gap-4 text-sm">
-                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-l from-purple-500 to-fuchsia-500 text-white">
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-linear-to-l from-purple-500 to-fuchsia-500 text-white">
                     <Key className="h-4 w-4" />
                     <span>{statistics.permissionsCount} صلاحية</span>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-l from-pink-500 to-rose-500 text-white">
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-linear-to-l from-pink-500 to-rose-500 text-white">
                     <Users className="h-4 w-4" />
                     <span>{statistics.usersCount} مستخدم</span>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-l from-cyan-500 to-sky-500 text-white">
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-linear-to-l from-cyan-500 to-sky-500 text-white">
                     <Calendar className="h-4 w-4" />
                     <span>
                       أنشئ في {new Date(role.createdAt).toLocaleDateString("en-US")}{" "}
@@ -121,14 +122,14 @@ export function RoleHeader({ roleId, initialData }: RoleHeaderProps) {
           {/* أزرار سريعة */}
           <div className="flex flex-col gap-3 min-w-[200px]">
             <Link href={`/admin/roles/${roleId}/edit`}>
-              <Button className="w-full gap-2 bg-gradient-to-l from-green-500 to-emerald-500 text-white hover:bg-gradient-to-l hover:from-green-600 hover:to-emerald-600 transition-colors">
+              <Button className="w-full gap-2 bg-linear-to-l from-orange-500 to-amber-500 text-white hover:bg-linear-to-l hover:from-orange-600 hover:to-amber-600 transition-colors">
                 <Edit className="h-4 w-4" />
                 تعديل سريع
               </Button>
             </Link>
 
             <Link href="/admin/roles">
-              <Button variant="outline" className="w-full gap-2 transition-colors">
+              <Button className="w-full bg-zinc-900 border border-zinc-900 border-dashed gap-2 transition-colors">
                 <ArrowLeft className="h-4 w-4" />
                 العودة للقائمة
               </Button>

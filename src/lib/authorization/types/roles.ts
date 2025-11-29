@@ -9,9 +9,9 @@ export interface Role {
 }
 
 export interface Permission {
-  permissionId: string;
-  permissionName: string;
-  permissionDescription: string | null;
+  id: string;
+  name: string;
+  description: string | null;
   resource: string;
   action: string;
   createdAt: Date;
