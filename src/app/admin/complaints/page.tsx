@@ -1,5 +1,4 @@
 // app/admin/complaints/page.tsx
-
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { HeaderDashboardPage } from "@/components/admin/header-dashboard-page";

@@ -26,7 +26,8 @@ export const schema = {
 export type DatabaseSchema = typeof schema;
 
 // تصدير أنواع رئيسية للاستخدام العام
-export type { auditLog } from "./audit-schema";
+export type { AuditLog } from "./audit-schema";
 export type { Session, User } from "./auth-schema";
 export type { Permission, Role } from "./authorization-schema";
 export type { Complaint } from "./complaints-schema";
+export type { EmailLog } from "./email-schema";

@@ -326,7 +326,7 @@ export default function EditComplaintPage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <div className="container mx-auto py-10 max-w-5xl">
+    <div className="container px-4 py-6">
       {/* رأس الصفحة */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex items-center gap-4">

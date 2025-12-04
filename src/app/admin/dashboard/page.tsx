@@ -4,7 +4,7 @@ import { SectionCards } from "@/components/dashboard/layout/section-cards";
 import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actions";
 import { requireMultiplePermissions } from "@/utils/has-authorization";
 
-import data from "../../dashboard/data.json";
+import data from "../../dashboard_old/data.json";
 import { ChartBarActive } from "./charts/chart-bar-active";
 import { ChartBarInteractive } from "./charts/chart-bar-interactive";
 import { ChartLineDefault } from "./charts/chart-line";

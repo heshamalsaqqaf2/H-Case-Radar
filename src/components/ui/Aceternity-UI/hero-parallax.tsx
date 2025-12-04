@@ -1,10 +1,7 @@
 "use client";
-import { ArrowRight } from "lucide-react";
 import { type MotionValue, motion, useScroll, useSpring, useTransform, type Variants } from "motion/react";
 import Image from "next/image";
-import Link from "next/link";
 import React from "react";
-import { AnimatedGroup } from "@/app/home/components/custom/animated-group";
 
 export const HeroParallax = ({
   products,

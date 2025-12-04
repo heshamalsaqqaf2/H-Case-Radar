@@ -42,7 +42,7 @@ export const EmailLayout = ({ preview, children, dir = "rtl" }: EmailLayoutProps
           theme: {
             extend: {
               colors: {
-                primary: "#2563eb", // blue-600
+                primary: "#059669", // emerald-600
                 secondary: "#475569", // slate-600
                 background: "#f8fafc", // slate-50
                 surface: "#ffffff",
@@ -59,7 +59,7 @@ export const EmailLayout = ({ preview, children, dir = "rtl" }: EmailLayoutProps
             {/* Header */}
             <Section className="mt-[20px] mb-[32px] text-center">
               <Img
-                src={`${baseUrl}/logo.png`}
+                src={`${baseUrl}/vercel.svg`}
                 width="120"
                 height="40"
                 alt="H-Case-Radar"
@@ -73,7 +73,7 @@ export const EmailLayout = ({ preview, children, dir = "rtl" }: EmailLayoutProps
             {/* Footer */}
             <Section className="mt-[32px] pt-[32px] border-t border-solid border-border text-center">
               <Text className="text-[12px] text-muted leading-[20px]">
-                هذه رسالة آلية من نظام H-Case-Radar لإدارة الشكاوى.
+                هذه رسالة آلية من نظام H-Case-Radar لإدارة البلاغات.
                 <br />
                 جميع الحقوق محفوظة © {new Date().getFullYear()}
               </Text>

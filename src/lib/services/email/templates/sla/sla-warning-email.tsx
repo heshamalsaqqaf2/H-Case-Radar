@@ -1,5 +1,4 @@
 import { Button, Column, Heading, Hr, Row, Section, Text } from "@react-email/components";
-import * as React from "react";
 import type { SLAWarningEmailData } from "../../types/email-types";
 import EmailLayout from "../base/email-layout";
 

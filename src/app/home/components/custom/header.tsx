@@ -1,9 +1,9 @@
-/** biome-ignore-all lint/suspicious/noArrayIndexKey: <> */
 "use client";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { AnimatedThemeToggler } from "@/components/ui/magic-ui/animated-theme-toggler";
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 
@@ -56,7 +56,7 @@ export const HeroHeader = () => {
                         <div className="absolute inset-0 m-auto hidden size-fit lg:block">
                             <ul className="flex gap-8 text-sm">
                                 {menuItems.map((item, index) => (
-                                    <li key={index}>
+                                    <li key={index.toString()}>
                                         <Link
                                             href={item.href}
                                             className="text-muted-foreground hover:text-accent-foreground block duration-150"
@@ -72,7 +72,7 @@ export const HeroHeader = () => {
                             <div className="lg:hidden">
                                 <ul className="space-y-6 text-base">
                                     {menuItems.map((item, index) => (
-                                        <li key={index}>
+                                        <li key={index.toString()}>
                                             <Link
                                                 href={item.href}
                                                 className="text-muted-foreground hover:text-accent-foreground block duration-150"
@@ -84,7 +84,13 @@ export const HeroHeader = () => {
                                 </ul>
                             </div>
                             <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
-                                <Button asChild variant="outline" size="sm" className={cn(isScrolled && "lg:hidden")}>
+                                <AnimatedThemeToggler />
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    size="sm"
+                                    className={cn(isScrolled && "lg:hidden")}
+                                >
                                     <Link href="/sign-in">
                                         <span>Login</span>
                                     </Link>

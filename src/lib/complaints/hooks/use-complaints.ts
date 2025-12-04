@@ -2,6 +2,7 @@
 
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { useAdminMutation } from "@/lib/authorization/hooks/core";
+
 import {
   addCommentAction,
   assignComplaintAction,
@@ -18,7 +19,8 @@ import {
   resolveComplaintAction,
   updateComplaintAction,
   updateEscalationLevelComplaintAction,
-} from "@/lib/complaints/actions/complaints-actions";
+} from "@/lib/complaints/actions/complaints-actions"
+
 import type {
   ComplaintEscalationLevelType,
   CreateComplaintInput,
@@ -36,8 +38,13 @@ export const complaintsListOptions = (
   cursor?: string,
 ) =>
   queryOptions({
-    queryKey: ["complaints", "list", { search, status, priority, category, tags, pageSize, cursor }],
-    queryFn: () => getAllComplaintsAction(search, status, priority, category, tags, pageSize, cursor),
+    queryKey: [
+      "complaints",
+      "list",
+      { search, status, priority, category, tags, pageSize, cursor },
+    ],
+    queryFn: () =>
+      getAllComplaintsAction(search, status, priority, category, tags, pageSize, cursor),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     refetchOnWindowFocus: false,
@@ -94,7 +101,9 @@ export function useComplaintsList(
   pageSize?: number,
   cursor?: string,
 ) {
-  return useQuery(complaintsListOptions(search, status, priority, category, tags, pageSize, cursor));
+  return useQuery(
+    complaintsListOptions(search, status, priority, category, tags, pageSize, cursor),
+  );
 }
 
 export function useComplaintStats() {

@@ -40,6 +40,8 @@ import {
 } from "@/lib/database/index";
 import { database as db } from "@/lib/database/server";
 import { Errors } from "@/lib/errors/error-factory";
+import { emailService } from "@/lib/services/email/services/email-service";
+import { EMAIL_PRIORITY, EMAIL_TEMPLATES } from "@/lib/services/email/types/email-types";
 import { authorizeComplaints } from "@/lib/shared/functions/authorize-complaints";
 
 /* ---------------------------
@@ -115,7 +117,12 @@ class ComplaintRepository {
   }
   static async validateUserExists(userId: string) {
     const [user] = await db
-      .select({ id: userTable.id })
+      .select({
+        id: userTable.id,
+        name: userTable.name,
+        email: userTable.email,
+        personalEmail: userTable.personalEmail,
+      })
       .from(userTable)
       .where(eq(userTable.id, userId))
       .limit(1);
@@ -133,7 +140,9 @@ class TagService {
   static async ensureTagsGetIds(tagNames: string[]): Promise<string[]> {
     if (!tagNames?.length) return [];
 
-    const uniqueNames = Array.from(new Set(tagNames.map((t) => t.trim().toLowerCase()).filter(Boolean)));
+    const uniqueNames = Array.from(
+      new Set(tagNames.map((t) => t.trim().toLowerCase()).filter(Boolean)),
+    );
     if (!uniqueNames.length) return [];
 
     const existing = await db
@@ -218,7 +227,12 @@ class AttachmentService {
    Activity Service
    --------------------------- */
 class ActivityService {
-  static async logActivity(complaintId: string, actorId: string | null, action: string, meta?: ActivityMeta) {
+  static async logActivity(
+    complaintId: string,
+    actorId: string | null,
+    action: string,
+    meta?: ActivityMeta,
+  ) {
     await db.insert(activityTable).values({
       id: uuidv4(),
       complaintId,
@@ -238,7 +252,9 @@ class ActivityService {
   }
 
   static async logComplaintUpdated(complaintId: string, actorId: string, changedFields: string[]) {
-    await ActivityService.logActivity(complaintId, actorId, "complaint.updated", { changed: changedFields });
+    await ActivityService.logActivity(complaintId, actorId, "complaint.updated", {
+      changed: changedFields,
+    });
   }
 
   static async logComplaintAssigned(complaintId: string, actorId: string, assignedTo: string) {
@@ -246,7 +262,9 @@ class ActivityService {
   }
 
   static async logComplaintResolved(complaintId: string, actorId: string, resolutionNotes: string) {
-    await ActivityService.logActivity(complaintId, actorId, "complaint.resolved", { resolutionNotes });
+    await ActivityService.logActivity(complaintId, actorId, "complaint.resolved", {
+      resolutionNotes,
+    });
   }
 
   static async logComplaintClosed(complaintId: string, actorId: string) {
@@ -370,7 +388,9 @@ export class ComplaintService {
 
     // Parallelize dependent operations
     await Promise.all([
-      validated.tags?.length ? TagService.setComplaintTags(complaintId, validated.tags) : Promise.resolve(),
+      validated.tags?.length
+        ? TagService.setComplaintTags(complaintId, validated.tags)
+        : Promise.resolve(),
       validated.attachments?.length
         ? AttachmentService.addAttachments(
           complaintId,
@@ -382,6 +402,10 @@ export class ComplaintService {
         priority: validated.priority,
         category: validated.category,
       }),
+      // إرسال إشعار التعيين إذا تم تحديد موظف
+      validated.assignedTo
+        ? ComplaintService.sendAssignmentNotification(complaintId, validated.assignedTo, actorId)
+        : Promise.resolve(),
     ]);
     return created;
   }
@@ -406,7 +430,7 @@ export class ComplaintService {
     // ⚡ تحقق متوازي من الصلاحيات والبيانات
     const [validationResult, currentComplaint] = await Promise.all([
       updateComplaintSchema.parseAsync(input).catch(() => null),
-      ComplaintRepository.findByIdOrThrow(id)
+      ComplaintRepository.findByIdOrThrow(id),
     ]);
 
     if (!validationResult) {
@@ -439,25 +463,20 @@ export class ComplaintService {
     // ⚡ عمليات خلفية فورية بدون انتظار
     ComplaintService._fireAndForgetBackgroundTasks(id, updateData, actorId);
 
+    // إرسال إشعار بتغيير الحالة إذا حدث
+    if (updateData.status && updateData.status !== currentComplaint.status) {
+      ComplaintService.sendStatusUpdateNotification(id, currentComplaint.status, updateData.status, actorId).catch(console.error);
+    }
+
+
     return updated;
   }
-
-
 
   static async deleteComplaint(actorId: string, complaintId: string) {
     authorizeComplaints(actorId, AUDIT_LOG_ACTIONS.COMPLAINT.DELETE, "حذف الشكاوى");
     await ComplaintRepository.findByIdOrThrow(complaintId);
 
     await db.delete(complaintsTable).where(eq(complaintsTable.id, complaintId));
-    // ✅ التصحيح (حذف منطقي):
-    // await db.update(complaintsTable)
-    //   .set({
-    //     isActive: false,
-    //     deletedAt: new Date(),
-    //     deletedBy: actorId,
-    //     updatedAt: new Date()
-    //   })
-    //   .where(eq(complaintsTable.id, complaintId));
     await ActivityService.logComplaintDeleted(complaintId, actorId);
   }
 
@@ -480,7 +499,11 @@ export class ComplaintService {
 
     await ActivityService.logComplaintAssigned(complaintId, actorId, assignedTo);
 
+    // إرسال إشعار بالبريد الإلكتروني
+    ComplaintService.sendAssignmentNotification(complaintId, assignedTo, actorId).catch(console.error);
+
     return updated;
+
   }
 
   static async resolveComplaint(actorId: string, complaintId: string, resolutionNotes: string) {
@@ -521,7 +544,11 @@ export class ComplaintService {
 
     await ActivityService.logComplaintResolved(complaintId, actorId, resolutionNotes);
 
+    // إرسال إشعار بالبريد الإلكتروني
+    ComplaintService.sendResolutionNotification(complaintId, resolutionNotes, actorId).catch(console.error);
+
     return updated;
+
   }
 
   static async closeComplaint(actorId: string, complaintId: string) {
@@ -529,7 +556,9 @@ export class ComplaintService {
     const complaint = await ComplaintRepository.findByIdOrThrow(complaintId);
 
     if (isFinalStatus(complaint.status as ComplaintStatusType)) {
-      throw Errors.badRequest("لا يمكن إغلاق الشكوى من الحالة الحالية. الشكوى محلولة أو مغلقة بالفعل");
+      throw Errors.badRequest(
+        "لا يمكن إغلاق الشكوى من الحالة الحالية. الشكوى محلولة أو مغلقة بالفعل",
+      );
     }
 
     const now = new Date();
@@ -583,7 +612,11 @@ export class ComplaintService {
     return updated;
   }
 
-  static async escalateComplaint(actorId: string, complaintId: string, level: ComplaintEscalationLevelType) {
+  static async escalateComplaint(
+    actorId: string,
+    complaintId: string,
+    level: ComplaintEscalationLevelType,
+  ) {
     // <-- ✅ تحديد نوع المعامل
     authorizeComplaints(actorId, AUDIT_LOG_ACTIONS.COMPLAINT.UPDATE, "تصعيد الشكاوى");
 
@@ -594,12 +627,19 @@ export class ComplaintService {
     }
 
     // ✅ تعريف مصفوفة من النوع الصحيح
-    const escalationLevels: ComplaintEscalationLevelType[] = ["none", "level_1", "level_2", "level_3"];
+    const escalationLevels: ComplaintEscalationLevelType[] = [
+      "none",
+      "level_1",
+      "level_2",
+      "level_3",
+    ];
 
     // ✅ التحقق من أن القيمة من قاعدة البيانات صالحة
     const currentLevel = complaint.escalationLevel as ComplaintEscalationLevelType;
     if (!escalationLevels.includes(currentLevel)) {
-      throw new Error(`بيانات غير صالحة في قاعدة البيانات: مستوى تصعيد غير معروف (${currentLevel})`);
+      throw new Error(
+        `بيانات غير صالحة في قاعدة البيانات: مستوى تصعيد غير معروف (${currentLevel})`,
+      );
     }
     const currentLevelIndex = escalationLevels.indexOf(currentLevel); // ✅ لا حاجة لـ any
 
@@ -650,7 +690,9 @@ export class ComplaintService {
 
     if (!updated) throw Errors.notFound("الشكوى");
 
-    await ActivityService.logActivity(complaintId, actorId, "complaint.level_updated", { newLevel: level });
+    await ActivityService.logActivity(complaintId, actorId, "complaint.level_updated", {
+      newLevel: level,
+    });
 
     return updated;
   }
@@ -715,7 +757,9 @@ export class ComplaintService {
 
     // Bulk user lookup for all items
     const userIds = Array.from(
-      new Set(result.items.flatMap((c) => [c.assignedTo, c.submittedBy]).filter((x): x is string => !!x)),
+      new Set(
+        result.items.flatMap((c) => [c.assignedTo, c.submittedBy]).filter((x): x is string => !!x),
+      ),
     );
 
     const usersMap = await ComplaintRepository.bulkGetUserInfo(userIds);
@@ -851,13 +895,15 @@ export class ComplaintService {
     if (firstAssignmentActivity) {
       responseTime = Math.max(
         0,
-        (new Date(firstAssignmentActivity.createdAt).getTime() - new Date(complaint.createdAt).getTime()) /
+        (new Date(firstAssignmentActivity.createdAt).getTime() -
+          new Date(complaint.createdAt).getTime()) /
         (1000 * 60 * 60),
       );
     } else if (firstSupportComment) {
       responseTime = Math.max(
         0,
-        (new Date(firstSupportComment.createdAt).getTime() - new Date(complaint.createdAt).getTime()) /
+        (new Date(firstSupportComment.createdAt).getTime() -
+          new Date(complaint.createdAt).getTime()) /
         (1000 * 60 * 60),
       );
     }
@@ -917,7 +963,11 @@ export class ComplaintService {
     const usersMap = await ComplaintRepository.bulkGetUserInfo(allUserIds);
 
     // ✅ بناء الخط الزمني بالطريقة الجديدة
-    const timeline = ComplaintService._buildTimelineFromActivity(activity, usersMap, complaint.submittedBy);
+    const timeline = ComplaintService._buildTimelineFromActivity(
+      activity,
+      usersMap,
+      complaint.submittedBy,
+    );
 
     // ✅ تحسين بيانات الأنشطة لتشمل التعليقات
     const enhancedActivity = [
@@ -958,11 +1008,122 @@ export class ComplaintService {
     };
   }
 
+  /* ----- Notification Helpers ----- */
+  private static async sendAssignmentNotification(complaintId: string, assignedToId: string, assignedById: string) {
+    try {
+      const [complaint, assignedToUser, assignedByUser] = await Promise.all([
+        ComplaintRepository.findById(complaintId),
+        ComplaintRepository.validateUserExists(assignedToId),
+        ComplaintRepository.validateUserExists(assignedById),
+      ]);
+
+      if (!complaint || !assignedToUser.personalEmail) return;
+
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const complaintUrl = `${baseUrl}/admin/complaints/${complaintId}`;
+
+      await emailService.send({
+        to: assignedToUser.personalEmail,
+        subject: `تم تعيين شكوى جديدة لك: ${complaint.title}`,
+        template: EMAIL_TEMPLATES.COMPLAINT_ASSIGNED,
+        templateData: {
+          userName: assignedToUser.name,
+          complaintId: complaint.id,
+          complaintTitle: complaint.title,
+          category: complaint.category,
+          priority: complaint.priority,
+          assignedBy: assignedByUser.name,
+          dueDate: complaint.responseDueAt ? new Date(complaint.responseDueAt).toLocaleDateString("ar-EG") : undefined,
+          complaintUrl,
+        },
+        priority: EMAIL_PRIORITY.HIGH,
+      });
+    } catch (error) {
+      console.error("❌ Failed to send assignment notification:", error);
+    }
+  }
+
+  private static async sendStatusUpdateNotification(complaintId: string, oldStatus: string, newStatus: string, updatedById: string) {
+    try {
+      const [complaint, updatedByUser] = await Promise.all([
+        ComplaintRepository.findById(complaintId),
+        ComplaintRepository.validateUserExists(updatedById),
+      ]);
+
+      if (!complaint) return;
+
+      // Notify the submitter
+      const submitter = await ComplaintRepository.validateUserExists(complaint.submittedBy);
+      if (submitter && submitter.personalEmail) {
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        const complaintUrl = `${baseUrl}/dashboard/complaints/${complaintId}`;
+
+        await emailService.send({
+          to: submitter.personalEmail,
+          subject: `تحديث حالة الشكوى: ${complaint.title}`,
+          template: EMAIL_TEMPLATES.COMPLAINT_STATUS_UPDATED,
+          templateData: {
+            userName: submitter.name,
+            complaintId: complaint.id,
+            complaintTitle: complaint.title,
+            oldStatus,
+            newStatus,
+            updatedBy: updatedByUser.name,
+            complaintUrl,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("❌ Failed to send status update notification:", error);
+    }
+  }
+
+  private static async sendResolutionNotification(complaintId: string, resolutionNotes: string, resolvedById: string) {
+    try {
+      const [complaint, resolvedByUser] = await Promise.all([
+        ComplaintRepository.findById(complaintId),
+        ComplaintRepository.validateUserExists(resolvedById),
+      ]);
+
+      if (!complaint) return;
+
+      // Notify the submitter
+      const submitter = await ComplaintRepository.validateUserExists(complaint.submittedBy);
+      if (submitter && submitter.personalEmail) {
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        const complaintUrl = `${baseUrl}/dashboard/complaints/${complaintId}`;
+
+        const resolutionTimeHours = complaint.actualResolutionTime || 0;
+        const resolutionTimeText = resolutionTimeHours > 24
+          ? `${Math.round(resolutionTimeHours / 24)} يوم`
+          : `${resolutionTimeHours} ساعة`;
+
+        await emailService.send({
+          to: submitter.personalEmail,
+          subject: `تم حل الشكوى: ${complaint.title}`,
+          template: EMAIL_TEMPLATES.COMPLAINT_RESOLVED,
+          templateData: {
+            userName: submitter.name,
+            complaintId: complaint.id,
+            complaintTitle: complaint.title,
+            resolvedBy: resolvedByUser.name,
+            resolutionNotes,
+            resolutionTime: resolutionTimeText,
+            complaintUrl,
+          },
+          priority: EMAIL_PRIORITY.HIGH,
+        });
+      }
+    } catch (error) {
+      console.error("❌ Failed to send resolution notification:", error);
+    }
+  }
+
   /* ----- Private Helpers ----- */
   private static _fireAndForgetBackgroundTasks(
     complaintId: string,
     updateData: Partial<UpdateComplaintInput>,
-    actorId: string
+    actorId: string,
   ): void {
     // ⚡ تشغيل في الخلفية بدون انتظار
     setImmediate(async () => {
@@ -975,8 +1136,8 @@ export class ComplaintService {
         }
 
         // تسجيل النشاط
-        const changedFields = Object.keys(updateData).filter(key =>
-          updateData[key as keyof typeof updateData] !== undefined
+        const changedFields = Object.keys(updateData).filter(
+          (key) => updateData[key as keyof typeof updateData] !== undefined,
         );
 
         if (changedFields.length > 0) {
@@ -987,7 +1148,7 @@ export class ComplaintService {
         if (tasks.length > 0) {
           await Promise.race([
             Promise.allSettled(tasks),
-            new Promise(resolve => setTimeout(resolve, 5000)) // timeout 5 ثواني
+            new Promise((resolve) => setTimeout(resolve, 5000)), // timeout 5 ثواني
           ]);
         }
       } catch {
@@ -1048,7 +1209,9 @@ export class ComplaintService {
       archivedAt: complaint.archivedAt ?? null,
       archivedBy: complaint.archivedBy ?? null,
       assignedUserName: complaint.assignedTo ? usersMap.get(complaint.assignedTo)?.name || "" : "",
-      assignedUserEmail: complaint.assignedTo ? usersMap.get(complaint.assignedTo)?.email || "" : "",
+      assignedUserEmail: complaint.assignedTo
+        ? usersMap.get(complaint.assignedTo)?.email || ""
+        : "",
       submittedByUserName: usersMap.get(complaint.submittedBy)?.name || "",
       submittedByUserEmail: usersMap.get(complaint.submittedBy)?.email || "",
       // ✅ إضافات جديدة

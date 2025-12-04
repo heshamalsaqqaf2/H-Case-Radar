@@ -3,13 +3,15 @@ import { SiteHeader } from "@/components/dashboard/layout/site-header";
 import { ProductsOverviewTable } from "@/components/dashboard/widgets/products-overview-table";
 import { ProfitChart } from "@/components/dashboard/widgets/profit-chart";
 import { RecentOrdersTable } from "@/components/dashboard/widgets/recent-orders-table";
+import { SalesChart } from "@/components/dashboard/widgets/sales-chart";
 import { StatsCards } from "@/components/dashboard/widgets/stats-cards";
 import { WebsiteTrafficChart } from "@/components/dashboard/widgets/website-traffic-chart";
 import { WorldMap } from "@/components/ui/Aceternity-UI/world-map";
-import { Globe } from "@/components/ui/magic-ui/globe";
+import Earth from "@/components/ui/magic-ui/globe";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actions";
 import { requireMultiplePermissions } from "@/utils/has-authorization";
+import { WorldMapDemo } from "../home/components/custom/WorldMap";
 
 export default async function DashboardPage() {
   const hasMultipleAuthorization = await requireMultiplePermissions([
@@ -53,7 +55,14 @@ export default async function DashboardPage() {
               <WebsiteTrafficChart />
             </div>
             <div className="lg:col-span-6 min-h-[450px]">
-              <Globe className="mt-[-30]" />
+              {/* <WorldMapDemo /> */}
+
+              <Earth
+                scale={1.1}
+                baseColor={[1, 0, 0.3]}
+                markerColor={[0, 0, 0]}
+                glowColor={[1, 0.3, 0.4]}
+              />
             </div>
             <div className="lg:col-span-3 min-h-[350px]">
               <ProfitChart />

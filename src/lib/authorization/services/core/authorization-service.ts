@@ -92,8 +92,8 @@ export class AuthorizationService {
       action: perm.action,
       conditions:
         typeof perm.conditions === "object" &&
-        perm.conditions !== null &&
-        !Array.isArray(perm.conditions)
+          perm.conditions !== null &&
+          !Array.isArray(perm.conditions)
           ? (perm.conditions as Record<string, unknown>)
           : null,
     }));

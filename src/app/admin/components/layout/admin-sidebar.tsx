@@ -49,7 +49,7 @@ export function AdminSidebar({ items, user }: AdminSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:p-1.5!">
               <Link href="/admin">
-                <IconInnerShadowTop className="size-5! text-sidebar-primary" />
+                <IconInnerShadowTop className="size-5!" />
                 <span className="text-base font-semibold">H-Case Radar</span>
               </Link>
             </SidebarMenuButton>
@@ -88,8 +88,7 @@ export function AdminSidebar({ items, user }: AdminSidebarProps) {
             email: user.email,
             avatar: user.image ?? undefined,
           }}
-          onSignOut={signOutAction}
-        />
+          onSignOut={signOutAction} />
       </SidebarFooter>
     </Sidebar>
   );

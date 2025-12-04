@@ -197,6 +197,14 @@ export async function createUserAction(input: CreateUserInput) {
       data: result,
     });
   } catch (error) {
+    console.error("=== RAW ERROR IN createUserAction ===");
+    console.error(error);
+    if (error instanceof Error) {
+      console.error("Error Message:", error.message);
+      console.error("Error Stack:", error.stack);
+    }
+    console.error("=== END RAW ERROR createUserAction ===");
+    // === END DEBUGGING CODE ===
     return handleFailure(error);
   }
 }

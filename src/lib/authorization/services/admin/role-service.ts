@@ -181,14 +181,14 @@ export async function getRoleProfileData(roleId: string): Promise<RoleProfileDat
     timestamp: Date;
     type: "view" | "create" | "update" | "delete";
   }> = [
-    {
-      id: "1", // ✅ تغيير من number إلى string
-      action: "Profile Viewed",
-      description: "Role profile was accessed",
-      timestamp: new Date(),
-      type: "view" as const,
-    },
-  ];
+      {
+        id: "1", // ✅ تغيير من number إلى string
+        action: "Profile Viewed",
+        description: "Role profile was accessed",
+        timestamp: new Date(),
+        type: "view" as const,
+      },
+    ];
 
   return {
     role: roleData[0], // ✅ إزالة userCount - ليس جزءاً من Role
@@ -201,146 +201,3 @@ export async function getRoleProfileData(roleId: string): Promise<RoleProfileDat
     activity,
   };
 }
-
-// export async function getRoleProfileData(roleId: string): Promise<RoleProfileData | null> {
-//   const [roleData, usersData, permissionsData] = await Promise.all([
-//     db
-//       .select({
-//         id: role.id,
-//         name: role.name,
-//         description: role.description,
-//         isDefault: role.isDefault,
-//         createdAt: role.createdAt,
-//         updatedAt: role.updatedAt,
-//       })
-//       .from(role)
-//       .where(eq(role.id, roleId))
-//       .limit(1),
-
-//     db
-//       .select({
-//         id: user.id,
-//         name: user.name,
-//         email: user.email,
-//         createdAt: user.createdAt,
-//         assignedAt: userRoles.createdAt,
-//       })
-//       .from(userRoles)
-//       .innerJoin(user, eq(userRoles.userId, user.id))
-//       .where(eq(userRoles.roleId, roleId))
-//       .orderBy(user.name)
-//       .limit(20), // ✅ حد معقول
-
-//     db
-//       .select({
-//         permissionId: permission.id,
-//         permissionName: permission.name,
-//         resource: permission.resource,
-//         action: permission.action,
-//       })
-//       .from(rolePermissions)
-//       .innerJoin(permission, eq(rolePermissions.permissionId, permission.id))
-//       .where(eq(rolePermissions.roleId, roleId)),
-//   ]);
-
-//   if (roleData.length === 0) {
-//     return null;
-//   }
-
-//   // ✅ activity أكثر واقعية (إذا كان لديك جدول audit)
-//   const activity = [
-//     {
-//       id: 1,
-//       action: "Profile Viewed",
-//       description: "Role profile was accessed",
-//       timestamp: new Date(),
-//       type: "view" as const,
-//     },
-//   ];
-
-//   return {
-//     role: {
-//       ...roleData[0],
-//       userCount: usersData.length,
-//     },
-//     users: usersData,
-//     permissions: permissionsData as RolePermission[],
-//     statistics: {
-//       usersCount: usersData.length,
-//       permissionsCount: permissionsData.length,
-//     },
-//     activity,
-//   };
-// }
-
-// export async function getRoleProfileData(roleId: string) {
-//   try {
-//     const [roleData, usersData, permissionsData] = await Promise.all([
-//       db
-//         .select({
-//           id: role.id,
-//           name: role.name,
-//           description: role.description,
-//           isDefault: role.isDefault,
-//           createdAt: role.createdAt,
-//           updatedAt: role.updatedAt,
-//         })
-//         .from(role)
-//         .where(eq(role.id, roleId))
-//         .limit(1),
-
-//       db
-//         .select({
-//           id: user.id,
-//           name: user.name,
-//           email: user.email,
-//           createdAt: user.createdAt,
-//           assignedAt: userRoles.createdAt,
-//         })
-//         .from(userRoles)
-//         .innerJoin(user, eq(userRoles.userId, user.id))
-//         .where(eq(userRoles.roleId, roleId))
-//         .orderBy(user.name)
-//         .limit(50),
-
-//       db
-//         .select({
-//           permissionId: permission.id,
-//           permissionName: permission.name,
-//           resource: permission.resource,
-//           action: permission.action,
-//         })
-//         .from(rolePermissions)
-//         .innerJoin(permission, eq(rolePermissions.permissionId, permission.id))
-//         .where(eq(rolePermissions.roleId, roleId)),
-//     ]);
-
-//     if (roleData.length === 0) {
-//       throw Errors.notFound("الدور");
-//     }
-
-//     const activity = [
-//       {
-//         id: 1,
-//         action: "Profile Viewed",
-//         description: "Role profile was accessed",
-//         timestamp: new Date(),
-//         type: "view" as const,
-//       },
-//     ];
-
-//     return {
-//       role: roleData[0],
-//       users: usersData,
-//       permissions: permissionsData as RolePermission[],
-//       statistics: {
-//         usersCount: usersData.length,
-//         permissionsCount: permissionsData.length,
-//       },
-//       activity,
-//     } satisfies RoleProfileData;
-//   } catch (error) {
-//     if (error instanceof AppError) throw error;
-//     throw Errors.database(error);
-//   }
-// }

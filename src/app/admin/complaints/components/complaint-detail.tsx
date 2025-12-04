@@ -8,12 +8,10 @@ import {
   ArrowLeft,
   Calendar,
   Clock,
-  Edit,
   Edit2,
   FileText,
   MessageSquare,
   Paperclip,
-  PlusIcon,
   SlashIcon,
   User,
 } from "lucide-react";
@@ -22,7 +20,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { HeaderDashboardPage } from "@/components/admin/header-dashboard-page";
 import { DashboardError } from "@/components/dashboard/errors/error-state";
-import { EmotionalLoading } from "@/components/shared/loading-state";
+import { LoadingState } from "@/components/shared/loading-state";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -73,7 +71,7 @@ export function ComplaintDetail({ complaintId }: ComplaintDetailProps) {
   const complaint = complaintResult?.success ? complaintResult.data : null;
   const profile = profileResult?.success ? profileResult.data : null;
 
-  if (isLoading) return <EmotionalLoading />;
+  if (isLoading) return <LoadingState />;
 
   if (error)
     return (

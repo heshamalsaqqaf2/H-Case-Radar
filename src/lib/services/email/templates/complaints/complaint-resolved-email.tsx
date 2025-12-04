@@ -1,5 +1,4 @@
 import { Button, Heading, Hr, Section, Text } from "@react-email/components";
-import * as React from "react";
 import type { ComplaintResolvedEmailData } from "../../types/email-types";
 import EmailLayout from "../base/email-layout";
 

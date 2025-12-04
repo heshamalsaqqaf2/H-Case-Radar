@@ -16,16 +16,12 @@ const products = [
   { name: "Orange Smart Watch (24mm)", id: "#1962-9033", price: "$199.99", status: "In Offer", sales: "10,287", revenue: "$2,32,982.99", image: "/images/product5.jpg" },
 ];
 
-import { ScifiCorner, ScifiScanline } from "@/components/dashboard/shared/scifi-decorations";
+import { ScifiScanline } from "@/components/dashboard/shared/scifi-decorations";
 
 export function ProductsOverviewTable() {
   return (
     <Card className="scifi-card h-full relative overflow-hidden group">
       <ScifiScanline />
-      <ScifiCorner position="top-left" />
-      <ScifiCorner position="top-right" />
-      <ScifiCorner position="bottom-left" />
-      <ScifiCorner position="bottom-right" />
 
       <CardHeader className="flex flex-row items-center justify-between relative z-10">
         <CardTitle className="text-base font-semibold text-white drop-shadow-[0_0_8px_rgba(0,242,255,0.4)]">

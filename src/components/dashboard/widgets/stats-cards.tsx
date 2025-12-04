@@ -1,6 +1,6 @@
 "use client";
 
-import { IconAlertCircle, IconEye, IconLock, IconUser } from "@tabler/icons-react";
+import { IconAlertCircle, IconEye, IconLock, IconShield, IconUser } from "@tabler/icons-react";
 
 const stats = [
   {
@@ -39,25 +39,32 @@ const stats = [
     progress: 25,
     color: "#8b5cf6", // Purple
   },
+  {
+    label: "إجمالي الصلاحيات",
+    value: "65",
+    change: "0.18%",
+    trend: "up",
+    icon: IconShield,
+    progress: 59,
+    color: "#10b981", // emerald
+  },
 ];
 
 export function StatsCards() {
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
       {stats.map((stat, index) => (
-        <div key={index.toString()} className="relative group h-full bg-[#050b14]/80 border rounded-lg border-primary/20 overflow-hidden">
+        <div key={index.toString()} className="relative group h-full bg-[#050b14]/80 border border-primary/20 overflow-hidden">
           {/* Vertical Gradient Glow Effect - Top to Bottom */}
           <div className="absolute inset-0 bg-linear-to-b from-emerald-500/30 via-emerald-600/5 to-transparent opacity-50 group-hover:opacity-40 transition-opacity duration-500" />
 
           {/* Subtle Corner Brackets with Glow */}
-          <div className="absolute top-0 right-0 w-4 h-9 border-t border-r border-primary" style={{ filter: 'drop-shadow(0 0 4px rgba(0, 242, 255, 0.9))' }} />
-          <div className="absolute bottom-0 left-0 w-4 h-8 border-b border-l border-primary" style={{ filter: 'drop-shadow(0 0 4px rgba(0, 242, 255, 0.9))' }} />
-          {/* <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-primary/80" style={{ filter: 'drop-shadow(0 0 4px rgba(0, 242, 255, 1.9))' }} /> */}
-          {/* <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-primary/20" style={{ filter: 'drop-shadow(0 0 4px rgba(0, 242, 255, 1.9))' }} /> */}
+          <div className="absolute top-0 right-0 w-4 h-6 border-t border-r border-primary" style={{ filter: 'drop-shadow(0 0 4px rgba(0, 242, 255, 0.9))' }} />
+          <div className="absolute bottom-0 left-0 w-4 h-6 border-b border-l border-primary" style={{ filter: 'drop-shadow(0 0 4px rgba(0, 242, 255, 0.9))' }} />
 
           {/* Top and Bottom Bracket Borders */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/4 h-[2px] bg-linear-to-l from-emerald-500 to-lime-500 shadow-[0_0_10px_rgba(0,242,255,0.8)] z-20" />
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/5 h-[2px] bg-linear-to-l from-lime-500 to-emerald-500 shadow-[0_0_10px_rgba(0,242,255,0.8)] z-20" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/4 h-[2px] bg-linear-to-t from-emerald-500 to-lime-500 shadow-[0_0_10px_rgba(0,242,255,0.8)] z-20" />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/5 h-[2px] bg-linear-to-t from-lime-500 to-emerald-500 shadow-[0_0_10px_rgba(0,242,255,0.8)] z-20" />
 
           {/* Background Grid */}
           <div className="absolute inset-0 bg-[linear-gradient(rgba(0,242,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,242,255,0.03)_1px,transparent_1px)] bg-size-[20px_20px]" />

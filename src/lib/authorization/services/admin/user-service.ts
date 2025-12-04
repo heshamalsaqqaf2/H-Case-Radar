@@ -1,5 +1,4 @@
 // src/lib/authorization/services/admin/user-service.ts
-
 import { and, count, desc, eq, not } from "drizzle-orm";
 import { auth } from "@/lib/authentication/auth-server";
 import { AUDIT_LOG_ACTIONS } from "@/lib/authorization/constants/audit-log-actions";
@@ -16,7 +15,8 @@ import type {
 import { auditLog, role, user, userRoles } from "@/lib/database/schema";
 import { database as db } from "@/lib/database/server";
 import { Errors } from "@/lib/errors/error-factory";
-import { sendCredentialsEmail } from "@/lib/services/email/templates/sendCredentialsEmail";
+import { emailService } from "@/lib/services/email/services/email-service";
+import { EMAIL_PRIORITY, EMAIL_TEMPLATES } from "@/lib/services/email/types/email-types";
 
 async function authorize(userId: string, requiredPermission: string) {
   const check = await authorizationService.checkPermission({ userId }, requiredPermission);
@@ -115,7 +115,9 @@ export async function assignRoleToUser(userId: string, targetUserId: string, rol
 export async function removeRoleFromUser(userId: string, targetUserId: string, roleId: string) {
   await authorize(userId, AUDIT_LOG_ACTIONS.USER.REMOVE_ROLE); //"users.remove_roles"
 
-  await db.delete(userRoles).where(and(eq(userRoles.userId, targetUserId), eq(userRoles.roleId, roleId)));
+  await db
+    .delete(userRoles)
+    .where(and(eq(userRoles.userId, targetUserId), eq(userRoles.roleId, roleId)));
 }
 
 export async function getCurrentUser(userId: string) {
@@ -220,7 +222,7 @@ export async function getUserStatistics(userId: string) {
     db
       .select({ count: count() })
       .from(auditLog)
-      .where(and(eq(auditLog.userId, userId), eq(auditLog.action, AUDIT_LOG_ACTIONS.USER.LOGIN))), // "user.login"
+      .where(and(eq(auditLog.userId, userId), eq(auditLog?.action, AUDIT_LOG_ACTIONS.USER.LOGIN))), // "user.login"
     db
       .select({ timestamp: auditLog.createdAt })
       .from(auditLog)
@@ -309,6 +311,13 @@ export async function createUserWithRoles(
     updatedAt: new Date(),
   };
 
+  // تعيين الحالة للمستخدم عند انشاء الحساب
+  const assign_account_status = authResult.user as unknown as CreateUserInput;
+  const assigned_account_status = assign_account_status.accountStatus;
+  if (assigned_account_status) {
+    assign_account_status.accountStatus;
+  }
+
   // تعيين الأدوار المطلوبة
   const assignedRoles: UserRole[] = [];
   if (userData.roleIds && userData.roleIds.length > 0) {
@@ -327,17 +336,30 @@ export async function createUserWithRoles(
   }
 
   // ارسال بيانات الدخول عبر البريد الإلكتروني
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const loginUrl = `${baseUrl}/sign-in`; // أو المسار الذي تستخدمه لتسجيل الدخول
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const loginUrl = `${baseUrl}/sign-in`;
+
   if (userData.sendCredentialsEmail) {
-    console.log("DEBUG: Attempting to send welcome email to:", userData.personalEmail); // ← أضف هذا
-    await sendCredentialsEmail({
-      to: userData.personalEmail,
-      subject: "بيانات حسابك في نظام إدارة البلاغات",
-      email: userData.email,
-      password: userData.password,
-      urlCallback: loginUrl,
-    });
+    console.log("📧 Sending credentials email to:", userData.personalEmail);
+
+    try {
+      await emailService.send({
+        to: userData.personalEmail,
+        subject: "بيانات حسابك في نظام H-Case-Radar",
+        template: EMAIL_TEMPLATES.CREDENTIALS,
+        templateData: {
+          userName: userData.name,
+          email: userData.email,
+          password: userData.password,
+          loginUrl,
+        },
+        priority: EMAIL_PRIORITY.HIGH,
+      });
+      console.log("✅ Credentials email sent successfully");
+    } catch (error) {
+      console.error("❌ Failed to send credentials email:", error);
+      // لا نوقف العملية إذا فشل إرسال البريد، لكن نسجل الخطأ
+    }
   }
 
   return {
@@ -346,36 +368,3 @@ export async function createUserWithRoles(
     assignedRoles,
   };
 }
-
-/**
- * تتحقق مما إذا كان المستخدم المحدد لديه دور معين باستخدام Drizzle ORM.
- * هذه الدالة مصممة خصيصًا للمخطط الذي يستخدم `text` لمعرف المستخدم و `uuid` لمعرف الدور.
- * @param userId - معرف المستخدم (من نوع text) الذي نريد التحقق منه.
- * @param roleName - اسم الدور الذي نبحث عنه (مثال: "super_admin").
- * @returns Promise<boolean> - يرجع true إذا كان المستخدم لديه الدور، و false خلاف ذلك.
- */
-// export async function hasRole(userId: string, roleName: string): Promise<boolean> {
-//   if (!userId || !roleName) {
-//     throw Errors.forbidden("عرض الأدوار");
-//   }
-
-//   // استعلام علائقي (Relational Query) للتحقق من دور المستخدم
-//   const userWithRole = await db.query.user.findFirst({
-//     where: eq(user.id, userId), // البحث عن المستخدم باستخدام معرفه النصي
-//     with: {
-//       // جلب العلاقة مع الأدوار عبر جدول user_roles
-//       userRoles: {
-//         with: {
-//           // جلب تفاصيل الدور نفسه
-//           role: true,
-//         },
-//         // تصفية النتائج للبحث عن دور معين فقط
-//         where: eq(role.name, roleName),
-//       },
-//     },
-//   });
-
-//   // إذا تم العثور على المستخدم وكان لديه دور واحد على الأقل يطابق الاسم المطلوب
-//   // فإن userWithRole.userRoles لن يكون مصفوفة فارغة
-//   return !!userWithRole && userWithRole.userRoles.length > 0;
-// }

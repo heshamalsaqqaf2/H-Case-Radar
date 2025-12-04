@@ -44,17 +44,16 @@ export function RecentActivity() {
         <div className="space-y-4">
           {activities.map((activity) => (
             <div key={activity.id} className="flex items-start space-x-4">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div
-                  className={`w-2 h-2 rounded-full mt-2 ${
-                    activity.type === "user"
+                  className={`w-2 h-2 rounded-full mt-2 ${activity.type === "user"
                       ? "bg-blue-500"
                       : activity.type === "role"
                         ? "bg-green-500"
                         : activity.type === "permission"
                           ? "bg-purple-500"
                           : "bg-orange-500"
-                  }`}
+                    }`}
                 />
               </div>
               <div className="flex-1 space-y-1">

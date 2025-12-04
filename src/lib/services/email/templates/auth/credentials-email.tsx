@@ -1,6 +1,4 @@
-import { Button, Heading, Section, Text } from "@react-email/components";
-import { HeartHandshakeIcon } from "lucide-react";
-import * as React from "react";
+import { Button, Heading, Hr, Section, Text } from "@react-email/components";
 import type { CredentialsEmailData } from "../../types/email-types";
 import EmailLayout from "../base/email-layout";
 
@@ -23,7 +21,7 @@ export const CredentialsEmail = ({ userName, email, password, loginUrl }: Creden
         </Text>
         <Text className="m-0 text-[18px] font-mono font-bold text-text mb-[16px]">{email}</Text>
 
-        <HeartHandshakeIcon className="border-border my-[12px]" />
+        <Hr className="border-border my-[12px]" />
 
         <Text className="m-0 text-[14px] text-muted uppercase tracking-wider mb-[8px]">
           كلمة المرور المؤقتة

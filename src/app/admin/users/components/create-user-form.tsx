@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { InteractiveHoverButton } from "@/components/ui/magic-ui/button/interactive-hover-button";
-import { ShinyButton } from "@/components/ui/magic-ui/button/shiny-button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { useRolesList } from "@/lib/authorization/hooks/admin/use-roles";
@@ -43,7 +42,7 @@ const createUserSchema = z
     email: z.string().email("بريد إلكتروني غير صحيح"),
     personalEmail: z.string().email("البريد الشخصي غير صحيح"),
     password: z.string().min(8, "كلمة المرور يجب أن تكون 8 أحرف على الأقل"),
-    accountStatus: z.string(),
+    accountStatus: z.string().min(1, "يجب اختيار حالة الحساب"),
     roleIds: z.array(z.string()).min(1, "يجب اختيار دور واحد على الأقل"),
     sendCredentialsEmail: z.boolean(),
   })
@@ -196,10 +195,10 @@ export function CreateUserForm() {
                     </div>
                   </FormControl>
                   <FormDescription>
-                    <p className="flex items-center justify-end text-xs text-muted-foreground">
+                    <span className="flex items-center justify-end text-xs text-muted-foreground">
                       بريد إلكتروني خاص بالنظام للتسجيل والدخول
                       <Info className="text-red-500 ml-2 mr-2 h-4 w-4" />
-                    </p>
+                    </span>
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -318,7 +317,7 @@ export function CreateUserForm() {
 
                       {/* عرض الأدوار المختارة */}
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {field.value.map((roleId: string) => {
+                        {field.value?.map((roleId: string) => {
                           const role = roles.find((r: Role) => r.id === roleId);
                           return role ? (
                             <Badge key={roleId} variant="secondary" className="flex items-center gap-1">
